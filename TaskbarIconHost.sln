@@ -1,0 +1,50 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2035
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskbarIconHost", "TaskbarIconHost\TaskbarIconHost.csproj", "{B4EDCD57-B676-45A3-A6E3-B855027EC56B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DAB7B295-158F-46EB-AED3-756A80B9CAB8} = {DAB7B295-158F-46EB-AED3-756A80B9CAB8}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test-Plugin", "Test-Plugin\Test-Plugin.csproj", "{DAB7B295-158F-46EB-AED3-756A80B9CAB8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskbarIconShared", "TaskbarIconShared\TaskbarIconShared.csproj", "{EA29A87F-BD3E-46D0-869A-A5C5076EAF9E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B4EDCD57-B676-45A3-A6E3-B855027EC56B}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{B4EDCD57-B676-45A3-A6E3-B855027EC56B}.Debug|x64.ActiveCfg = Debug|x64
+		{B4EDCD57-B676-45A3-A6E3-B855027EC56B}.Debug|x64.Build.0 = Debug|x64
+		{B4EDCD57-B676-45A3-A6E3-B855027EC56B}.Release|Any CPU.ActiveCfg = Release|x64
+		{B4EDCD57-B676-45A3-A6E3-B855027EC56B}.Release|x64.ActiveCfg = Release|x64
+		{B4EDCD57-B676-45A3-A6E3-B855027EC56B}.Release|x64.Build.0 = Release|x64
+		{DAB7B295-158F-46EB-AED3-756A80B9CAB8}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{DAB7B295-158F-46EB-AED3-756A80B9CAB8}.Debug|x64.ActiveCfg = Debug|x64
+		{DAB7B295-158F-46EB-AED3-756A80B9CAB8}.Debug|x64.Build.0 = Debug|x64
+		{DAB7B295-158F-46EB-AED3-756A80B9CAB8}.Release|Any CPU.ActiveCfg = Release|x64
+		{DAB7B295-158F-46EB-AED3-756A80B9CAB8}.Release|x64.ActiveCfg = Release|x64
+		{DAB7B295-158F-46EB-AED3-756A80B9CAB8}.Release|x64.Build.0 = Release|x64
+		{EA29A87F-BD3E-46D0-869A-A5C5076EAF9E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA29A87F-BD3E-46D0-869A-A5C5076EAF9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA29A87F-BD3E-46D0-869A-A5C5076EAF9E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{EA29A87F-BD3E-46D0-869A-A5C5076EAF9E}.Debug|x64.Build.0 = Debug|Any CPU
+		{EA29A87F-BD3E-46D0-869A-A5C5076EAF9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA29A87F-BD3E-46D0-869A-A5C5076EAF9E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA29A87F-BD3E-46D0-869A-A5C5076EAF9E}.Release|x64.ActiveCfg = Release|Any CPU
+		{EA29A87F-BD3E-46D0-869A-A5C5076EAF9E}.Release|x64.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B6F8E6EE-A9A0-4996-AB47-374C41EB64CE}
+	EndGlobalSection
+EndGlobal
