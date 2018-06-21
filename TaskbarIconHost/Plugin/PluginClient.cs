@@ -70,10 +70,18 @@ namespace TaskbarIconHost
             PluginManager.ExecutePluginMethod(PluginHandle, nameof(IPluginClient.ExecuteCommandHandler), Command);
         }
 
-        public bool IsIconChanged { get { return PluginManager.PluginProperty<bool>(PluginHandle, nameof(IPluginClient.IsIconChanged)); } }
+        public bool GetIsIconChanged()
+        {
+            return PluginManager.GetPluginFunctionValue<bool>(PluginHandle, nameof(IPluginClient.GetIsIconChanged));
+        }
+
         public Icon Icon { get { return PluginManager.PluginProperty<Icon>(PluginHandle, nameof(IPluginClient.Icon)); } }
 
-        public bool IsToolTipChanged { get { return PluginManager.PluginProperty<bool>(PluginHandle, nameof(IPluginClient.IsToolTipChanged)); } }
+        public bool GetIsToolTipChanged()
+        {
+            return PluginManager.GetPluginFunctionValue<bool>(PluginHandle, nameof(IPluginClient.GetIsToolTipChanged));
+        }
+
         public string ToolTip { get { return PluginManager.PluginProperty<string>(PluginHandle, nameof(IPluginClient.ToolTip)); } }
 
         public bool CanClose(bool canClose)

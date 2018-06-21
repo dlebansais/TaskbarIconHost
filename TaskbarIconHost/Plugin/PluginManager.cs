@@ -249,9 +249,9 @@ namespace TaskbarIconHost
             Plugin.ExecuteCommandHandler(Command);
         }
 
-        public static bool IsIconChanged
+        public static bool GetIsIconChanged()
         {
-            get { return PreferredPlugin != null ? PreferredPlugin.IsIconChanged : false; }
+            return PreferredPlugin != null ? PreferredPlugin.GetIsIconChanged() : false;
         }
 
         public static Icon Icon
@@ -259,9 +259,9 @@ namespace TaskbarIconHost
             get { return PreferredPlugin != null ? PreferredPlugin.Icon : null; }
         }
 
-        public static bool IsToolTipChanged
+        public static bool GetIsToolTipChanged()
         {
-            get { return PreferredPlugin != null ? PreferredPlugin.IsToolTipChanged : false; }
+            return PreferredPlugin != null ? PreferredPlugin.GetIsToolTipChanged() : false;
         }
 
         public static string ToolTip

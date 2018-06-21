@@ -21,7 +21,7 @@ Here is a non exhaustive list of plugins:
 - [PgMessenger](https://github.com/dlebansais/PgMessenger): displays the global and guild chat in *Project: Gorgon* even when offline.  
 
 # Creating your own plugin
-1. Create a C# class library project with Visual Studio, and add a reference to the `TaskbarIconShared` assembly. Also add a reference to `System.Drawing` and `WindowsBase`. 
+1. Create a C# class library project with Visual Studio, and add a reference to the `TaskbarIconShared` assembly. Also add a reference to `System.Drawing` and `WindowsBase`, and most likely to `PresentationCore` as well for routed commands.
 2. Create a class that inherits from `TaskbarIconHost.IPluginClient` and implement the interface.
 3. Copy your assembly in the same folder as TaskbarIconHost.exe (there is no need to copy TaskbarIconShared.dll). Note: *only 64-bit assemblies are recognized*. 
 4. Restart TaskbarIconHost.exe and your plugin to be detected. If you make changes, you must exit and restart it to be able to replace the plugin with your modified binary. 

@@ -305,13 +305,13 @@ namespace TaskbarIconHost
 
             PluginManager.ExecuteCommandHandler(e.Command);
 
-            if (PluginManager.IsIconChanged)
+            if (PluginManager.GetIsIconChanged())
             {
                 Icon Icon = PluginManager.Icon;
                 TaskbarIcon.UpdateIcon(Icon);
             }
 
-            if (PluginManager.IsToolTipChanged)
+            if (PluginManager.GetIsToolTipChanged())
             {
                 string ToolTip = PluginManager.ToolTip;
                 TaskbarIcon.UpdateToolTip(ToolTip);

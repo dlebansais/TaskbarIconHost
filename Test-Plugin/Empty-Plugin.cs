@@ -68,9 +68,9 @@ namespace Empty
         {
         }
 
-        public bool IsIconChanged
+        public bool GetIsIconChanged()
         {
-            get { return false; }
+            return false;
         }
 
         public Icon Icon
@@ -78,9 +78,9 @@ namespace Empty
             get { return null; }
         }
 
-        public bool IsToolTipChanged
+        public bool GetIsToolTipChanged()
         {
-            get { return false; }
+            return false;
         }
 
         public string ToolTip

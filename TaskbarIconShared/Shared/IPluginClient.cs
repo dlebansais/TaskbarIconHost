@@ -22,10 +22,10 @@ namespace TaskbarIconHost
         void OnMenuOpening();
         void ExecuteCommandHandler(ICommand Command);
 
-        bool IsIconChanged { get; }
+        bool GetIsIconChanged();
         Icon Icon { get; }
 
-        bool IsToolTipChanged { get; }
+        bool GetIsToolTipChanged();
         string ToolTip { get; }
 
         bool CanClose(bool canClose);
