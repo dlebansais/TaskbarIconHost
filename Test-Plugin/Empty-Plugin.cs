@@ -4,6 +4,9 @@ using System.Drawing;
 using System.Windows.Input;
 using System.Windows.Threading;
 
+/// <summary>
+/// This sample code demonstrates how to implement a default plugin that does nothing.
+/// </summary>
 namespace Empty
 {
     public class EmptyPlugin : System.MarshalByRefObject, TaskbarIconHost.IPluginClient
