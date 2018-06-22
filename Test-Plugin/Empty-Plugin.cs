@@ -18,7 +18,7 @@ namespace Empty
 
         public Guid Guid
         {
-            get { return Guid.Empty; }
+            get { return new Guid("{C54607CF-0D48-4105-BB17-D30C0B0A8A2A}"); } // Do not copy this line, use your own Guid.
         }
 
         public bool RequireElevated

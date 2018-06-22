@@ -10,11 +10,12 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Threading;
 using TaskbarTools;
 
 namespace TaskbarIconHost
 {
-    public partial class App : Application
+    public partial class App : Application, IDisposable
     {
         #region Init
         static App()
@@ -49,8 +50,51 @@ namespace TaskbarIconHost
                 return;
             }
 
-            Startup += OnStartup;
-            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            // This code is here mostly to make sure that the Taskbar static class is initialized ASAP.
+            if (Taskbar.ScreenBounds.IsEmpty)
+                Shutdown();
+            else
+            {
+                Startup += OnStartup;
+                ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            }
+        }
+
+        private void OnStartup(object sender, StartupEventArgs e)
+        {
+            Logger.AddLog("OnStartup");
+
+            InitTimer();
+
+            if (InitPlugInManager())
+            {
+                InitTaskbarIcon();
+
+                Exit += OnExit;
+            }
+            else
+            {
+                CleanupTimer();
+                Shutdown();
+            }
+        }
+
+        private void OnExit(object sender, ExitEventArgs e)
+        {
+            Logger.AddLog("Exiting application");
+
+            StopPlugInManager();
+            CleanupTaskbarIcon();
+            CleanupTimer();
+
+            if (InstanceEvent != null)
+            {
+                InstanceEvent.Close();
+                InstanceEvent = null;
+            }
+
+            Logger.AddLog("Done");
+            UpdateLogger();
         }
 
         private EventWaitHandle InstanceEvent;
@@ -119,6 +163,14 @@ namespace TaskbarIconHost
             TaskbarIcon.MenuOpening += OnMenuOpening;
 
             Logger.AddLog("InitTaskbarIcon done");
+        }
+
+        private void CleanupTaskbarIcon()
+        {
+            using (TaskbarIcon Icon = TaskbarIcon)
+            {
+                TaskbarIcon = null;
+            }
         }
 
         private void AddMenuCommand(ICommand Command, ExecutedRoutedEventHandler executed)
@@ -269,57 +321,6 @@ namespace TaskbarIconHost
             PluginManager.OnMenuOpening();
         }
 
-        public TaskbarIcon TaskbarIcon { get; private set; }
-        private static readonly string LoadAtStartupHeader = "Load at startup";
-        private static readonly string RemoveFromStartupHeader = "Remove from startup";
-        private ICommand LoadAtStartupCommand;
-        private ICommand ExitCommand;
-        #endregion
-
-        #region Events
-        private void OnStartup(object sender, StartupEventArgs e)
-        {
-            Logger.AddLog("OnStartup");
-
-            if (InitPlugInManager())
-            {
-                InitTaskbarIcon();
-
-                Exit += OnExit;
-            }
-            else
-                Shutdown();
-        }
-
-        private void OnCommandLoadAtStartup(object sender, ExecutedRoutedEventArgs e)
-        {
-            Logger.AddLog("OnCommandLoadAtStartup");
-
-            TaskbarIcon.ToggleMenuIsChecked(LoadAtStartupCommand, out bool Install);
-            InstallLoad(Install);
-        }
-
-        private void OnPluginCommand(object sender, ExecutedRoutedEventArgs e)
-        {
-            Logger.AddLog("OnPluginCommand");
-
-            PluginManager.ExecuteCommandHandler(e.Command);
-
-            if (PluginManager.GetIsIconChanged())
-            {
-                Icon Icon = PluginManager.Icon;
-                TaskbarIcon.UpdateIcon(Icon);
-            }
-
-            if (PluginManager.GetIsToolTipChanged())
-            {
-                string ToolTip = PluginManager.ToolTip;
-                TaskbarIcon.UpdateToolTip(ToolTip);
-            }
-
-            UpdateMenu();
-        }
-
         private void UpdateMenu()
         {
             foreach (ICommand Command in PluginManager.GetChangedCommands())
@@ -345,50 +346,114 @@ namespace TaskbarIconHost
             }
         }
 
+        public TaskbarIcon TaskbarIcon { get; private set; }
+        private static readonly string LoadAtStartupHeader = "Load at startup";
+        private static readonly string RemoveFromStartupHeader = "Remove from startup";
+        private ICommand LoadAtStartupCommand;
+        private ICommand ExitCommand;
+        private bool IsIconChanged;
+        private bool IsToolTipChanged;
+        #endregion
+
+        #region Events
+        private void OnCommandLoadAtStartup(object sender, ExecutedRoutedEventArgs e)
+        {
+            Logger.AddLog("OnCommandLoadAtStartup");
+
+            TaskbarIcon.ToggleMenuIsChecked(LoadAtStartupCommand, out bool Install);
+            InstallLoad(Install);
+        }
+
+        private bool GetIsIconOrToolTipChanged()
+        {
+            IsIconChanged |= PluginManager.GetIsIconChanged();
+            IsToolTipChanged |= PluginManager.GetIsToolTipChanged();
+
+            return IsIconChanged || IsToolTipChanged;
+        }
+
+        private void UpdateIconAndToolTip()
+        {
+            if (IsIconChanged)
+            {
+                IsIconChanged = false;
+                Icon Icon = PluginManager.Icon;
+                TaskbarIcon.UpdateIcon(Icon);
+            }
+
+            if (IsToolTipChanged)
+            {
+                IsToolTipChanged = false;
+                string ToolTip = PluginManager.ToolTip;
+                TaskbarIcon.UpdateToolTip(ToolTip);
+            }
+        }
+
+        private void OnPluginCommand(object sender, ExecutedRoutedEventArgs e)
+        {
+            Logger.AddLog("OnPluginCommand");
+
+            PluginManager.ExecuteCommandHandler(e.Command);
+
+            if (GetIsIconOrToolTipChanged())
+                UpdateIconAndToolTip();
+
+            UpdateMenu();
+        }
+
         private void OnCommandExit(object sender, ExecutedRoutedEventArgs e)
         {
             Logger.AddLog("OnCommandExit");
 
             Shutdown();
         }
+        #endregion
 
-        private void OnExit(object sender, ExitEventArgs e)
+        #region Timer
+        private void InitTimer()
         {
-            Logger.AddLog("Exiting application");
-
-            StopPlugInManager();
-
-            if (InstanceEvent != null)
-            {
-                InstanceEvent.Close();
-                InstanceEvent = null;
-            }
-
-            using (TaskbarIcon Icon = TaskbarIcon)
-            {
-                TaskbarIcon = null;
-            }
-
-            Logger.AddLog("Done");
+            AppTimer = new Timer(new TimerCallback(AppTimerCallback));
+            AppTimer.Change(CheckInterval, CheckInterval);
         }
+
+        private void AppTimerCallback(object parameter)
+        {
+            UpdateLogger();
+
+            if (AppTimerOperation == null || (AppTimerOperation.Status == DispatcherOperationStatus.Completed && GetIsIconOrToolTipChanged()))
+                AppTimerOperation = Dispatcher.BeginInvoke(DispatcherPriority.Normal, new System.Action(OnAppTimer));
+        }
+
+        private void OnAppTimer()
+        {
+            UpdateIconAndToolTip();
+        }
+
+        private void CleanupTimer()
+        {
+            if (AppTimer != null)
+            {
+                AppTimer.Dispose();
+                AppTimer = null;
+            }
+        }
+
+        private Timer AppTimer;
+        private DispatcherOperation AppTimerOperation;
+        private TimeSpan CheckInterval = TimeSpan.FromSeconds(0.1);
         #endregion
 
         #region Logger
         private static void InitLogger()
         {
             Logger = new PluginLogger();
-
-            LogTimer = new Timer(new TimerCallback(LogTimerCallback));
-            LogTimer.Change(CheckInterval, CheckInterval);
         }
 
-        private static void LogTimerCallback(object parameter)
+        private static void UpdateLogger()
         {
             Logger.PrintLog();
         }
 
-        private static Timer LogTimer;
-        private static TimeSpan CheckInterval = TimeSpan.FromSeconds(0.1);
         private static PluginLogger Logger;
         #endregion
 
@@ -404,6 +469,30 @@ namespace TaskbarIconHost
             }
             else
                 Scheduler.RemoveTask(ExeName, out bool IsFound);
+        }
+        #endregion
+
+        #region Implementation of IDisposable
+        protected virtual void Dispose(bool isDisposing)
+        {
+            if (isDisposing)
+                DisposeNow();
+        }
+
+        private void DisposeNow()
+        {
+            CleanupTimer();
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        ~App()
+        {
+            Dispose(false);
         }
         #endregion
     }
