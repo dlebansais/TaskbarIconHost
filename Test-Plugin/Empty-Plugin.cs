@@ -26,6 +26,11 @@ namespace Empty
             get { return false; }
         }
 
+        public bool HasClickHandler
+        {
+            get { return false; }
+        }
+
         public void Initialize(bool isElevated, Dispatcher dispatcher, TaskbarIconHost.IPluginSettings settings, TaskbarIconHost.IPluginLogger logger)
         {
         }
@@ -81,6 +86,15 @@ namespace Empty
         public Icon Icon
         {
             get { return null; }
+        }
+
+        public Bitmap SelectionBitmap
+        {
+            get { return null; }
+        }
+
+        public void IconClicked()
+        {
         }
 
         public bool GetIsToolTipChanged()

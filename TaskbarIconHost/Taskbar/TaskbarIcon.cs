@@ -15,11 +15,6 @@ namespace TaskbarTools
         {
             NotifyIcon = notifyIcon;
             Target = target;
-
-            LastClosedTime = DateTime.MinValue;
-
-            if (Target is Popup PopupTarget)
-                PopupTarget.Closed += OnClosed;
         }
 
         protected static List<TaskbarIcon> ActiveIconList { get; private set; } = new List<TaskbarIcon>();
@@ -240,6 +235,11 @@ namespace TaskbarTools
         /// Event raised before the menu pops up.
         /// </summary>
         public event EventHandler MenuOpening;
+
+        /// <summary>
+        /// Event raised when the icon is clicked.
+        /// </summary>
+        public event EventHandler IconClicked;
         #endregion
 
         #region Events
@@ -261,14 +261,7 @@ namespace TaskbarTools
             switch (button)
             {
                 case MouseButtons.Left:
-                    if (Target != null && Target is Popup PopupTarget && !PopupTarget.IsOpen)
-                    {
-                        // We rely on time to avoid a flickering popup.
-                        if ((DateTime.UtcNow - LastClosedTime).TotalSeconds >= 1.0)
-                            PopupTarget.IsOpen = true;
-                        else
-                            LastClosedTime = DateTime.MinValue;
-                    }
+                    IconClicked.Invoke(this, new EventArgs());
                     break;
 
                 case MouseButtons.Right:
@@ -282,13 +275,6 @@ namespace TaskbarTools
             if (sender is ToolStripMenuItem MenuItem)
                 OnMenuClicked(MenuItem);
         }
-
-        private void OnClosed(object sender, EventArgs e)
-        {
-            LastClosedTime = DateTime.UtcNow;
-        }
-
-        private DateTime LastClosedTime;
         #endregion
 
         #region Menu

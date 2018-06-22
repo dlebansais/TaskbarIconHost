@@ -48,9 +48,6 @@ namespace TaskbarIconHost
                 foreach (KeyValuePair<Assembly, List<IPluginClient>> Entry in LoadedPluginTable)
                     foreach (IPluginClient Plugin in Entry.Value)
                     {
-                        if (PreferredPlugin == null)
-                            PreferredPlugin = Plugin;
-
                         IPluginSettings Settings = new PluginSettings(GuidToString(Plugin.Guid), logger);
                         Plugin.Initialize(isElevated, dispatcher, Settings, logger);
 
@@ -64,17 +61,32 @@ namespace TaskbarIconHost
                         List<ICommand> PluginCommandList = Plugin.CommandList;
                         if (PluginCommandList != null)
                         {
-                            FullCommandList.Add(new List<ICommand>());
+                            List<ICommand> FullPluginCommandList = new List<ICommand>();
+                            FullCommandList.Add(FullPluginCommandList, Plugin.Name);
 
                             foreach (ICommand Command in PluginCommandList)
                             {
-                                FullCommandList[FullCommandList.Count - 1].Add(Command);
+                                FullPluginCommandList.Add(Command);
 
                                 if (Command != null)
                                     CommandTable.Add(Command, Plugin);
                             }
                         }
+
+                        Icon PluginIcon = Plugin.Icon;
+                        if (PluginIcon != null)
+                            ConsolidatedPluginList.Add(Plugin);
                     }
+
+                foreach (IPluginClient Plugin in ConsolidatedPluginList)
+                    if (Plugin.HasClickHandler)
+                    {
+                        PreferredPlugin = Plugin;
+                        break;
+                    }
+
+                if (PreferredPlugin == null && ConsolidatedPluginList.Count > 0)
+                    PreferredPlugin = ConsolidatedPluginList[0];
 
                 return true;
             }
@@ -107,8 +119,8 @@ namespace TaskbarIconHost
             {
                 PluginAssembly = Assembly.LoadFrom(assemblyPath);
 
-                //if (!IsAssemblySigned(PluginAssembly))
-                //    return;
+                if (!IsAssemblySigned(PluginAssembly))
+                    return;
 
                 if (IsReferencingSharedAssembly(PluginAssembly, out AssemblyName SharedAssemblyName))
                 {
@@ -206,13 +218,15 @@ namespace TaskbarIconHost
                         string PluginName = PluginHandle.GetType().InvokeMember(nameof(IPluginClient.Name), BindingFlags.Default | BindingFlags.GetProperty, null, PluginHandle, null) as string;
                         Guid PluginGuid = (Guid)PluginHandle.GetType().InvokeMember(nameof(IPluginClient.Guid), BindingFlags.Default | BindingFlags.GetProperty, null, PluginHandle, null);
                         bool PluginRequireElevated = (bool)PluginHandle.GetType().InvokeMember(nameof(IPluginClient.RequireElevated), BindingFlags.Default | BindingFlags.GetProperty, null, PluginHandle, null);
+                        bool PluginHasClickHandler = (bool)PluginHandle.GetType().InvokeMember(nameof(IPluginClient.HasClickHandler), BindingFlags.Default | BindingFlags.GetProperty, null, PluginHandle, null);
+
                         if (!string.IsNullOrEmpty(PluginName) && PluginGuid != Guid.Empty)
                         {
                             bool createdNew;
                             EventWaitHandle InstanceEvent = new EventWaitHandle(false, EventResetMode.ManualReset, GuidToString(PluginGuid), out createdNew);
                             if (createdNew)
                             {
-                                IPluginClient NewPlugin = new PluginClient(PluginHandle, PluginName, PluginGuid, PluginRequireElevated, InstanceEvent);
+                                IPluginClient NewPlugin = new PluginClient(PluginHandle, PluginName, PluginGuid, PluginRequireElevated, PluginHasClickHandler, InstanceEvent);
                                 PluginList.Add(NewPlugin);
                             }
                             else
@@ -247,7 +261,7 @@ namespace TaskbarIconHost
 
         public static bool RequireElevated { get; private set; }
         public static Dictionary<ICommand, IPluginClient> CommandTable { get; } = new Dictionary<ICommand, IPluginClient>();
-        public static List<List<ICommand>> FullCommandList { get; } = new List<List<ICommand>>();
+        public static Dictionary<List<ICommand>, string> FullCommandList { get; } = new Dictionary<List<ICommand>, string>();
 
         public static List<ICommand> GetChangedCommands()
         {
@@ -308,6 +322,23 @@ namespace TaskbarIconHost
             Plugin.ExecuteCommandHandler(Command);
         }
 
+        public static Guid PreferredPluginGuid
+        {
+            get { return PreferredPlugin != null ? PreferredPlugin.Guid : Guid.Empty; }
+            set
+            {
+                foreach (IPluginClient Plugin in ConsolidatedPluginList)
+                    if (Plugin.Guid == value)
+                    {
+                        PreferredPlugin = Plugin;
+                        break;
+                    }
+            }
+        }
+
+        public static List<IPluginClient> ConsolidatedPluginList = new List<IPluginClient>();
+        private static IPluginClient PreferredPlugin;
+
         public static bool GetIsIconChanged()
         {
             return PreferredPlugin != null ? PreferredPlugin.GetIsIconChanged() : false;
@@ -316,6 +347,12 @@ namespace TaskbarIconHost
         public static Icon Icon
         {
             get { return PreferredPlugin != null ? PreferredPlugin.Icon : null; }
+        }
+
+        public static void IconClicked()
+        {
+            if (PreferredPlugin != null)
+                PreferredPlugin.IconClicked();
         }
 
         public static bool GetIsToolTipChanged()
@@ -376,6 +413,5 @@ namespace TaskbarIconHost
         private static readonly string SharedPluginAssemblyName = "TaskbarIconShared";
         private static Type PluginInterfaceType;
         private static Dictionary<Assembly, List<IPluginClient>> LoadedPluginTable = new Dictionary<Assembly, List<IPluginClient>>();
-        private static IPluginClient PreferredPlugin;
     }
 }

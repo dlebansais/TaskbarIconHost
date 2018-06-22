@@ -131,13 +131,37 @@ namespace TaskbarIconHost
         #region Plugin Manager
         private bool InitPlugInManager()
         {
-            return PluginManager.Init(IsElevated, Dispatcher, Logger);
+            if (!PluginManager.Init(IsElevated, Dispatcher, Logger))
+                return false;
+
+            GlobalSettings = new PluginSettings(null, Logger);
+
+            try
+            {
+                PluginManager.PreferredPluginGuid = new Guid(GlobalSettings.GetSettingString(PreferredPluginSettingName, Guid.Empty.ToString("B")));
+            }
+            catch
+            {
+            }
+
+            return true;
         }
 
         private void StopPlugInManager()
         {
+            try
+            {
+                GlobalSettings.SetSettingString(PreferredPluginSettingName, PluginManager.PreferredPluginGuid.ToString("B"));
+            }
+            catch
+            {
+            }
+
             PluginManager.Shutdown();
         }
+
+        private static readonly string PreferredPluginSettingName = "PreferredPlugin";
+        private PluginSettings GlobalSettings;
         #endregion
 
         #region Taskbar Icon
@@ -151,9 +175,12 @@ namespace TaskbarIconHost
             ExitCommand = FindResource("ExitCommand") as ICommand;
             AddMenuCommand(ExitCommand, OnCommandExit);
 
-            foreach (List<ICommand> CommandList in PluginManager.FullCommandList)
-                foreach (ICommand Command in CommandList)
+            foreach (KeyValuePair<List<ICommand>, string> Entry in PluginManager.FullCommandList)
+            {
+                List<ICommand> FullPluginCommandList = Entry.Key;
+                foreach (ICommand Command in FullPluginCommandList)
                     AddMenuCommand(Command, OnPluginCommand);
+            }
 
             Icon Icon = PluginManager.Icon;
             string ToolTip = PluginManager.ToolTip;
@@ -161,6 +188,7 @@ namespace TaskbarIconHost
 
             TaskbarIcon = TaskbarIcon.Create(Icon, ToolTip, ContextMenu, ContextMenu);
             TaskbarIcon.MenuOpening += OnMenuOpening;
+            TaskbarIcon.IconClicked += OnIconClicked;
 
             Logger.AddLog("InitTaskbarIcon done");
         }
@@ -204,6 +232,7 @@ namespace TaskbarIconHost
         private ContextMenu LoadContextMenu()
         {
             ContextMenu Result = new ContextMenu();
+            ItemCollection Items = Result.Items;
 
             MenuItem LoadAtStartup;
             string ExeName = Assembly.GetExecutingAssembly().Location;
@@ -224,16 +253,19 @@ namespace TaskbarIconHost
             }
 
             TaskbarIcon.PrepareMenuItem(LoadAtStartup, true, IsElevated);
-            Result.Items.Add(LoadAtStartup);
+            Items.Add(LoadAtStartup);
 
-            List<List<MenuItem>> FullPluginMenuList = new List<List<MenuItem>>();
+            Dictionary<List<MenuItem>, string> FullPluginMenuList = new Dictionary<List<MenuItem>, string>();
             int VisiblePluginMenuCount = 0;
 
-            foreach (List<ICommand> CommandList in PluginManager.FullCommandList)
+            foreach (KeyValuePair<List<ICommand>, string> Entry in PluginManager.FullCommandList)
             {
+                List<ICommand> FullPluginCommandList = Entry.Key;
+                string PluginName = Entry.Value;
+
                 List<MenuItem> PluginMenuList = new List<MenuItem>();
 
-                foreach (ICommand Command in CommandList)
+                foreach (ICommand Command in FullPluginCommandList)
                     if (Command == null)
                         PluginMenuList.Add(null);
                     else
@@ -253,35 +285,72 @@ namespace TaskbarIconHost
                             VisiblePluginMenuCount++;
                     }
 
-                FullPluginMenuList.Add(PluginMenuList);
+                FullPluginMenuList.Add(PluginMenuList, PluginName);
             }
 
             bool AddSeparator = VisiblePluginMenuCount > 1;
 
-            foreach (List<MenuItem> MenuList in FullPluginMenuList)
+            foreach (KeyValuePair<List<MenuItem>, string> Entry in FullPluginMenuList)
             {
+                List<MenuItem> PluginMenuList = Entry.Key;
+                string PluginName = Entry.Value;
+
                 if (AddSeparator)
-                    Result.Items.Add(new Separator());
+                    Items.Add(new Separator());
 
                 AddSeparator = true;
 
-                ContextMenu CurrentMenu;
-                if (MenuList.Count > 1)
-                    CurrentMenu = new ContextMenu();
+                ItemCollection SubmenuItems;
+                if (PluginMenuList.Count > 1 && FullPluginMenuList.Count > 0)
+                {
+                    MenuItem PluginSubmenu = new MenuItem();
+                    PluginSubmenu.Header = PluginName;
+                    SubmenuItems = PluginSubmenu.Items;
+                    Items.Add(PluginSubmenu);
+                }
                 else
-                    CurrentMenu = Result;
+                    SubmenuItems = Items;
 
-                foreach (MenuItem MenuItem in MenuList)
+                foreach (MenuItem MenuItem in PluginMenuList)
                     if (MenuItem != null)
-                        CurrentMenu.Items.Add(MenuItem);
+                        SubmenuItems.Add(MenuItem);
                     else
-                        CurrentMenu.Items.Add(new Separator());
+                        SubmenuItems.Add(new Separator());
             }
 
-            Result.Items.Add(new Separator());
+            Items.Add(new Separator());
+
+            if (PluginManager.ConsolidatedPluginList.Count > 1)
+            {
+                MenuItem IconSubmenu = new MenuItem();
+                IconSubmenu.Header = "Icons";
+
+                foreach (IPluginClient Plugin in PluginManager.ConsolidatedPluginList)
+                {
+                    Guid SubmenuGuid = Plugin.Guid;
+                    if (!IconSelectionTable.ContainsKey(SubmenuGuid))
+                    {
+                        RoutedUICommand SubmenuCommand = new RoutedUICommand();
+                        SubmenuCommand.Text = SubmenuGuid.ToString("B");
+
+                        string SubmenuHeader = Plugin.Name;
+                        bool SubmenuIsChecked = (SubmenuGuid == PluginManager.PreferredPluginGuid);
+                        Bitmap SubmenuIcon = Plugin.SelectionBitmap;
+
+                        AddMenuCommand(SubmenuCommand, OnCommandSelectPreferred);
+                        MenuItem PluginMenu = CreateMenuItem(SubmenuCommand, SubmenuHeader, SubmenuIsChecked, SubmenuIcon);
+                        IconSubmenu.Items.Add(PluginMenu);
+
+                        IconSelectionTable.Add(SubmenuGuid, SubmenuCommand);
+                    }
+                }
+
+                Items.Add(IconSubmenu);
+                Items.Add(new Separator());
+            }
 
             MenuItem ExitMenu = CreateMenuItem(ExitCommand, "Exit", false, null);
-            Result.Items.Add(ExitMenu);
+            Items.Add(ExitMenu);
 
             Logger.AddLog("Menu created");
 
@@ -346,11 +415,17 @@ namespace TaskbarIconHost
             }
         }
 
+        private void OnIconClicked(object sender, EventArgs e)
+        {
+            PluginManager.IconClicked();
+        }
+
         public TaskbarIcon TaskbarIcon { get; private set; }
         private static readonly string LoadAtStartupHeader = "Load at startup";
         private static readonly string RemoveFromStartupHeader = "Remove from startup";
         private ICommand LoadAtStartupCommand;
         private ICommand ExitCommand;
+        private Dictionary<Guid, ICommand> IconSelectionTable = new Dictionary<Guid, ICommand>();
         private bool IsIconChanged;
         private bool IsToolTipChanged;
         #endregion
@@ -399,6 +474,31 @@ namespace TaskbarIconHost
                 UpdateIconAndToolTip();
 
             UpdateMenu();
+        }
+
+        private void OnCommandSelectPreferred(object sender, ExecutedRoutedEventArgs e)
+        {
+            Logger.AddLog("OnCommandSelectPreferred");
+
+            if (e.Command is RoutedUICommand SubmenuCommand)
+            {
+                Guid NewSelectedGuid = new Guid(SubmenuCommand.Text);
+                Guid OldSelectedGuid = PluginManager.PreferredPluginGuid;
+                if (NewSelectedGuid != OldSelectedGuid)
+                {
+                    PluginManager.PreferredPluginGuid = NewSelectedGuid;
+
+                    IsIconChanged = true;
+                    IsToolTipChanged = true;
+                    UpdateIconAndToolTip();
+
+                    if (IconSelectionTable.ContainsKey(NewSelectedGuid))
+                        TaskbarIcon.SetMenuIsChecked(IconSelectionTable[NewSelectedGuid], true);
+
+                    if (IconSelectionTable.ContainsKey(OldSelectedGuid))
+                        TaskbarIcon.SetMenuIsChecked(IconSelectionTable[OldSelectedGuid], false);
+                }
+            }
         }
 
         private void OnCommandExit(object sender, ExecutedRoutedEventArgs e)

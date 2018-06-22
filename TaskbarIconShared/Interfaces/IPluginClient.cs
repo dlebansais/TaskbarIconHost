@@ -11,6 +11,7 @@ namespace TaskbarIconHost
         string Name { get; }
         Guid Guid { get; }
         bool RequireElevated { get; }
+        bool HasClickHandler { get; }
         void Initialize(bool isElevated, Dispatcher dispatcher, IPluginSettings settings, IPluginLogger logger);
 
         List<ICommand> CommandList { get; }
@@ -25,6 +26,8 @@ namespace TaskbarIconHost
 
         bool GetIsIconChanged();
         Icon Icon { get; }
+        Bitmap SelectionBitmap { get; }
+        void IconClicked();
 
         bool GetIsToolTipChanged();
         string ToolTip { get; }

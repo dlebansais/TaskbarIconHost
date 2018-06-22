@@ -16,7 +16,11 @@ namespace TaskbarIconHost
 
                 RegistryKey Key = Registry.CurrentUser.OpenSubKey(@"Software", true);
                 Key = Key.CreateSubKey("TaskbarIconHost");
-                SettingKey = Key.CreateSubKey("Settings-" + pluginName);
+
+                if (pluginName != null)
+                    SettingKey = Key.CreateSubKey("Settings-" + pluginName);
+                else
+                    SettingKey = Key.CreateSubKey("Main Settings");
 
                 Logger.AddLog("InitSettings done");
             }

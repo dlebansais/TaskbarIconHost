@@ -9,12 +9,13 @@ namespace TaskbarIconHost
 {
     public class PluginClient : IPluginClient
     {
-        public PluginClient(object pluginHandle, string name, Guid guid, bool requireElevated, EventWaitHandle instanceEvent)
+        public PluginClient(object pluginHandle, string name, Guid guid, bool requireElevated, bool hasClickHandler, EventWaitHandle instanceEvent)
         {
             PluginHandle = pluginHandle;
             Name = name;
             Guid = guid;
             RequireElevated = requireElevated;
+            HasClickHandler = hasClickHandler;
             InstanceEvent = instanceEvent;
         }
 
@@ -22,6 +23,7 @@ namespace TaskbarIconHost
         public string Name { get; private set; }
         public Guid Guid { get; private set; }
         public bool RequireElevated { get; private set; }
+        public bool HasClickHandler { get; private set; }
         public EventWaitHandle InstanceEvent { get; private set; }
 
         public void Initialize(bool isElevated, Dispatcher dispatcher, IPluginSettings settings, IPluginLogger logger)
@@ -77,6 +79,12 @@ namespace TaskbarIconHost
         }
 
         public Icon Icon { get { return PluginManager.PluginProperty<Icon>(PluginHandle, nameof(IPluginClient.Icon)); } }
+        public Bitmap SelectionBitmap { get { return PluginManager.PluginProperty<Bitmap>(PluginHandle, nameof(IPluginClient.SelectionBitmap)); } }
+
+        public void IconClicked()
+        {
+            PluginManager.ExecutePluginMethod(PluginHandle, nameof(IPluginClient.IconClicked));
+        }
 
         public bool GetIsToolTipChanged()
         {
