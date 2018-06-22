@@ -9,19 +9,20 @@ namespace TaskbarIconHost
 {
     public class PluginClient : IPluginClient
     {
-        public PluginClient(object pluginHandle, string name, Guid guid, EventWaitHandle instanceEvent)
+        public PluginClient(object pluginHandle, string name, Guid guid, bool requireElevated, EventWaitHandle instanceEvent)
         {
             PluginHandle = pluginHandle;
             Name = name;
             Guid = guid;
+            RequireElevated = requireElevated;
             InstanceEvent = instanceEvent;
         }
 
         public object PluginHandle { get; private set; }
         public string Name { get; private set; }
         public Guid Guid { get; private set; }
+        public bool RequireElevated { get; private set; }
         public EventWaitHandle InstanceEvent { get; private set; }
-
 
         public void Initialize(bool isElevated, Dispatcher dispatcher, IPluginSettings settings, IPluginLogger logger)
         {

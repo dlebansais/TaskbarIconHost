@@ -398,7 +398,10 @@ namespace TaskbarIconHost
             string ExeName = Assembly.GetExecutingAssembly().Location;
 
             if (isInstalled)
-                Scheduler.AddTask("Taskbar Icon Host", ExeName, TaskRunLevel.LUA, Logger);
+            {
+                TaskRunLevel RunLevel = PluginManager.RequireElevated ? TaskRunLevel.Highest : TaskRunLevel.LUA;
+                Scheduler.AddTask("Taskbar Icon Host", ExeName, RunLevel, Logger);
+            }
             else
                 Scheduler.RemoveTask(ExeName, out bool IsFound);
         }

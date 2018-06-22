@@ -52,6 +52,9 @@ namespace TaskbarIconHost
 
                         IPluginSettings Settings = new PluginSettings(GuidToString(Plugin.Guid), logger);
                         Plugin.Initialize(isElevated, dispatcher, Settings, logger);
+
+                        if (Plugin.RequireElevated)
+                            RequireElevated = true;
                     }
 
                 foreach (KeyValuePair<Assembly, List<IPluginClient>> Entry in LoadedPluginTable)
@@ -148,13 +151,14 @@ namespace TaskbarIconHost
                     {
                         string PluginName = PluginHandle.GetType().InvokeMember(nameof(IPluginClient.Name), BindingFlags.Default | BindingFlags.GetProperty, null, PluginHandle, null) as string;
                         Guid PluginGuid = (Guid)PluginHandle.GetType().InvokeMember(nameof(IPluginClient.Guid), BindingFlags.Default | BindingFlags.GetProperty, null, PluginHandle, null);
+                        bool PluginRequireElevated = (bool)PluginHandle.GetType().InvokeMember(nameof(IPluginClient.RequireElevated), BindingFlags.Default | BindingFlags.GetProperty, null, PluginHandle, null);
                         if (!string.IsNullOrEmpty(PluginName) && PluginGuid != Guid.Empty)
                         {
                             bool createdNew;
                             EventWaitHandle InstanceEvent = new EventWaitHandle(false, EventResetMode.ManualReset, GuidToString(PluginGuid), out createdNew);
                             if (createdNew)
                             {
-                                IPluginClient NewPlugin = new PluginClient(PluginHandle, PluginName, PluginGuid, InstanceEvent);
+                                IPluginClient NewPlugin = new PluginClient(PluginHandle, PluginName, PluginGuid, PluginRequireElevated, InstanceEvent);
                                 PluginList.Add(NewPlugin);
                             }
                             else
@@ -187,6 +191,7 @@ namespace TaskbarIconHost
             return (T)pluginHandle.GetType().InvokeMember(functionName, BindingFlags.Default | BindingFlags.InvokeMethod, null, pluginHandle, args);
         }
 
+        public static bool RequireElevated { get; private set; }
         public static Dictionary<ICommand, IPluginClient> CommandTable { get; } = new Dictionary<ICommand, IPluginClient>();
         public static List<List<ICommand>> FullCommandList { get; } = new List<List<ICommand>>();
 

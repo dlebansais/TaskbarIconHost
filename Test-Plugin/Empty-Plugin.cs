@@ -21,6 +21,11 @@ namespace Empty
             get { return Guid.Empty; }
         }
 
+        public bool RequireElevated
+        {
+            get { return false; }
+        }
+
         public void Initialize(bool isElevated, Dispatcher dispatcher, TaskbarIconHost.IPluginSettings settings, TaskbarIconHost.IPluginLogger logger)
         {
         }

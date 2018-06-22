@@ -10,6 +10,7 @@ namespace TaskbarIconHost
     {
         string Name { get; }
         Guid Guid { get; }
+        bool RequireElevated { get; }
         void Initialize(bool isElevated, Dispatcher dispatcher, IPluginSettings settings, IPluginLogger logger);
 
         List<ICommand> CommandList { get; }
