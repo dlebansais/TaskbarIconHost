@@ -14,14 +14,9 @@ namespace TaskbarIconHost
     {
         public static bool Init(bool isElevated, Dispatcher dispatcher, IPluginLogger logger)
         {
+            PluginInterfaceType = typeof(IPluginClient);
+
             Assembly CurrentAssembly = Assembly.GetExecutingAssembly();
-
-            if (!IsReferencingSharedAssembly(CurrentAssembly, out AssemblyName SharedAssemblyName))
-                throw new PluginException("The main assembly is missing a reference to the " + SharedPluginAssemblyName + " assembly");
-
-            Assembly SharedAssembly = Assembly.ReflectionOnlyLoad(SharedAssemblyName.FullName);
-            PluginInterfaceType = SharedAssembly.GetType(typeof(IPluginClient).FullName);
-
             string Location = CurrentAssembly.Location;
             string AppFolder = Path.GetDirectoryName(Location);
             int AssemblyCount = 0;
