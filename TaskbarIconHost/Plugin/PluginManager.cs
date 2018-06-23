@@ -166,7 +166,7 @@ namespace TaskbarIconHost
             try
             {
 #if !DEBUG
-                if (!IsAssemblySigned(assembly))
+                if (!string.IsNullOrEmpty(assembly.Location) && !IsAssemblySigned(assembly))
                     return;
 #endif
                 PluginClientTypeList = new List<Type>();
