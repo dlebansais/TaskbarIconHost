@@ -12,7 +12,7 @@ namespace TaskbarIconHost
 {
     public static class PluginManager
     {
-        public static bool Init(bool isElevated, Dispatcher dispatcher, IPluginLogger logger)
+        public static bool Init(bool isElevated, string embeddedPluginName, Guid embeddedPluginGuid, Dispatcher dispatcher, IPluginLogger logger)
         {
             PluginInterfaceType = typeof(IPluginClient);
 
@@ -22,17 +22,42 @@ namespace TaskbarIconHost
             int AssemblyCount = 0;
             int CompatibleAssemblyCount = 0;
 
+            Dictionary<Assembly, List<Type>> PluginClientTypeTable = new Dictionary<Assembly, List<Type>>();
+            Assembly PluginAssembly;
+            List<Type> PluginClientTypeList;
+
+            if (embeddedPluginName != null)
+            {
+                AssemblyName[] AssemblyNames = CurrentAssembly.GetReferencedAssemblies();
+                foreach (AssemblyName name in AssemblyNames)
+                    if (name.Name == embeddedPluginName)
+                    {
+                        FindPluginClientTypesByName(name, out PluginAssembly, out PluginClientTypeList);
+                        if (PluginAssembly != null && PluginClientTypeList != null && PluginClientTypeList.Count > 0)
+                            PluginClientTypeTable.Add(PluginAssembly, PluginClientTypeList);
+                    }
+            }
+
             string[] Assemblies = Directory.GetFiles(AppFolder, "*.dll");
             foreach (string AssemblyPath in Assemblies)
             {
+                FindPluginClientTypesByPath(AssemblyPath, out PluginAssembly, out PluginClientTypeList);
+                if (PluginAssembly != null && PluginClientTypeList != null)
+                    PluginClientTypeTable.Add(PluginAssembly, PluginClientTypeList);
+            }
+
+            foreach (KeyValuePair<Assembly, List<Type>> Entry in PluginClientTypeTable)
+            {
                 AssemblyCount++;
 
-                FindPluginClientTypes(AssemblyPath, out Assembly PluginAssembly, out List<Type> PluginClientTypeList);
+                PluginAssembly = Entry.Key;
+                PluginClientTypeList = Entry.Value;
+
                 if (PluginClientTypeList.Count > 0)
                 {
                     CompatibleAssemblyCount++;
 
-                    CreatePluginList(PluginAssembly, PluginClientTypeList, logger, out List<IPluginClient> PluginList);
+                    CreatePluginList(PluginAssembly, PluginClientTypeList, embeddedPluginGuid, logger, out List<IPluginClient> PluginList);
                     if (PluginList.Count > 0)
                         LoadedPluginTable.Add(PluginAssembly, PluginList);
                 }
@@ -106,23 +131,52 @@ namespace TaskbarIconHost
             return false;
         }
 
-        private static void FindPluginClientTypes(string assemblyPath, out Assembly PluginAssembly, out List<Type> PluginClientTypeList)
+        private static void FindPluginClientTypesByPath(string assemblyPath, out Assembly PluginAssembly, out List<Type> PluginClientTypeList)
         {
-            PluginClientTypeList = new List<Type>();
-
             try
             {
                 PluginAssembly = Assembly.LoadFrom(assemblyPath);
+                FindPluginClientTypes(PluginAssembly, out PluginClientTypeList);
+            }
+            catch
+            {
+                PluginAssembly = null;
+                PluginClientTypeList = null;
+            }
+        }
 
-                if (!IsAssemblySigned(PluginAssembly))
+        private static void FindPluginClientTypesByName(AssemblyName name, out Assembly PluginAssembly, out List<Type> PluginClientTypeList)
+        {
+            try
+            {
+                PluginAssembly = Assembly.Load(name);
+                FindPluginClientTypes(PluginAssembly, out PluginClientTypeList);
+            }
+            catch
+            {
+                PluginAssembly = null;
+                PluginClientTypeList = null;
+            }
+        }
+
+        private static void FindPluginClientTypes(Assembly assembly, out List<Type> PluginClientTypeList)
+        {
+            PluginClientTypeList = null;
+
+            try
+            {
+#if !DEBUG
+                if (!IsAssemblySigned(assembly))
                     return;
+#endif
+                PluginClientTypeList = new List<Type>();
 
-                if (IsReferencingSharedAssembly(PluginAssembly, out AssemblyName SharedAssemblyName))
+                if (IsReferencingSharedAssembly(assembly, out AssemblyName SharedAssemblyName))
                 {
                     Type[] AssemblyTypes;
                     try
                     {
-                        AssemblyTypes = PluginAssembly.GetTypes();
+                        AssemblyTypes = assembly.GetTypes();
                     }
                     catch (ReflectionTypeLoadException LoaderException)
                     {
@@ -146,7 +200,6 @@ namespace TaskbarIconHost
             }
             catch
             {
-                PluginAssembly = null;
             }
         }
 
@@ -199,7 +252,7 @@ namespace TaskbarIconHost
             }
         }
 
-        private static void CreatePluginList(Assembly pluginAssembly, List<Type> PluginClientTypeList, IPluginLogger logger, out List<IPluginClient> PluginList)
+        private static void CreatePluginList(Assembly pluginAssembly, List<Type> PluginClientTypeList, Guid embeddedPluginGuid, IPluginLogger logger, out List<IPluginClient> PluginList)
         {
             PluginList = new List<IPluginClient>();
 
@@ -218,7 +271,16 @@ namespace TaskbarIconHost
                         if (!string.IsNullOrEmpty(PluginName) && PluginGuid != Guid.Empty)
                         {
                             bool createdNew;
-                            EventWaitHandle InstanceEvent = new EventWaitHandle(false, EventResetMode.ManualReset, GuidToString(PluginGuid), out createdNew);
+                            EventWaitHandle InstanceEvent;
+
+                            if (PluginGuid != embeddedPluginGuid)
+                                InstanceEvent = new EventWaitHandle(false, EventResetMode.ManualReset, GuidToString(PluginGuid), out createdNew);
+                            else
+                            {
+                                createdNew = true;
+                                InstanceEvent = null;
+                            }
+
                             if (createdNew)
                             {
                                 IPluginClient NewPlugin = new PluginClient(PluginHandle, PluginName, PluginGuid, PluginRequireElevated, PluginHasClickHandler, InstanceEvent);

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Threading;
 using System.Windows;
@@ -31,8 +32,17 @@ namespace TaskbarIconHost
 
             try
             {
+                Guid AppGuid = PluginDetails.Guid;
+                if (AppGuid == Guid.Empty)
+                {
+                    GuidAttribute AppGuidAttribute = Assembly.GetExecutingAssembly().GetCustomAttribute<GuidAttribute>();
+                    AppGuid = Guid.Parse(AppGuidAttribute.Value);
+                }
+
+                string AppUniqueId = AppGuid.ToString("B").ToUpper();
+
                 bool createdNew;
-                InstanceEvent = new EventWaitHandle(false, EventResetMode.ManualReset, "{E4801722-7212-4C7D-8949-87012B5E1B5B}", out createdNew);
+                InstanceEvent = new EventWaitHandle(false, EventResetMode.ManualReset, AppUniqueId, out createdNew);
                 if (!createdNew)
                 {
                     Logger.AddLog("Another instance is already running");
@@ -145,7 +155,7 @@ namespace TaskbarIconHost
         #region Plugin Manager
         private bool InitPlugInManager()
         {
-            if (!PluginManager.Init(IsElevated, Dispatcher, Logger))
+            if (!PluginManager.Init(IsElevated, PluginDetails.AssemblyName, PluginDetails.Guid, Dispatcher, Logger))
                 return false;
 
             GlobalSettings = new PluginSettings(null, Logger);
@@ -183,10 +193,10 @@ namespace TaskbarIconHost
         {
             Logger.AddLog("InitTaskbarIcon starting");
 
-            LoadAtStartupCommand = FindResource("LoadAtStartupCommand") as ICommand;
+            LoadAtStartupCommand = new RoutedUICommand();
             AddMenuCommand(LoadAtStartupCommand, OnCommandLoadAtStartup);
 
-            ExitCommand = FindResource("ExitCommand") as ICommand;
+            ExitCommand = new RoutedUICommand();
             AddMenuCommand(ExitCommand, OnCommandExit);
 
             foreach (KeyValuePair<List<ICommand>, string> Entry in PluginManager.FullCommandList)
@@ -550,6 +560,9 @@ namespace TaskbarIconHost
 
         private void AppTimerCallback(object parameter)
         {
+            if (IsExiting)
+                return;
+
             UpdateLogger();
 
             if (AppTimerOperation == null || (AppTimerOperation.Status == DispatcherOperationStatus.Completed && GetIsIconOrToolTipChanged()))
@@ -558,8 +571,10 @@ namespace TaskbarIconHost
 
         private void OnAppTimer()
         {
-            if (!IsExiting)
-                UpdateIconAndToolTip();
+            if (IsExiting)
+                return;
+
+            UpdateIconAndToolTip();
         }
 
         private void CleanupTimer()

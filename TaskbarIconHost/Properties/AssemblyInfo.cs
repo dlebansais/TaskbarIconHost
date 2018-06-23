@@ -8,11 +8,11 @@ using System.Windows;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("TaskbarIconHost")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Host for plugins to show on the  taskbar.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("TaskbarIconHost")]
-[assembly: AssemblyCopyright("Copyright ©  2018")]
+[assembly: AssemblyCopyright("Copyright ©  2018 David Le Bansais")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -51,5 +51,8 @@ using System.Windows;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.0.75")]
-[assembly: AssemblyFileVersion("1.0.0.64")]
+[assembly: AssemblyVersion("1.0.0.84")]
+[assembly: AssemblyFileVersion("1.0.0.73")]
+[assembly: Guid("E4801722-7212-4C7D-8949-87012B5E1B5B")]
+[assembly: NeutralResourcesLanguage("en-US")]
+

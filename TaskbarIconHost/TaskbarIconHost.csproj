@@ -74,6 +74,7 @@
     <Compile Include="LoadAtStartupWindow.xaml.cs">
       <DependentUpon>LoadAtStartupWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="PluginDetails.cs" />
     <Compile Include="Plugin\PluginException.cs" />
     <Compile Include="Plugin\PluginLogger.cs" />
     <Compile Include="Plugin\PluginClient.cs" />
