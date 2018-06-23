@@ -244,6 +244,23 @@ namespace TaskbarIconHost
             }
         }
 
+        public static Guid PreferredPluginGuid
+        {
+            get { return PreferredPlugin != null ? PreferredPlugin.Guid : Guid.Empty; }
+            set
+            {
+                foreach (IPluginClient Plugin in ConsolidatedPluginList)
+                    if (Plugin.Guid == value)
+                    {
+                        PreferredPlugin = Plugin;
+                        break;
+                    }
+            }
+        }
+
+        public static List<IPluginClient> ConsolidatedPluginList = new List<IPluginClient>();
+        private static IPluginClient PreferredPlugin;
+
         public static T PluginProperty<T>(object pluginHandle, string propertyName)
         {
             return (T)pluginHandle.GetType().InvokeMember(propertyName, BindingFlags.Default | BindingFlags.GetProperty, null, pluginHandle, null);
@@ -316,28 +333,11 @@ namespace TaskbarIconHost
                     Plugin.OnMenuOpening();
         }
 
-        public static void ExecuteCommandHandler(ICommand Command)
+        public static void OnExecuteCommand(ICommand Command)
         {
             IPluginClient Plugin = CommandTable[Command];
-            Plugin.ExecuteCommandHandler(Command);
+            Plugin.OnExecuteCommand(Command);
         }
-
-        public static Guid PreferredPluginGuid
-        {
-            get { return PreferredPlugin != null ? PreferredPlugin.Guid : Guid.Empty; }
-            set
-            {
-                foreach (IPluginClient Plugin in ConsolidatedPluginList)
-                    if (Plugin.Guid == value)
-                    {
-                        PreferredPlugin = Plugin;
-                        break;
-                    }
-            }
-        }
-
-        public static List<IPluginClient> ConsolidatedPluginList = new List<IPluginClient>();
-        private static IPluginClient PreferredPlugin;
 
         public static bool GetIsIconChanged()
         {
@@ -349,10 +349,10 @@ namespace TaskbarIconHost
             get { return PreferredPlugin != null ? PreferredPlugin.Icon : null; }
         }
 
-        public static void IconClicked()
+        public static void OnIconClicked()
         {
             if (PreferredPlugin != null)
-                PreferredPlugin.IconClicked();
+                PreferredPlugin.OnIconClicked();
         }
 
         public static bool GetIsToolTipChanged()
@@ -363,6 +363,20 @@ namespace TaskbarIconHost
         public static string ToolTip
         {
             get { return PreferredPlugin != null ? PreferredPlugin.ToolTip : null; }
+        }
+
+        public static void OnActivated()
+        {
+            foreach (KeyValuePair<Assembly, List<IPluginClient>> Entry in LoadedPluginTable)
+                foreach (IPluginClient Plugin in Entry.Value)
+                    Plugin.OnActivated();
+        }
+
+        public static void OnDeactivated()
+        {
+            foreach (KeyValuePair<Assembly, List<IPluginClient>> Entry in LoadedPluginTable)
+                foreach (IPluginClient Plugin in Entry.Value)
+                    Plugin.OnDeactivated();
         }
 
         public static void Shutdown()
@@ -395,17 +409,10 @@ namespace TaskbarIconHost
             while (!IsClosed);
 
             FullCommandList.Clear();
-
-            foreach (KeyValuePair<Assembly, List<IPluginClient>> Entry in LoadedPluginTable)
-            {
-                Entry.Value.Clear();
-                //AppDomain.Unload(Entry.Key);
-            }
-
             LoadedPluginTable.Clear();
         }
 
-        private static string GuidToString(Guid guid)
+        public static string GuidToString(Guid guid)
         {
             return guid.ToString("B").ToUpper();
         }

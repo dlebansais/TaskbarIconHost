@@ -70,6 +70,8 @@ namespace TaskbarIconHost
             {
                 InitTaskbarIcon();
 
+                Activated += OnActivated;
+                Deactivated += OnDeactivated;
                 Exit += OnExit;
             }
             else
@@ -79,10 +81,21 @@ namespace TaskbarIconHost
             }
         }
 
+        private void OnActivated(object sender, EventArgs e)
+        {
+            PluginManager.OnActivated();
+        }
+
+        private void OnDeactivated(object sender, EventArgs e)
+        {
+            PluginManager.OnDeactivated();
+        }
+
         private void OnExit(object sender, ExitEventArgs e)
         {
             Logger.AddLog("Exiting application");
 
+            IsExiting = true;
             StopPlugInManager();
             CleanupTaskbarIcon();
             CleanupTimer();
@@ -97,6 +110,7 @@ namespace TaskbarIconHost
             UpdateLogger();
         }
 
+        private bool IsExiting;
         private EventWaitHandle InstanceEvent;
         #endregion
 
@@ -138,7 +152,7 @@ namespace TaskbarIconHost
 
             try
             {
-                PluginManager.PreferredPluginGuid = new Guid(GlobalSettings.GetSettingString(PreferredPluginSettingName, Guid.Empty.ToString("B")));
+                PluginManager.PreferredPluginGuid = new Guid(GlobalSettings.GetSettingString(PreferredPluginSettingName, PluginManager.GuidToString(Guid.Empty)));
             }
             catch
             {
@@ -151,7 +165,7 @@ namespace TaskbarIconHost
         {
             try
             {
-                GlobalSettings.SetSettingString(PreferredPluginSettingName, PluginManager.PreferredPluginGuid.ToString("B"));
+                GlobalSettings.SetSettingString(PreferredPluginSettingName, PluginManager.GuidToString(PluginManager.PreferredPluginGuid));
             }
             catch
             {
@@ -252,7 +266,7 @@ namespace TaskbarIconHost
                     LoadAtStartup = CreateMenuItem(LoadAtStartupCommand, LoadAtStartupHeader, false, LoadEmbeddedResource<Bitmap>("UAC-16.png"));
             }
 
-            TaskbarIcon.PrepareMenuItem(LoadAtStartup, true, IsElevated);
+            TaskbarIcon.PrepareMenuItem(LoadAtStartup, true, true);
             Items.Add(LoadAtStartup);
 
             Dictionary<List<MenuItem>, string> FullPluginMenuList = new Dictionary<List<MenuItem>, string>();
@@ -331,7 +345,7 @@ namespace TaskbarIconHost
                     if (!IconSelectionTable.ContainsKey(SubmenuGuid))
                     {
                         RoutedUICommand SubmenuCommand = new RoutedUICommand();
-                        SubmenuCommand.Text = SubmenuGuid.ToString("B");
+                        SubmenuCommand.Text = PluginManager.GuidToString(SubmenuGuid);
 
                         string SubmenuHeader = Plugin.Name;
                         bool SubmenuIsChecked = (SubmenuGuid == PluginManager.PreferredPluginGuid);
@@ -417,7 +431,7 @@ namespace TaskbarIconHost
 
         private void OnIconClicked(object sender, EventArgs e)
         {
-            PluginManager.IconClicked();
+            PluginManager.OnIconClicked();
         }
 
         public TaskbarIcon TaskbarIcon { get; private set; }
@@ -435,8 +449,26 @@ namespace TaskbarIconHost
         {
             Logger.AddLog("OnCommandLoadAtStartup");
 
-            TaskbarIcon.ToggleMenuIsChecked(LoadAtStartupCommand, out bool Install);
-            InstallLoad(Install);
+            if (IsElevated)
+            {
+                TaskbarIcon.ToggleMenuIsChecked(LoadAtStartupCommand, out bool Install);
+                InstallLoad(Install);
+            }
+            else
+            {
+                string ExeName = Assembly.GetExecutingAssembly().Location;
+
+                if (Scheduler.IsTaskActive(ExeName))
+                {
+                    RemoveFromStartupWindow Dlg = new RemoveFromStartupWindow();
+                    Dlg.ShowDialog();
+                }
+                else
+                {
+                    LoadAtStartupWindow Dlg = new LoadAtStartupWindow(PluginManager.RequireElevated);
+                    Dlg.ShowDialog();
+                }
+            }
         }
 
         private bool GetIsIconOrToolTipChanged()
@@ -468,7 +500,7 @@ namespace TaskbarIconHost
         {
             Logger.AddLog("OnPluginCommand");
 
-            PluginManager.ExecuteCommandHandler(e.Command);
+            PluginManager.OnExecuteCommand(e.Command);
 
             if (GetIsIconOrToolTipChanged())
                 UpdateIconAndToolTip();
@@ -526,7 +558,8 @@ namespace TaskbarIconHost
 
         private void OnAppTimer()
         {
-            UpdateIconAndToolTip();
+            if (!IsExiting)
+                UpdateIconAndToolTip();
         }
 
         private void CleanupTimer()

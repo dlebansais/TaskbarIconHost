@@ -22,15 +22,18 @@ namespace TaskbarIconHost
         bool GetMenuIsChecked(ICommand Command);
         Bitmap GetMenuIcon(ICommand Command);
         void OnMenuOpening();
-        void ExecuteCommandHandler(ICommand Command);
+        void OnExecuteCommand(ICommand Command);
 
         bool GetIsIconChanged();
         Icon Icon { get; }
         Bitmap SelectionBitmap { get; }
-        void IconClicked();
+        void OnIconClicked();
 
         bool GetIsToolTipChanged();
         string ToolTip { get; }
+
+        void OnActivated();
+        void OnDeactivated();
 
         bool CanClose(bool canClose);
         void BeginClose();

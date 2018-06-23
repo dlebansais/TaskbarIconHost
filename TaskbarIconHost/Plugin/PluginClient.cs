@@ -68,9 +68,9 @@ namespace TaskbarIconHost
             PluginManager.ExecutePluginMethod(PluginHandle, nameof(IPluginClient.OnMenuOpening));
         }
 
-        public void ExecuteCommandHandler(ICommand Command)
+        public void OnExecuteCommand(ICommand Command)
         {
-            PluginManager.ExecutePluginMethod(PluginHandle, nameof(IPluginClient.ExecuteCommandHandler), Command);
+            PluginManager.ExecutePluginMethod(PluginHandle, nameof(IPluginClient.OnExecuteCommand), Command);
         }
 
         public bool GetIsIconChanged()
@@ -81,9 +81,9 @@ namespace TaskbarIconHost
         public Icon Icon { get { return PluginManager.PluginProperty<Icon>(PluginHandle, nameof(IPluginClient.Icon)); } }
         public Bitmap SelectionBitmap { get { return PluginManager.PluginProperty<Bitmap>(PluginHandle, nameof(IPluginClient.SelectionBitmap)); } }
 
-        public void IconClicked()
+        public void OnIconClicked()
         {
-            PluginManager.ExecutePluginMethod(PluginHandle, nameof(IPluginClient.IconClicked));
+            PluginManager.ExecutePluginMethod(PluginHandle, nameof(IPluginClient.OnIconClicked));
         }
 
         public bool GetIsToolTipChanged()
@@ -92,6 +92,16 @@ namespace TaskbarIconHost
         }
 
         public string ToolTip { get { return PluginManager.PluginProperty<string>(PluginHandle, nameof(IPluginClient.ToolTip)); } }
+
+        public void OnActivated()
+        {
+            PluginManager.ExecutePluginMethod(PluginHandle, nameof(IPluginClient.OnActivated));
+        }
+
+        public void OnDeactivated()
+        {
+            PluginManager.ExecutePluginMethod(PluginHandle, nameof(IPluginClient.OnDeactivated));
+        }
 
         public bool CanClose(bool canClose)
         {

@@ -74,7 +74,7 @@ namespace Empty
         {
         }
 
-        public void ExecuteCommandHandler(ICommand Command)
+        public void OnExecuteCommand(ICommand Command)
         {
         }
 
@@ -93,7 +93,7 @@ namespace Empty
             get { return null; }
         }
 
-        public void IconClicked()
+        public void OnIconClicked()
         {
         }
 
@@ -105,6 +105,14 @@ namespace Empty
         public string ToolTip
         {
             get { return null; }
+        }
+
+        public void OnActivated()
+        {
+        }
+
+        public void OnDeactivated()
+        {
         }
 
         public bool CanClose(bool canClose)
