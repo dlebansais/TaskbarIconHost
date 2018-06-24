@@ -9,5 +9,7 @@
         void SetSettingInt(string valueName, int value);
         string GetSettingString(string valueName, string defaultValue);
         void SetSettingString(string valueName, string value);
+        double GetSettingDouble(string valueName, double defaultValue);
+        void SetSettingDouble(string valueName, double value);
     }
 }
