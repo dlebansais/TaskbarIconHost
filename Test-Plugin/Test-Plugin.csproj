@@ -62,7 +62,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy /Y "C:\Projects\TaskbarIconHost\Test-Plugin\bin\x64\Debug\Test-Plugin.dll" "C:\Projects\TaskbarIconHost\TaskbarIconHost\bin\x64\Debug"
+    <PostBuildEvent>if not exist "$(SolutionDir)\TaskbarIconHost\bin\x64\$(Configuration)/" mkdir "$(SolutionDir)\TaskbarIconHost\bin\x64\$(Configuration)/"
+if exist "$(SolutionDir)\TaskbarIconHost\bin\x64\$(Configuration)/" copy /Y "$(SolutionDir)\Test-Plugin\bin\x64\Debug\Test-Plugin.dll" "$(SolutionDir)\TaskbarIconHost\bin\x64\$(Configuration)"
 </PostBuildEvent>
   </PropertyGroup>
   <Import Project="..\packages\Fody.3.0.4\build\Fody.targets" Condition="Exists('..\packages\Fody.3.0.4\build\Fody.targets')" />
