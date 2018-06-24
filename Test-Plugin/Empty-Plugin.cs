@@ -9,7 +9,7 @@ using System.Windows.Threading;
 /// </summary>
 namespace Empty
 {
-    public class EmptyPlugin : System.MarshalByRefObject, TaskbarIconHost.IPluginClient
+    public class EmptyPlugin : TaskbarIconHost.IPluginClient
     {
         public string Name
         {
