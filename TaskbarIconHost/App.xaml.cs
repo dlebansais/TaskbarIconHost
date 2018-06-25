@@ -280,7 +280,7 @@ namespace TaskbarIconHost
             Items.Add(LoadAtStartup);
 
             Dictionary<List<MenuItem>, string> FullPluginMenuList = new Dictionary<List<MenuItem>, string>();
-            int VisiblePluginMenuCount = 0;
+            int LargePluginMenuCount = 0;
 
             foreach (KeyValuePair<List<ICommand>, string> Entry in PluginManager.FullCommandList)
             {
@@ -288,6 +288,7 @@ namespace TaskbarIconHost
                 string PluginName = Entry.Value;
 
                 List<MenuItem> PluginMenuList = new List<MenuItem>();
+                int VisiblePluginMenuCount = 0;
 
                 foreach (ICommand Command in FullPluginCommandList)
                     if (Command == null)
@@ -309,43 +310,19 @@ namespace TaskbarIconHost
                             VisiblePluginMenuCount++;
                     }
 
+                if (VisiblePluginMenuCount > 1)
+                    LargePluginMenuCount++;
+
                 FullPluginMenuList.Add(PluginMenuList, PluginName);
             }
 
-            bool AddSeparator = VisiblePluginMenuCount > 1;
-
-            foreach (KeyValuePair<List<MenuItem>, string> Entry in FullPluginMenuList)
-            {
-                List<MenuItem> PluginMenuList = Entry.Key;
-                string PluginName = Entry.Value;
-
-                if (AddSeparator)
-                    Items.Add(new Separator());
-
-                AddSeparator = true;
-
-                ItemCollection SubmenuItems;
-                if (PluginMenuList.Count > 1 && FullPluginMenuList.Count > 1)
-                {
-                    MenuItem PluginSubmenu = new MenuItem();
-                    PluginSubmenu.Header = PluginName;
-                    SubmenuItems = PluginSubmenu.Items;
-                    Items.Add(PluginSubmenu);
-                }
-                else
-                    SubmenuItems = Items;
-
-                foreach (MenuItem MenuItem in PluginMenuList)
-                    if (MenuItem != null)
-                        SubmenuItems.Add(MenuItem);
-                    else
-                        SubmenuItems.Add(new Separator());
-            }
-
-            Items.Add(new Separator());
+            AddPluginMenuItems(Items, FullPluginMenuList, false, false);
+            AddPluginMenuItems(Items, FullPluginMenuList, true, LargePluginMenuCount > 1);
 
             if (PluginManager.ConsolidatedPluginList.Count > 1)
             {
+                Items.Add(new Separator());
+
                 MenuItem IconSubmenu = new MenuItem();
                 IconSubmenu.Header = "Icons";
 
@@ -370,8 +347,9 @@ namespace TaskbarIconHost
                 }
 
                 Items.Add(IconSubmenu);
-                Items.Add(new Separator());
             }
+
+            Items.Add(new Separator());
 
             MenuItem ExitMenu = CreateMenuItem(ExitCommand, "Exit", false, null);
             Items.Add(ExitMenu);
@@ -379,6 +357,44 @@ namespace TaskbarIconHost
             Logger.AddLog("Menu created");
 
             return Result;
+        }
+
+        private void AddPluginMenuItems(ItemCollection Items, Dictionary<List<MenuItem>, string> FullPluginMenuList, bool largeSubmenu, bool useSubmenus)
+        {
+            bool AddSeparator = true;
+
+            foreach (KeyValuePair<List<MenuItem>, string> Entry in FullPluginMenuList)
+            {
+                List<MenuItem> PluginMenuList = Entry.Key;
+                if ((PluginMenuList.Count <= 1 && largeSubmenu) || (PluginMenuList.Count > 1 && !largeSubmenu))
+                    continue;
+
+                string PluginName = Entry.Value;
+
+                if (AddSeparator)
+                    Items.Add(new Separator());
+
+                ItemCollection SubmenuItems;
+                if (useSubmenus)
+                {
+                    AddSeparator = false;
+                    MenuItem PluginSubmenu = new MenuItem();
+                    PluginSubmenu.Header = PluginName;
+                    SubmenuItems = PluginSubmenu.Items;
+                    Items.Add(PluginSubmenu);
+                }
+                else
+                {
+                    AddSeparator = true;
+                    SubmenuItems = Items;
+                }
+
+                foreach (MenuItem MenuItem in PluginMenuList)
+                    if (MenuItem != null)
+                        SubmenuItems.Add(MenuItem);
+                    else
+                        SubmenuItems.Add(new Separator());
+            }
         }
 
         private MenuItem CreateMenuItem(ICommand command, string header, bool isChecked, Bitmap icon)
