@@ -358,9 +358,12 @@ namespace TaskbarIconHost
                 FullPluginMenuList.Add(PluginMenuList, PluginName);
             }
 
+            // Add small menus, then large menus.
             AddPluginMenuItems(Items, FullPluginMenuList, false, false);
             AddPluginMenuItems(Items, FullPluginMenuList, true, LargePluginMenuCount > 1);
 
+            // If there are more than one plugin capable of receiving click notification, we must give the user a way to choose which.
+            // For this purpose, create a "Icons" menu with a choice of plugins, with their name and preferred icon.
             if (PluginManager.ConsolidatedPluginList.Count > 1)
             {
                 Items.Add(new Separator());
@@ -371,29 +374,33 @@ namespace TaskbarIconHost
                 foreach (IPluginClient Plugin in PluginManager.ConsolidatedPluginList)
                 {
                     Guid SubmenuGuid = Plugin.Guid;
-                    if (!IconSelectionTable.ContainsKey(SubmenuGuid))
+                    if (!IconSelectionTable.ContainsKey(SubmenuGuid)) // Protection against plugins reusing a guid...
                     {
                         RoutedUICommand SubmenuCommand = new RoutedUICommand();
                         SubmenuCommand.Text = PluginManager.GuidToString(SubmenuGuid);
 
                         string SubmenuHeader = Plugin.Name;
-                        bool SubmenuIsChecked = (SubmenuGuid == PluginManager.PreferredPluginGuid);
+                        bool SubmenuIsChecked = (SubmenuGuid == PluginManager.PreferredPluginGuid); // The currently preferred plugin will be checked as so.
                         Bitmap SubmenuIcon = Plugin.SelectionBitmap;
 
                         AddMenuCommand(SubmenuCommand, OnCommandSelectPreferred);
                         MenuItem PluginMenu = CreateMenuItem(SubmenuCommand, SubmenuHeader, SubmenuIsChecked, SubmenuIcon);
+                        TaskbarIcon.PrepareMenuItem(PluginMenu, true, true);
                         IconSubmenu.Items.Add(PluginMenu);
 
                         IconSelectionTable.Add(SubmenuGuid, SubmenuCommand);
                     }
                 }
 
+                // Add this "Icons" menu to the main context menu.
                 Items.Add(IconSubmenu);
             }
 
+            // Always add a separator above the exit menu.
             Items.Add(new Separator());
 
             MenuItem ExitMenu = CreateMenuItem(ExitCommand, "Exit", false, null);
+            TaskbarIcon.PrepareMenuItem(ExitMenu, true, true);
             Items.Add(ExitMenu);
 
             Logger.AddLog("Menu created");
@@ -408,6 +415,8 @@ namespace TaskbarIconHost
             foreach (KeyValuePair<List<MenuItem>, string> Entry in FullPluginMenuList)
             {
                 List<MenuItem> PluginMenuList = Entry.Key;
+
+                // Only add the category of plugin menu targetted by this call.
                 if ((PluginMenuList.Count <= 1 && largeSubmenu) || (PluginMenuList.Count > 1 && !largeSubmenu))
                     continue;
 
@@ -431,6 +440,7 @@ namespace TaskbarIconHost
                     SubmenuItems = Items;
                 }
 
+                // null in the plugin menu means separator.
                 foreach (MenuItem MenuItem in PluginMenuList)
                     if (MenuItem != null)
                         SubmenuItems.Add(MenuItem);
@@ -457,6 +467,7 @@ namespace TaskbarIconHost
             TaskbarIcon SenderIcon = sender as TaskbarIcon;
             string ExeName = Assembly.GetExecutingAssembly().Location;
 
+            // Update the load at startup menu with the current state (the user can change it directly in the Task Scheduler at any time).
             if (IsElevated)
                 SenderIcon.SetMenuIsChecked(LoadAtStartupCommand, Scheduler.IsTaskActive(ExeName));
             else
@@ -467,6 +478,7 @@ namespace TaskbarIconHost
                     SenderIcon.SetMenuHeader(LoadAtStartupCommand, LoadAtStartupHeader);
             }
 
+            // Update the menu with latest news from plugins.
             UpdateMenu(true);
 
             PluginManager.OnMenuOpening();
@@ -478,6 +490,7 @@ namespace TaskbarIconHost
 
             foreach (ICommand Command in ChangedCommandList)
             {
+                // Update changed menus with their new state.
                 bool MenuIsVisible = PluginManager.GetMenuIsVisible(Command);
                 if (MenuIsVisible)
                 {
@@ -521,11 +534,13 @@ namespace TaskbarIconHost
 
             if (IsElevated)
             {
+                // The user is changing the state.
                 TaskbarIcon.ToggleMenuIsChecked(LoadAtStartupCommand, out bool Install);
                 InstallLoad(Install, PluginDetails.Name);
             }
             else
             {
+                // The user would like to change the state, we show to them a dialog box that explains how to do it.
                 string ExeName = Assembly.GetExecutingAssembly().Location;
 
                 if (Scheduler.IsTaskActive(ExeName))
@@ -572,6 +587,8 @@ namespace TaskbarIconHost
 
             PluginManager.OnExecuteCommand(e.Command);
 
+            // After a command is executed, update the menu with the new state.
+            // This allows us to do it in the background, instead of when the menu is being opened. It's smoother (or should be).
             if (GetIsIconOrToolTipChanged())
                 UpdateIconAndToolTip();
 
@@ -582,24 +599,25 @@ namespace TaskbarIconHost
         {
             Logger.AddLog("OnCommandSelectPreferred");
 
-            if (e.Command is RoutedUICommand SubmenuCommand)
+            RoutedUICommand SubmenuCommand = e.Command as RoutedUICommand;
+
+            Guid NewSelectedGuid = new Guid(SubmenuCommand.Text);
+            Guid OldSelectedGuid = PluginManager.PreferredPluginGuid;
+            if (NewSelectedGuid != OldSelectedGuid)
             {
-                Guid NewSelectedGuid = new Guid(SubmenuCommand.Text);
-                Guid OldSelectedGuid = PluginManager.PreferredPluginGuid;
-                if (NewSelectedGuid != OldSelectedGuid)
-                {
-                    PluginManager.PreferredPluginGuid = NewSelectedGuid;
+                PluginManager.PreferredPluginGuid = NewSelectedGuid;
 
-                    IsIconChanged = true;
-                    IsToolTipChanged = true;
-                    UpdateIconAndToolTip();
+                // If the preferred plugin changed, make sure the icon and tooltip reflect the change.
+                IsIconChanged = true;
+                IsToolTipChanged = true;
+                UpdateIconAndToolTip();
 
-                    if (IconSelectionTable.ContainsKey(NewSelectedGuid))
-                        TaskbarIcon.SetMenuIsChecked(IconSelectionTable[NewSelectedGuid], true);
+                // Check the new plugin in the menu, and uncheck the previous one.
+                if (IconSelectionTable.ContainsKey(NewSelectedGuid))
+                    TaskbarIcon.SetMenuIsChecked(IconSelectionTable[NewSelectedGuid], true);
 
-                    if (IconSelectionTable.ContainsKey(OldSelectedGuid))
-                        TaskbarIcon.SetMenuIsChecked(IconSelectionTable[OldSelectedGuid], false);
-                }
+                if (IconSelectionTable.ContainsKey(OldSelectedGuid))
+                    TaskbarIcon.SetMenuIsChecked(IconSelectionTable[OldSelectedGuid], false);
             }
         }
 
@@ -614,23 +632,28 @@ namespace TaskbarIconHost
         #region Timer
         private void InitTimer()
         {
+            // Create a timer to display traces asynchrousnously.
             AppTimer = new Timer(new TimerCallback(AppTimerCallback));
             AppTimer.Change(CheckInterval, CheckInterval);
         }
 
         private void AppTimerCallback(object parameter)
         {
+            // If a shutdown is started, don't show traces anymore so the shutdown can complete smoothly.
             if (IsExiting)
                 return;
 
+            // Print traces asynchronously from the timer thread.
             UpdateLogger();
 
+            // Also, schedule an update of the icon and tooltip if they changed, or the first time.
             if (AppTimerOperation == null || (AppTimerOperation.Status == DispatcherOperationStatus.Completed && GetIsIconOrToolTipChanged()))
                 AppTimerOperation = Dispatcher.BeginInvoke(DispatcherPriority.Normal, new System.Action(OnAppTimer));
         }
 
         private void OnAppTimer()
         {
+            // If a shutdown is started, don't update the taskbar anymore so the shutdown can complete smoothly.
             if (IsExiting)
                 return;
 
@@ -669,13 +692,14 @@ namespace TaskbarIconHost
         {
             string ExeName = Assembly.GetExecutingAssembly().Location;
 
+            // Create or delete a task in the Task Scheduler.
             if (isInstalled)
             {
                 TaskRunLevel RunLevel = PluginManager.RequireElevated ? TaskRunLevel.Highest : TaskRunLevel.LUA;
                 Scheduler.AddTask(appName, ExeName, RunLevel, Logger);
             }
             else
-                Scheduler.RemoveTask(ExeName, out bool IsFound);
+                Scheduler.RemoveTask(ExeName, out bool IsFound); // Ignore it if the task was not found.
         }
         #endregion
 
