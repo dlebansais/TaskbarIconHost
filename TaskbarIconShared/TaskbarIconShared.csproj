@@ -7,7 +7,7 @@
     <ProjectGuid>{EA29A87F-BD3E-46D0-869A-A5C5076EAF9E}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>TaskbarIconShared</RootNamespace>
+    <RootNamespace>TaskbarIconHost</RootNamespace>
     <AssemblyName>TaskbarIconShared</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -55,6 +55,7 @@
     <Compile Include="Interfaces\IPluginClient.cs" />
     <Compile Include="Interfaces\IPluginLogger.cs" />
     <Compile Include="Interfaces\IPluginSettings.cs" />
+    <Compile Include="Tools\ResourceTools.cs" />
     <Compile Include="Tools\Taskbar.cs" />
   </ItemGroup>
   <ItemGroup>
