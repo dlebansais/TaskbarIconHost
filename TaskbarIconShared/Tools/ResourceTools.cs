@@ -5,8 +5,16 @@ using System.Windows.Media.Imaging;
 
 namespace TaskbarIconHost
 {
+    /// <summary>
+    /// Misc tools.
+    /// </summary>
     public static class ResourceTools
     {
+        /// <summary>
+        /// Returns an ImageSource object that can be used as the icon for a WPF window.
+        /// </summary>
+        /// <param name="iconName">The name of the icon "Embedded Resource" file in the project</param>
+        /// <returns></returns>
         public static ImageSource LoadEmbeddedIcon(string iconName)
         {
             Assembly assembly = Assembly.GetCallingAssembly();

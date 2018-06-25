@@ -6,6 +6,10 @@ using System.Windows.Threading;
 
 namespace TaskbarIconHost
 {
+    /// <summary>
+    /// This interface describes how a plugin is called by the host, and how the plugin should behave.
+    /// All plugins must implement this interface to be loaded.
+    /// </summary>
     public interface IPluginClient
     {
         /// <summary>

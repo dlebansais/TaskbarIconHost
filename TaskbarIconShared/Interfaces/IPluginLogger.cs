@@ -1,5 +1,8 @@
 ﻿namespace TaskbarIconHost
 {
+    /// <summary>
+    /// Interface describing the log feature available to plugins.
+    /// </summary>
     public interface IPluginLogger
     {
         /// <summary>

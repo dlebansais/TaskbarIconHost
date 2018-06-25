@@ -7,6 +7,9 @@ using System.Windows.Forms;
 
 namespace TaskbarIconHost
 {
+    /// <summary>
+    /// Class that provide some information about the Windows taskbar.
+    /// </summary>
     public static class Taskbar
     {
         #region Init
@@ -78,13 +81,19 @@ namespace TaskbarIconHost
         #endregion
 
         #region User Interface
-        // Bounds of the current screen used to display the taskbar.
+        /// <summary>
+        /// Bounds of the current screen used to display the taskbar.
+        /// </summary>
         public static System.Drawing.Rectangle ScreenBounds
         {
             get { return CurrentScreen == null ? System.Drawing.Rectangle.Empty : CurrentScreen.Bounds; }
         }
 
-        // Return the position a FrameworkElement should take to be on the edge of the task bar. In screen coordinates.
+        /// <summary>
+        /// Return the position a FrameworkElement should take to be on the edge of the task bar. In screen coordinates.
+        /// </summary>
+        /// <param name="element">The element for which the position should be calculated</param>
+        /// <returns>The position <paramref name="element"/> should be at to be on the side where the taskbar is</returns>
         public static Point GetRelativePosition(FrameworkElement element)
         {
             if (element == null || double.IsNaN(element.ActualWidth) || double.IsNaN(element.ActualHeight) || ScreenBounds.IsEmpty)

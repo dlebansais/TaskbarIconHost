@@ -1,5 +1,8 @@
 ﻿namespace TaskbarIconHost
 {
+    /// <summary>
+    /// Interface to an object that reads and writes setting in the registry.
+    /// </summary>
     public interface IPluginSettings
     {
         /// <summary>
