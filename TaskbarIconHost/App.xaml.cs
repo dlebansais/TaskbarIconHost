@@ -35,12 +35,15 @@ namespace TaskbarIconHost
                 Guid AppGuid = PluginDetails.Guid;
                 if (AppGuid == Guid.Empty)
                 {
+                    // In case the guid is provided by the project settings and not source code.
                     GuidAttribute AppGuidAttribute = Assembly.GetExecutingAssembly().GetCustomAttribute<GuidAttribute>();
                     AppGuid = Guid.Parse(AppGuidAttribute.Value);
                 }
 
                 string AppUniqueId = AppGuid.ToString("B").ToUpper();
 
+                // Try to create a global named event with a unique name. If we can create it we are first, otherwise there is another instance.
+                // In that case, we just abort.
                 bool createdNew;
                 InstanceEvent = new EventWaitHandle(false, EventResetMode.ManualReset, AppUniqueId, out createdNew);
                 if (!createdNew)
@@ -61,11 +64,14 @@ namespace TaskbarIconHost
             }
 
             // This code is here mostly to make sure that the Taskbar static class is initialized ASAP.
+            // The taskbar rectangle is never empty. And if it is, we have no purpose.
             if (Taskbar.ScreenBounds.IsEmpty)
                 Shutdown();
             else
             {
                 Startup += OnStartup;
+
+                // Make sure we stop only on a call to Shutdown. This is for plugins that have a main window, we don't want to exit when it's closed.
                 ShutdownMode = ShutdownMode.OnExplicitShutdown;
             }
         }
@@ -76,10 +82,13 @@ namespace TaskbarIconHost
 
             InitTimer();
 
+            // The plugin manager can fail for various reasons. If it does, we just abort.
             if (InitPlugInManager())
             {
+                // Install the taskbar icon and create its menu.
                 InitTaskbarIcon();
 
+                // Get a notification when we get or loose the focus.
                 Activated += OnActivated;
                 Deactivated += OnDeactivated;
                 Exit += OnExit;
@@ -91,21 +100,26 @@ namespace TaskbarIconHost
             }
         }
 
+        // The taskbar got the focus.
         private void OnActivated(object sender, EventArgs e)
         {
             PluginManager.OnActivated();
         }
 
+        // The taskbar lost the focus.
         private void OnDeactivated(object sender, EventArgs e)
         {
             PluginManager.OnDeactivated();
         }
 
+        // Someone called Exit on the application. Time to clean things up.
         private void OnExit(object sender, ExitEventArgs e)
         {
             Logger.AddLog("Exiting application");
 
+            // Set this flag to minimize asynchronous activities.
             IsExiting = true;
+
             StopPlugInManager();
             CleanupTaskbarIcon();
             CleanupTimer();
@@ -116,6 +130,7 @@ namespace TaskbarIconHost
                 InstanceEvent = null;
             }
 
+            // Explicit display of the last message since timed debug is not running anymore.
             Logger.AddLog("Done");
             UpdateLogger();
         }
@@ -129,7 +144,9 @@ namespace TaskbarIconHost
         {
             get
             {
-                if (_IsElevated == null)
+                // Evaluate this property once, and return the same value after that.
+                // This elevated status is the administrator mode, it never changes during the lifetime of the application.
+                if (!_IsElevated.HasValue)
                 {
                     WindowsIdentity wi = WindowsIdentity.GetCurrent();
                     if (wi != null)
@@ -158,10 +175,13 @@ namespace TaskbarIconHost
             if (!PluginManager.Init(IsElevated, PluginDetails.AssemblyName, PluginDetails.Guid, Dispatcher, Logger))
                 return false;
 
+            // In the case of a single plugin version, this code won't do anything.
+            // However, if several single plugin versions run concurrently, the last one to run will be the preferred one for another plugin host.
             GlobalSettings = new PluginSettings(null, Logger);
 
             try
             {
+                // Assign the guid with a value taken from the registry. The try/catch blocks allows us to ignore invalid ones.
                 PluginManager.PreferredPluginGuid = new Guid(GlobalSettings.GetSettingString(PreferredPluginSettingName, PluginManager.GuidToString(Guid.Empty)));
             }
             catch
@@ -173,15 +193,19 @@ namespace TaskbarIconHost
 
         private void StopPlugInManager()
         {
-            try
-            {
-                GlobalSettings.SetSettingString(PreferredPluginSettingName, PluginManager.GuidToString(PluginManager.PreferredPluginGuid));
-            }
-            catch
-            {
-            }
-
+            // Save this plugin guid so that the last saved will be the preferred one if there is another plugin host.
+            GlobalSettings.SetSettingString(PreferredPluginSettingName, PluginManager.GuidToString(PluginManager.PreferredPluginGuid));
             PluginManager.Shutdown();
+
+            CleanupPlugInManager();
+        }
+
+        private void CleanupPlugInManager()
+        {
+            using (PluginSettings PluginSettings = GlobalSettings)
+            {
+                GlobalSettings = null;
+            }
         }
 
         private static readonly string PreferredPluginSettingName = "PreferredPlugin";
@@ -193,12 +217,15 @@ namespace TaskbarIconHost
         {
             Logger.AddLog("InitTaskbarIcon starting");
 
+            // Create and bind the load at startip/remove from startup command.
             LoadAtStartupCommand = new RoutedUICommand();
             AddMenuCommand(LoadAtStartupCommand, OnCommandLoadAtStartup);
 
+            // Create and bind the exit command.
             ExitCommand = new RoutedUICommand();
             AddMenuCommand(ExitCommand, OnCommandExit);
 
+            // Do the same with all plugin commands.
             foreach (KeyValuePair<List<ICommand>, string> Entry in PluginManager.FullCommandList)
             {
                 List<ICommand> FullPluginCommandList = Entry.Key;
@@ -206,10 +233,12 @@ namespace TaskbarIconHost
                     AddMenuCommand(Command, OnPluginCommand);
             }
 
+            // Get the preferred icon and tooltip, and build the taskbar context menu.
             Icon Icon = PluginManager.Icon;
             string ToolTip = PluginManager.ToolTip;
             ContextMenu ContextMenu = LoadContextMenu();
 
+            // Install the taskbar icon.
             TaskbarIcon = TaskbarIcon.Create(Icon, ToolTip, ContextMenu, ContextMenu);
             TaskbarIcon.MenuOpening += OnMenuOpening;
             TaskbarIcon.IconClicked += OnIconClicked;
@@ -225,22 +254,26 @@ namespace TaskbarIconHost
             }
         }
 
-        private void AddMenuCommand(ICommand Command, ExecutedRoutedEventHandler executed)
+        private void AddMenuCommand(ICommand command, ExecutedRoutedEventHandler executed)
         {
-            if (Command == null)
+            // The command can be null if a separator is intended.
+            if (command == null)
                 return;
 
             // Bind the command to the corresponding handler. Requires the menu to be the target of notifications in TaskbarIcon.
-            CommandManager.RegisterClassCommandBinding(typeof(ContextMenu), new CommandBinding(Command, executed));
+            CommandManager.RegisterClassCommandBinding(typeof(ContextMenu), new CommandBinding(command, executed));
         }
 
         private T LoadEmbeddedResource<T>(string resourceName)
         {
+            Assembly assembly = Assembly.GetExecutingAssembly();
+
             // Loads an "Embedded Resource" of type T (ex: Bitmap for a PNG file).
-            foreach (string ResourceName in Assembly.GetExecutingAssembly().GetManifestResourceNames())
+            // Make sure the resource is tagged as such in the resource properties.
+            foreach (string ResourceName in assembly.GetManifestResourceNames())
                 if (ResourceName.EndsWith(resourceName))
                 {
-                    using (Stream rs = Assembly.GetExecutingAssembly().GetManifestResourceStream(ResourceName))
+                    using (Stream rs = assembly.GetManifestResourceStream(ResourceName))
                     {
                         T Result = (T)Activator.CreateInstance(typeof(T), rs);
                         Logger.AddLog($"Resource {resourceName} loaded");
@@ -249,18 +282,22 @@ namespace TaskbarIconHost
                     }
                 }
 
+            // If not found, it could be because it's not tagged as "Embedded Resource".
             Logger.AddLog($"Resource {resourceName} not found");
             return default(T);
         }
 
         private ContextMenu LoadContextMenu()
         {
+            // Create the taskbar context menu and populate it with menu items, submenus and separators.
             ContextMenu Result = new ContextMenu();
             ItemCollection Items = Result.Items;
 
             MenuItem LoadAtStartup;
             string ExeName = Assembly.GetExecutingAssembly().Location;
 
+            // Create a menu item for the load at startup/remove from startup command, depending on the current situation.
+            // UAC-16.png is the recommended 'shield' icon to indicate administrator mode is required for the operation.
             if (Scheduler.IsTaskActive(ExeName))
             {
                 if (IsElevated)
@@ -279,6 +316,10 @@ namespace TaskbarIconHost
             TaskbarIcon.PrepareMenuItem(LoadAtStartup, true, true);
             Items.Add(LoadAtStartup);
 
+            // Below load at startup, we add plugin menus.
+            // Separate them in two categories, small and large. Small menus are always directly visible in the main context menu.
+            // Large plugin menus, if there is more than one, have their own submenu. If there is just one plugin with a large menu we don't bother.
+
             Dictionary<List<MenuItem>, string> FullPluginMenuList = new Dictionary<List<MenuItem>, string>();
             int LargePluginMenuCount = 0;
 
@@ -292,7 +333,7 @@ namespace TaskbarIconHost
 
                 foreach (ICommand Command in FullPluginCommandList)
                     if (Command == null)
-                        PluginMenuList.Add(null);
+                        PluginMenuList.Add(null); // This will result in the creation of a separator.
                     else
                     {
                         string MenuHeader = PluginManager.GetMenuHeader(Command);
@@ -306,6 +347,7 @@ namespace TaskbarIconHost
 
                         PluginMenuList.Add(PluginMenu);
 
+                        // Count how many visible items to decide if the menu is large or small.
                         if (MenuIsVisible)
                             VisiblePluginMenuCount++;
                     }
@@ -478,7 +520,7 @@ namespace TaskbarIconHost
             if (IsElevated)
             {
                 TaskbarIcon.ToggleMenuIsChecked(LoadAtStartupCommand, out bool Install);
-                InstallLoad(Install);
+                InstallLoad(Install, PluginDetails.Name);
             }
             else
             {
@@ -486,12 +528,12 @@ namespace TaskbarIconHost
 
                 if (Scheduler.IsTaskActive(ExeName))
                 {
-                    RemoveFromStartupWindow Dlg = new RemoveFromStartupWindow();
+                    RemoveFromStartupWindow Dlg = new RemoveFromStartupWindow(PluginDetails.Name);
                     Dlg.ShowDialog();
                 }
                 else
                 {
-                    LoadAtStartupWindow Dlg = new LoadAtStartupWindow(PluginManager.RequireElevated);
+                    LoadAtStartupWindow Dlg = new LoadAtStartupWindow(PluginManager.RequireElevated, PluginDetails.Name);
                     Dlg.ShowDialog();
                 }
             }
@@ -595,9 +637,8 @@ namespace TaskbarIconHost
 
         private void CleanupTimer()
         {
-            if (AppTimer != null)
+            using (Timer Timer = AppTimer)
             {
-                AppTimer.Dispose();
                 AppTimer = null;
             }
         }
@@ -622,14 +663,14 @@ namespace TaskbarIconHost
         #endregion
 
         #region Load at startup
-        private void InstallLoad(bool isInstalled)
+        private void InstallLoad(bool isInstalled, string appName)
         {
             string ExeName = Assembly.GetExecutingAssembly().Location;
 
             if (isInstalled)
             {
                 TaskRunLevel RunLevel = PluginManager.RequireElevated ? TaskRunLevel.Highest : TaskRunLevel.LUA;
-                Scheduler.AddTask("Taskbar Icon Host", ExeName, RunLevel, Logger);
+                Scheduler.AddTask(appName, ExeName, RunLevel, Logger);
             }
             else
                 Scheduler.RemoveTask(ExeName, out bool IsFound);
@@ -646,6 +687,7 @@ namespace TaskbarIconHost
         private void DisposeNow()
         {
             CleanupTimer();
+            CleanupPlugInManager();
         }
 
         public void Dispose()
