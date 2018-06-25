@@ -40,7 +40,7 @@ namespace Empty
             get { return null; }
         }
 
-        public bool GetIsMenuChanged()
+        public bool GetIsMenuChanged(bool beforeMenuOpening)
         {
             return false;
         }

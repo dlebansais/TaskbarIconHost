@@ -467,14 +467,16 @@ namespace TaskbarIconHost
                     SenderIcon.SetMenuHeader(LoadAtStartupCommand, LoadAtStartupHeader);
             }
 
-            UpdateMenu();
+            UpdateMenu(true);
 
             PluginManager.OnMenuOpening();
         }
 
-        private void UpdateMenu()
+        private void UpdateMenu(bool beforeMenuOpening)
         {
-            foreach (ICommand Command in PluginManager.GetChangedCommands())
+            List<ICommand> ChangedCommandList = PluginManager.GetChangedCommands(beforeMenuOpening);
+
+            foreach (ICommand Command in ChangedCommandList)
             {
                 bool MenuIsVisible = PluginManager.GetMenuIsVisible(Command);
                 if (MenuIsVisible)
@@ -573,7 +575,7 @@ namespace TaskbarIconHost
             if (GetIsIconOrToolTipChanged())
                 UpdateIconAndToolTip();
 
-            UpdateMenu();
+            UpdateMenu(false);
         }
 
         private void OnCommandSelectPreferred(object sender, ExecutedRoutedEventArgs e)
