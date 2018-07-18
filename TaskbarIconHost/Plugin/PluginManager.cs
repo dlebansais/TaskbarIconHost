@@ -7,11 +7,17 @@ using System.Threading;
 using System.Windows.Input;
 using System.Windows.Threading;
 using System.Security.Cryptography.X509Certificates;
+using System.Diagnostics;
 
 namespace TaskbarIconHost
 {
     public static class PluginManager
     {
+        static void WriteDebug(string s)
+        {
+            Debug.WriteLine(s);
+        }
+
         public static bool Init(bool isElevated, string embeddedPluginName, Guid embeddedPluginGuid, Dispatcher dispatcher, IPluginLogger logger)
         {
             PluginInterfaceType = typeof(IPluginClient);
@@ -165,10 +171,9 @@ namespace TaskbarIconHost
 
             try
             {
-#if !DEBUG
                 if (!string.IsNullOrEmpty(assembly.Location) && !IsAssemblySigned(assembly))
                     return;
-#endif
+
                 PluginClientTypeList = new List<Type>();
 
                 if (IsReferencingSharedAssembly(assembly, out AssemblyName SharedAssemblyName))
@@ -229,43 +234,65 @@ namespace TaskbarIconHost
 
         private static bool IsModuleSignedOneTry(Module module)
         {
+#if DEBUG
+            bool Success = true;
+#else
+            bool Success = false;
+#endif
             try
             {
                 X509Certificate certificate = module.GetSignerCertificate();
                 if (certificate == null)
                 {
                     // File is not signed.
-                    return false;
+                    WriteDebug("File not signed");
+                    return Success;
                 }
-
-                X509Certificate2 certificate2 = new X509Certificate2(certificate);
-
-                using (X509Chain CertificateChain = X509Chain.Create())
+                else
                 {
-                    CertificateChain.ChainPolicy.RevocationFlag = X509RevocationFlag.EndCertificateOnly;
-                    CertificateChain.ChainPolicy.UrlRetrievalTimeout = TimeSpan.FromSeconds(60);
-                    CertificateChain.ChainPolicy.RevocationMode = X509RevocationMode.Online;
-                    bool IsEndCertificateValid = CertificateChain.Build(certificate2);
+                    X509Certificate2 certificate2 = new X509Certificate2(certificate);
 
-                    if (!IsEndCertificateValid)
-                        return false;
+                    using (X509Chain CertificateChain = X509Chain.Create())
+                    {
+                        CertificateChain.ChainPolicy.RevocationFlag = X509RevocationFlag.EndCertificateOnly;
+                        CertificateChain.ChainPolicy.UrlRetrievalTimeout = TimeSpan.FromSeconds(60);
+                        CertificateChain.ChainPolicy.RevocationMode = X509RevocationMode.Online;
+                        CertificateChain.ChainPolicy.VerificationFlags = X509VerificationFlags.IgnoreEndRevocationUnknown;
+                        bool IsEndCertificateValid = CertificateChain.Build(certificate2);
 
-                    CertificateChain.ChainPolicy.RevocationFlag = X509RevocationFlag.EntireChain;
-                    CertificateChain.ChainPolicy.UrlRetrievalTimeout = TimeSpan.FromSeconds(60);
-                    CertificateChain.ChainPolicy.RevocationMode = X509RevocationMode.Online;
-                    CertificateChain.ChainPolicy.VerificationFlags = X509VerificationFlags.IgnoreCertificateAuthorityRevocationUnknown;
-                    bool IsCertificateChainValid = CertificateChain.Build(certificate2);
+                        if (!IsEndCertificateValid)
+                        {
+                            WriteDebug("End certificate not valid, " + CertificateChain.ToString());
+                            foreach (X509ChainStatus Item in CertificateChain.ChainStatus)
+                                WriteDebug(": " + Item.Status + ", " + Item.StatusInformation);
+                            return Success;
+                        }
+                        else
+                        {
+                            CertificateChain.ChainPolicy.RevocationFlag = X509RevocationFlag.EntireChain;
+                            CertificateChain.ChainPolicy.UrlRetrievalTimeout = TimeSpan.FromSeconds(60);
+                            CertificateChain.ChainPolicy.RevocationMode = X509RevocationMode.Online;
+                            CertificateChain.ChainPolicy.VerificationFlags = X509VerificationFlags.IgnoreEndRevocationUnknown | X509VerificationFlags.IgnoreCertificateAuthorityRevocationUnknown;
+                            bool IsCertificateChainValid = CertificateChain.Build(certificate2);
 
-                    if (!IsCertificateChainValid)
-                        return false;
-
-                    return true;
+                            if (!IsCertificateChainValid)
+                            {
+                                WriteDebug("Certificate chain not valid, " + CertificateChain.ToString());
+                                foreach (X509ChainStatus Item in CertificateChain.ChainStatus)
+                                    WriteDebug(": " + Item.Status + ", " + Item.StatusInformation);
+                                return Success;
+                            }
+                            else
+                                Success = true;
+                        }
+                    }
                 }
             }
             catch
             {
-                return false;
             }
+
+            return Success;
         }
 
         private static void CreatePluginList(Assembly pluginAssembly, List<Type> PluginClientTypeList, Guid embeddedPluginGuid, IPluginLogger logger, out List<IPluginClient> PluginList)
