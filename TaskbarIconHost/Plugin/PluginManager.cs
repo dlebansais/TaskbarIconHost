@@ -16,10 +16,17 @@ namespace TaskbarIconHost
         static void WriteDebug(string s)
         {
             Debug.WriteLine(s);
+
+            if (AccumulatedDebugString.Length < 10000)
+                AccumulatedDebugString += s;
         }
 
-        public static bool Init(bool isElevated, string embeddedPluginName, Guid embeddedPluginGuid, Dispatcher dispatcher, IPluginLogger logger)
+        public static string AccumulatedDebugString { get; private set; } = string.Empty;
+
+        public static bool Init(bool isElevated, string embeddedPluginName, Guid embeddedPluginGuid, Dispatcher dispatcher, IPluginLogger logger, out int exitCode, out bool isBadSignature)
         {
+            exitCode = 0;
+            isBadSignature = false;
             PluginInterfaceType = typeof(IPluginClient);
 
             Assembly CurrentAssembly = Assembly.GetExecutingAssembly();
@@ -38,7 +45,7 @@ namespace TaskbarIconHost
                 foreach (AssemblyName name in AssemblyNames)
                     if (name.Name == embeddedPluginName)
                     {
-                        FindPluginClientTypesByName(name, out PluginAssembly, out PluginClientTypeList);
+                        FindPluginClientTypesByName(name, out PluginAssembly, out PluginClientTypeList, ref exitCode, ref isBadSignature);
                         if (PluginAssembly != null && PluginClientTypeList != null && PluginClientTypeList.Count > 0)
                             PluginClientTypeTable.Add(PluginAssembly, PluginClientTypeList);
                     }
@@ -47,7 +54,7 @@ namespace TaskbarIconHost
             string[] Assemblies = Directory.GetFiles(AppFolder, "*.dll");
             foreach (string AssemblyPath in Assemblies)
             {
-                FindPluginClientTypesByPath(AssemblyPath, out PluginAssembly, out PluginClientTypeList);
+                FindPluginClientTypesByPath(AssemblyPath, out PluginAssembly, out PluginClientTypeList, ref exitCode, ref isBadSignature);
                 if (PluginAssembly != null && PluginClientTypeList != null)
                     PluginClientTypeTable.Add(PluginAssembly, PluginClientTypeList);
             }
@@ -118,6 +125,9 @@ namespace TaskbarIconHost
             }
             else
             {
+                if (exitCode == 0)
+                    exitCode = -2;
+
                 logger.AddLog($"Could not load plugins, {AssemblyCount} assemblies found, {CompatibleAssemblyCount} are compatible.");
                 return false;
             }
@@ -137,42 +147,51 @@ namespace TaskbarIconHost
             return false;
         }
 
-        private static void FindPluginClientTypesByPath(string assemblyPath, out Assembly PluginAssembly, out List<Type> PluginClientTypeList)
+        private static void FindPluginClientTypesByPath(string assemblyPath, out Assembly PluginAssembly, out List<Type> PluginClientTypeList, ref int exitCode, ref bool isBadSignature)
         {
             try
             {
                 PluginAssembly = Assembly.LoadFrom(assemblyPath);
-                FindPluginClientTypes(PluginAssembly, out PluginClientTypeList);
+                FindPluginClientTypes(PluginAssembly, out PluginClientTypeList, ref exitCode, ref isBadSignature);
             }
             catch
             {
+                if (exitCode == 0)
+                    exitCode = -3;
+
                 PluginAssembly = null;
                 PluginClientTypeList = null;
             }
         }
 
-        private static void FindPluginClientTypesByName(AssemblyName name, out Assembly PluginAssembly, out List<Type> PluginClientTypeList)
+        private static void FindPluginClientTypesByName(AssemblyName name, out Assembly PluginAssembly, out List<Type> PluginClientTypeList, ref int exitCode, ref bool isBadSignature)
         {
             try
             {
                 PluginAssembly = Assembly.Load(name);
-                FindPluginClientTypes(PluginAssembly, out PluginClientTypeList);
+                FindPluginClientTypes(PluginAssembly, out PluginClientTypeList, ref exitCode, ref isBadSignature);
             }
             catch
             {
+                if (exitCode == 0)
+                    exitCode = -4;
+
                 PluginAssembly = null;
                 PluginClientTypeList = null;
             }
         }
 
-        private static void FindPluginClientTypes(Assembly assembly, out List<Type> PluginClientTypeList)
+        private static void FindPluginClientTypes(Assembly assembly, out List<Type> PluginClientTypeList, ref int exitCode, ref bool isBadSignature)
         {
             PluginClientTypeList = null;
 
             try
             {
-                if (!string.IsNullOrEmpty(assembly.Location) && !IsAssemblySigned(assembly))
+                if (!string.IsNullOrEmpty(assembly.Location) && !IsAssemblySigned(assembly, ref exitCode))
+                {
+                    isBadSignature = true;
                     return;
+                }
 
                 PluginClientTypeList = new List<Type>();
 
@@ -205,21 +224,25 @@ namespace TaskbarIconHost
             }
             catch
             {
+                if (exitCode == 0)
+                    exitCode = -6;
             }
         }
 
-        private static bool IsAssemblySigned(Assembly assembly)
+        private static bool IsAssemblySigned(Assembly assembly, ref int exitCode)
         {
             foreach (Module Module in assembly.GetModules())
-                return IsModuleSigned(Module);
+                return IsModuleSigned(Module, ref exitCode);
 
             return false;
         }
 
-        private static bool IsModuleSigned(Module module)
+        private static bool IsModuleSigned(Module module, ref int exitCode)
         {
+            int SignedExitCode;
+
             for (int i = 0; i < 3; i++)
-                if (IsModuleSignedOneTry(module))
+                if (IsModuleSignedOneTry(module, out SignedExitCode))
                     return true;
                 else if (!IsWakeUpDelayElapsed)
                 {
@@ -227,18 +250,25 @@ namespace TaskbarIconHost
                     IsWakeUpDelayElapsed = true;
                 }
                 else
+                {
+                    if (exitCode == 0)
+                        exitCode = SignedExitCode;
+
                     return false;
+                }
 
             return false;
         }
 
-        private static bool IsModuleSignedOneTry(Module module)
+        private static bool IsModuleSignedOneTry(Module module, out int signedExitCode)
         {
 #if DEBUG
             bool Success = true;
 #else
             bool Success = false;
 #endif
+            signedExitCode = 0;
+
             try
             {
                 X509Certificate certificate = module.GetSignerCertificate();
@@ -246,6 +276,7 @@ namespace TaskbarIconHost
                 {
                     // File is not signed.
                     WriteDebug("File not signed");
+                    signedExitCode = -7;
                     return Success;
                 }
                 else
@@ -265,6 +296,8 @@ namespace TaskbarIconHost
                             WriteDebug("End certificate not valid, " + CertificateChain.ToString());
                             foreach (X509ChainStatus Item in CertificateChain.ChainStatus)
                                 WriteDebug(": " + Item.Status + ", " + Item.StatusInformation);
+
+                            signedExitCode = -8;
                             return Success;
                         }
                         else
@@ -280,6 +313,8 @@ namespace TaskbarIconHost
                                 WriteDebug("Certificate chain not valid, " + CertificateChain.ToString());
                                 foreach (X509ChainStatus Item in CertificateChain.ChainStatus)
                                     WriteDebug(": " + Item.Status + ", " + Item.StatusInformation);
+
+                                signedExitCode = -9;
                                 return Success;
                             }
                             else
@@ -290,6 +325,7 @@ namespace TaskbarIconHost
             }
             catch
             {
+                signedExitCode = -10;
             }
 
             return Success;

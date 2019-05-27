@@ -83,7 +83,7 @@ namespace TaskbarIconHost
             InitTimer();
 
             // The plugin manager can fail for various reasons. If it does, we just abort.
-            if (InitPlugInManager())
+            if (InitPlugInManager(out int ExitCode, out bool IsBadSignature))
             {
                 // Install the taskbar icon and create its menu.
                 InitTaskbarIcon();
@@ -92,12 +92,27 @@ namespace TaskbarIconHost
                 Activated += OnActivated;
                 Deactivated += OnDeactivated;
                 Exit += OnExit;
+
+                if (IsBadSignature)
+                    ShowBadSignatureAlert();
             }
             else
             {
                 CleanupTimer();
-                Shutdown();
+
+                if (IsBadSignature)
+                    ShowBadSignatureAlert();
+
+                Shutdown(ExitCode);
             }
+        }
+
+        // Display a notification to signal that one of the plugins has a bad digital signature.
+        private void ShowBadSignatureAlert()
+        {
+            Thread.Sleep(40000);
+
+            TaskbarBalloon.Show("One or more plugin digital signature is invalid.", 15000);
         }
 
         // The taskbar got the focus.
@@ -170,9 +185,9 @@ namespace TaskbarIconHost
         #endregion
 
         #region Plugin Manager
-        private bool InitPlugInManager()
+        private bool InitPlugInManager(out int exitCode, out bool isBadSignature)
         {
-            if (!PluginManager.Init(IsElevated, PluginDetails.AssemblyName, PluginDetails.Guid, Dispatcher, Logger))
+            if (!PluginManager.Init(IsElevated, PluginDetails.AssemblyName, PluginDetails.Guid, Dispatcher, Logger, out exitCode, out isBadSignature))
                 return false;
 
             // In the case of a single plugin version, this code won't do anything.
@@ -183,9 +198,11 @@ namespace TaskbarIconHost
             {
                 // Assign the guid with a value taken from the registry. The try/catch blocks allows us to ignore invalid ones.
                 PluginManager.PreferredPluginGuid = new Guid(GlobalSettings.GetSettingString(PreferredPluginSettingName, PluginManager.GuidToString(Guid.Empty)));
+                exitCode = 0;
             }
             catch
             {
+                exitCode = -1;
             }
 
             return true;
