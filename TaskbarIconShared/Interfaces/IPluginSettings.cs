@@ -6,6 +6,11 @@
     public interface IPluginSettings
     {
         /// <summary>
+        /// Disconnect and reconnect to the registry.
+        /// </summary>
+        void RenewKey();
+
+        /// <summary>
         /// Check if a boolean value exists in the registry.
         /// </summary>
         /// <param name="valueName">Value name</param>
