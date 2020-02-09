@@ -191,24 +191,24 @@ namespace TaskbarIconHost
         private static void AlignedToLeft(Point Position, Size Size, NativeMethods.RECT TaskbarRect, out double X, out double Y)
         {
             X = TaskbarRect.Right;
-            Y = Position.Y - Size.Height / 2;
+            Y = Position.Y - (Size.Height / 2);
         }
 
         private static void AlignedToRight(Point Position, Size Size, NativeMethods.RECT TaskbarRect, out double X, out double Y)
         {
             X = TaskbarRect.Left - Size.Width;
-            Y = Position.Y - Size.Height / 2;
+            Y = Position.Y - (Size.Height / 2);
         }
 
         private static void AlignedToTop(Point Position, Size Size, NativeMethods.RECT TaskbarRect, out double X, out double Y)
         {
-            X = Position.X - Size.Width / 2;
+            X = Position.X - (Size.Width / 2);
             Y = TaskbarRect.Bottom;
         }
 
         private static void AlignedToBottom(Point Position, Size Size, NativeMethods.RECT TaskbarRect, out double X, out double Y)
         {
-            X = Position.X - Size.Width / 2;
+            X = Position.X - (Size.Width / 2);
             Y = TaskbarRect.Top - Size.Height;
         }
 
