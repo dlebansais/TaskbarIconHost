@@ -302,7 +302,6 @@ namespace TaskbarTools
                         AddSubmenuItem(destinationItems, AsMenuItem);
                     else
                         AddMenuItem(destinationItems, AsMenuItem);
-
                 else if (Item is System.Windows.Controls.Separator AsSeparator)
                     AddSeparator(destinationItems);
         }
@@ -325,10 +324,8 @@ namespace TaskbarTools
 
             if (menuItem.Icon is Bitmap MenuBitmap)
                 NewMenuItem = new ToolStripMenuItem(MenuHeader, MenuBitmap);
-
             else if (menuItem.Icon is Icon MenuIcon)
                 NewMenuItem = new ToolStripMenuItem(MenuHeader, MenuIcon.ToBitmap());
-
             else
                 NewMenuItem = new ToolStripMenuItem(MenuHeader);
 

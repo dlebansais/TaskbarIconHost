@@ -34,92 +34,19 @@ namespace TaskbarIconHost
             Assembly CurrentAssembly = Assembly.GetExecutingAssembly();
             string Location = CurrentAssembly.Location;
             string AppFolder = GetDirectoryName(Location);
-            int AssemblyCount = 0;
-            int CompatibleAssemblyCount = 0;
 
             Dictionary<Assembly, List<Type>> PluginClientTypeTable = new Dictionary<Assembly, List<Type>>();
-            Assembly PluginAssembly;
-            List<Type> PluginClientTypeList;
 
-            if (embeddedPluginName != null)
-            {
-                AssemblyName[] AssemblyNames = CurrentAssembly.GetReferencedAssemblies();
-                foreach (AssemblyName Name in AssemblyNames)
-                    if (Name.Name == embeddedPluginName)
-                    {
-                        if (FindPluginClientTypesByName(Name, out PluginAssembly, out PluginClientTypeList, ref exitCode, ref isBadSignature))
-                            PluginClientTypeTable.Add(PluginAssembly, PluginClientTypeList);
-                    }
-            }
+            AddEmbeddedPlugins(embeddedPluginName, PluginClientTypeTable, ref exitCode, ref isBadSignature);
+            AddExternalPlugins(AppFolder, PluginClientTypeTable, ref exitCode, ref isBadSignature);
 
-            string[] Assemblies = Directory.GetFiles(AppFolder, "*.dll");
-            foreach (string AssemblyPath in Assemblies)
-            {
-                if (FindPluginClientTypesByPath(AssemblyPath, out PluginAssembly, out PluginClientTypeList, ref exitCode, ref isBadSignature))
-                    PluginClientTypeTable.Add(PluginAssembly, PluginClientTypeList);
-            }
-
-            foreach (KeyValuePair<Assembly, List<Type>> Entry in PluginClientTypeTable)
-            {
-                AssemblyCount++;
-
-                PluginAssembly = Entry.Key;
-                PluginClientTypeList = Entry.Value;
-
-                if (PluginClientTypeList.Count > 0)
-                {
-                    CompatibleAssemblyCount++;
-
-                    CreatePluginList(PluginAssembly, PluginClientTypeList, embeddedPluginGuid, logger, out List<IPluginClient> PluginList);
-                    if (PluginList.Count > 0)
-                        LoadedPluginTable.Add(PluginAssembly, PluginList);
-                }
-            }
+            LoadEnumeratedPlugins(PluginClientTypeTable, embeddedPluginGuid, logger, out int AssemblyCount, out int CompatibleAssemblyCount);
 
             if (LoadedPluginTable.Count > 0)
             {
-                foreach (KeyValuePair<Assembly, List<IPluginClient>> Entry in LoadedPluginTable)
-                    foreach (IPluginClient Plugin in Entry.Value)
-                    {
-                        InitializePlugin(Plugin, isElevated, dispatcher, logger);
-
-                        if (Plugin.RequireElevated)
-                            RequireElevated = true;
-                    }
-
-                foreach (KeyValuePair<Assembly, List<IPluginClient>> Entry in LoadedPluginTable)
-                    foreach (IPluginClient Plugin in Entry.Value)
-                    {
-                        List<ICommand> PluginCommandList = Plugin.CommandList;
-                        if (PluginCommandList != null)
-                        {
-                            List<ICommand> FullPluginCommandList = new List<ICommand>();
-                            FullCommandList.Add(FullPluginCommandList, Plugin.Name);
-
-                            foreach (ICommand Command in PluginCommandList)
-                            {
-                                FullPluginCommandList.Add(Command);
-
-                                if (Command != null)
-                                    CommandTable.Add(Command, Plugin);
-                            }
-                        }
-
-                        Icon PluginIcon = Plugin.Icon;
-                        if (PluginIcon != null)
-                            ConsolidatedPluginList.Add(Plugin);
-                    }
-
-                foreach (IPluginClient Plugin in ConsolidatedPluginList)
-                    if (Plugin.HasClickHandler)
-                    {
-                        PreferredPlugin = Plugin;
-                        break;
-                    }
-
-                if (PreferredPlugin == null && ConsolidatedPluginList.Count > 0)
-                    PreferredPlugin = ConsolidatedPluginList[0];
-
+                InitializeAllPlugins(isElevated, dispatcher, logger);
+                InitializeCommandsAndIcons();
+                InitializePreferredPlugin();
                 return true;
             }
             else
@@ -130,6 +57,106 @@ namespace TaskbarIconHost
                 logger.AddLog($"Could not load plugins, {AssemblyCount} assemblies found, {CompatibleAssemblyCount} are compatible.");
                 return false;
             }
+        }
+
+        private static void AddEmbeddedPlugins(string embeddedPluginName, Dictionary<Assembly, List<Type>> pluginClientTypeTable, ref int exitCode, ref bool isBadSignature)
+        {
+            if (embeddedPluginName != null)
+            {
+                Assembly CurrentAssembly = Assembly.GetExecutingAssembly();
+
+                AssemblyName[] AssemblyNames = CurrentAssembly.GetReferencedAssemblies();
+                foreach (AssemblyName Name in AssemblyNames)
+                    if (Name.Name == embeddedPluginName)
+                    {
+                        if (FindPluginClientTypesByName(Name, out Assembly PluginAssembly, out List<Type> PluginClientTypeList, ref exitCode, ref isBadSignature))
+                            pluginClientTypeTable.Add(PluginAssembly, PluginClientTypeList);
+                    }
+            }
+        }
+
+        private static void AddExternalPlugins(string appFolder, Dictionary<Assembly, List<Type>> pluginClientTypeTable, ref int exitCode, ref bool isBadSignature)
+        {
+            string[] Assemblies = Directory.GetFiles(appFolder, "*.dll");
+            foreach (string AssemblyPath in Assemblies)
+            {
+                if (FindPluginClientTypesByPath(AssemblyPath, out Assembly PluginAssembly, out List<Type> PluginClientTypeList, ref exitCode, ref isBadSignature))
+                    pluginClientTypeTable.Add(PluginAssembly, PluginClientTypeList);
+            }
+        }
+
+        private static void LoadEnumeratedPlugins(Dictionary<Assembly, List<Type>> pluginClientTypeTable, Guid embeddedPluginGuid, IPluginLogger logger, out int assemblyCount, out int compatibleAssemblyCount)
+        {
+            assemblyCount = 0;
+            compatibleAssemblyCount = 0;
+
+            foreach (KeyValuePair<Assembly, List<Type>> Entry in pluginClientTypeTable)
+            {
+                assemblyCount++;
+
+                Assembly PluginAssembly = Entry.Key;
+                List<Type> PluginClientTypeList = Entry.Value;
+
+                if (PluginClientTypeList.Count > 0)
+                {
+                    compatibleAssemblyCount++;
+
+                    CreatePluginList(PluginAssembly, PluginClientTypeList, embeddedPluginGuid, logger, out List<IPluginClient> PluginList);
+                    if (PluginList.Count > 0)
+                        LoadedPluginTable.Add(PluginAssembly, PluginList);
+                }
+            }
+        }
+
+        private static void InitializeAllPlugins(bool isElevated, Dispatcher dispatcher, IPluginLogger logger)
+        {
+            foreach (KeyValuePair<Assembly, List<IPluginClient>> Entry in LoadedPluginTable)
+                foreach (IPluginClient Plugin in Entry.Value)
+                {
+                    InitializePlugin(Plugin, isElevated, dispatcher, logger);
+
+                    if (Plugin.RequireElevated)
+                        RequireElevated = true;
+                }
+        }
+
+        private static void InitializeCommandsAndIcons()
+        {
+            foreach (KeyValuePair<Assembly, List<IPluginClient>> Entry in LoadedPluginTable)
+                foreach (IPluginClient Plugin in Entry.Value)
+                {
+                    List<ICommand> PluginCommandList = Plugin.CommandList;
+                    if (PluginCommandList != null)
+                    {
+                        List<ICommand> FullPluginCommandList = new List<ICommand>();
+                        FullCommandList.Add(FullPluginCommandList, Plugin.Name);
+
+                        foreach (ICommand Command in PluginCommandList)
+                        {
+                            FullPluginCommandList.Add(Command);
+
+                            if (Command != null)
+                                CommandTable.Add(Command, Plugin);
+                        }
+                    }
+
+                    Icon PluginIcon = Plugin.Icon;
+                    if (PluginIcon != null)
+                        ConsolidatedPluginList.Add(Plugin);
+                }
+        }
+
+        private static void InitializePreferredPlugin()
+        {
+            foreach (IPluginClient Plugin in ConsolidatedPluginList)
+                if (Plugin.HasClickHandler)
+                {
+                    PreferredPlugin = Plugin;
+                    break;
+                }
+
+            if (PreferredPlugin == null && ConsolidatedPluginList.Count > 0)
+                PreferredPlugin = ConsolidatedPluginList[0];
         }
 
         [SuppressMessage("Microsoft.Reliability", "CA2000: Dispose objects before losing scope")]

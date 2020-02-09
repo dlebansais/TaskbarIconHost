@@ -136,7 +136,6 @@ namespace TaskbarIconHost
             // If the potion isn't within the taskbar (shouldn't happen), default to bottom.
             if (!(Position.X >= TaskbarRect.Left && Position.X < TaskbarRect.Right && Position.Y >= TaskbarRect.Top && Position.Y < TaskbarRect.Bottom))
                 AlignedToBottom(Position, Size, TaskbarRect, out X, out Y);
-
             else
             {
                 // Otherwise, check where the taskbar is, and calculate an aligned position.
@@ -179,16 +178,12 @@ namespace TaskbarIconHost
 
             if (IsTop && !IsLeft && !IsRight)
                 return TaskBarLocation.Top;
-
             else if (IsBottom && !IsLeft && !IsRight)
                 return TaskBarLocation.Bottom;
-
             else if (IsLeft && !IsTop && !IsBottom)
                 return TaskBarLocation.Left;
-
             else if (IsRight && !IsTop && !IsBottom)
                 return TaskBarLocation.Right;
-
             else
                 return TaskBarLocation.Bottom;
         }

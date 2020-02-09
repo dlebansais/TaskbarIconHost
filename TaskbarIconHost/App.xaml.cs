@@ -286,25 +286,7 @@ namespace TaskbarIconHost
             ContextMenu Result = new ContextMenu();
             ItemCollection Items = Result.Items;
 
-            MenuItem LoadAtStartup;
-            string ExeName = Assembly.GetExecutingAssembly().Location;
-
-            // Create a menu item for the load at startup/remove from startup command, depending on the current situation.
-            // UAC-16.png is the recommended 'shield' icon to indicate administrator mode is required for the operation.
-            if (Scheduler.IsTaskActive(ExeName))
-            {
-                if (IsElevated)
-                    LoadAtStartup = CreateMenuItem(LoadAtStartupCommand, LoadAtStartupHeader, true, null);
-                else
-                    LoadAtStartup = CreateMenuItem(LoadAtStartupCommand, RemoveFromStartupHeader, false, ResourceTools.LoadEmbeddedResource<Bitmap>("UAC-16.png"));
-            }
-            else
-            {
-                if (IsElevated)
-                    LoadAtStartup = CreateMenuItem(LoadAtStartupCommand, LoadAtStartupHeader, false, null);
-                else
-                    LoadAtStartup = CreateMenuItem(LoadAtStartupCommand, LoadAtStartupHeader, false, ResourceTools.LoadEmbeddedResource<Bitmap>("UAC-16.png"));
-            }
+            MenuItem LoadAtStartup = LoadContextMenuFromActive();
 
             TaskbarIcon.PrepareMenuItem(LoadAtStartup, true, true);
             Items.Add(LoadAtStartup);
@@ -312,9 +294,52 @@ namespace TaskbarIconHost
             // Below load at startup, we add plugin menus.
             // Separate them in two categories, small and large. Small menus are always directly visible in the main context menu.
             // Large plugin menus, if there is more than one, have their own submenu. If there is just one plugin with a large menu we don't bother.
+            AddPluginMenuToContextMenu(out Dictionary<List<MenuItem?>, string> FullPluginMenuList, out int LargePluginMenuCount);
 
-            Dictionary<List<MenuItem?>, string> FullPluginMenuList = new Dictionary<List<MenuItem?>, string>();
-            int LargePluginMenuCount = 0;
+            // Add small menus, then large menus.
+            AddPluginMenuItems(Items, FullPluginMenuList, false, false);
+            AddPluginMenuItems(Items, FullPluginMenuList, true, LargePluginMenuCount > 1);
+
+            // If there are more than one plugin capable of receiving click notification, we must give the user a way to choose which.
+            // For this purpose, create a "Icons" menu with a choice of plugins, with their name and preferred icon.
+            SelectPreferredPluginContextMenu(Items);
+
+            AddExitMenuToContextMenu(Items);
+
+            Logger.AddLog("Menu created");
+
+            return Result;
+        }
+
+        private MenuItem LoadContextMenuFromActive()
+        {
+            MenuItem Result;
+            string ExeName = Assembly.GetExecutingAssembly().Location;
+
+            // Create a menu item for the load at startup/remove from startup command, depending on the current situation.
+            // UAC-16.png is the recommended 'shield' icon to indicate administrator mode is required for the operation.
+            if (Scheduler.IsTaskActive(ExeName))
+            {
+                if (IsElevated)
+                    Result = CreateMenuItem(LoadAtStartupCommand, LoadAtStartupHeader, true, null);
+                else
+                    Result = CreateMenuItem(LoadAtStartupCommand, RemoveFromStartupHeader, false, ResourceTools.LoadEmbeddedResource<Bitmap>("UAC-16.png"));
+            }
+            else
+            {
+                if (IsElevated)
+                    Result = CreateMenuItem(LoadAtStartupCommand, LoadAtStartupHeader, false, null);
+                else
+                    Result = CreateMenuItem(LoadAtStartupCommand, LoadAtStartupHeader, false, ResourceTools.LoadEmbeddedResource<Bitmap>("UAC-16.png"));
+            }
+
+            return Result;
+        }
+
+        private static void AddPluginMenuToContextMenu(out Dictionary<List<MenuItem?>, string> fullPluginMenuList, out int largePluginMenuCount)
+        {
+            fullPluginMenuList = new Dictionary<List<MenuItem?>, string>();
+            largePluginMenuCount = 0;
 
             foreach (KeyValuePair<List<ICommand>, string> Entry in PluginManager.FullCommandList)
             {
@@ -346,20 +371,17 @@ namespace TaskbarIconHost
                     }
 
                 if (VisiblePluginMenuCount > 1)
-                    LargePluginMenuCount++;
+                    largePluginMenuCount++;
 
-                FullPluginMenuList.Add(PluginMenuList, PluginName);
+                fullPluginMenuList.Add(PluginMenuList, PluginName);
             }
+        }
 
-            // Add small menus, then large menus.
-            AddPluginMenuItems(Items, FullPluginMenuList, false, false);
-            AddPluginMenuItems(Items, FullPluginMenuList, true, LargePluginMenuCount > 1);
-
-            // If there are more than one plugin capable of receiving click notification, we must give the user a way to choose which.
-            // For this purpose, create a "Icons" menu with a choice of plugins, with their name and preferred icon.
+        private void SelectPreferredPluginContextMenu(ItemCollection items)
+        {
             if (PluginManager.ConsolidatedPluginList.Count > 1)
             {
-                Items.Add(new Separator());
+                items.Add(new Separator());
 
                 MenuItem IconSubmenu = new MenuItem();
                 IconSubmenu.Header = "Icons";
@@ -386,19 +408,8 @@ namespace TaskbarIconHost
                 }
 
                 // Add this "Icons" menu to the main context menu.
-                Items.Add(IconSubmenu);
+                items.Add(IconSubmenu);
             }
-
-            // Always add a separator above the exit menu.
-            Items.Add(new Separator());
-
-            MenuItem ExitMenu = CreateMenuItem(ExitCommand, "Exit", false, null);
-            TaskbarIcon.PrepareMenuItem(ExitMenu, true, true);
-            Items.Add(ExitMenu);
-
-            Logger.AddLog("Menu created");
-
-            return Result;
         }
 
         private static void AddPluginMenuItems(ItemCollection items, Dictionary<List<MenuItem?>, string> fullPluginMenuList, bool largeSubmenu, bool useSubmenus)
@@ -440,6 +451,16 @@ namespace TaskbarIconHost
                     else
                         SubmenuItems.Add(new Separator());
             }
+        }
+
+        private void AddExitMenuToContextMenu(ItemCollection items)
+        {
+            // Always add a separator above the exit menu.
+            items.Add(new Separator());
+
+            MenuItem ExitMenu = CreateMenuItem(ExitCommand, "Exit", false, null);
+            TaskbarIcon.PrepareMenuItem(ExitMenu, true, true);
+            items.Add(ExitMenu);
         }
 
         private static MenuItem CreateMenuItem(ICommand command, string header, bool isChecked, Bitmap? icon)
