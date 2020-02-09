@@ -8,10 +8,12 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using System.Security.Cryptography.X509Certificates;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 
 namespace TaskbarIconHost
 {
-    public static class PluginManager
+    internal static class PluginManager
     {
         static void WriteDebug(string s)
         {
@@ -31,7 +33,7 @@ namespace TaskbarIconHost
 
             Assembly CurrentAssembly = Assembly.GetExecutingAssembly();
             string Location = CurrentAssembly.Location;
-            string AppFolder = Path.GetDirectoryName(Location);
+            string AppFolder = GetDirectoryName(Location);
             int AssemblyCount = 0;
             int CompatibleAssemblyCount = 0;
 
@@ -42,11 +44,10 @@ namespace TaskbarIconHost
             if (embeddedPluginName != null)
             {
                 AssemblyName[] AssemblyNames = CurrentAssembly.GetReferencedAssemblies();
-                foreach (AssemblyName name in AssemblyNames)
-                    if (name.Name == embeddedPluginName)
+                foreach (AssemblyName Name in AssemblyNames)
+                    if (Name.Name == embeddedPluginName)
                     {
-                        FindPluginClientTypesByName(name, out PluginAssembly, out PluginClientTypeList, ref exitCode, ref isBadSignature);
-                        if (PluginAssembly != null && PluginClientTypeList != null && PluginClientTypeList.Count > 0)
+                        if (FindPluginClientTypesByName(Name, out PluginAssembly, out PluginClientTypeList, ref exitCode, ref isBadSignature))
                             PluginClientTypeTable.Add(PluginAssembly, PluginClientTypeList);
                     }
             }
@@ -54,8 +55,7 @@ namespace TaskbarIconHost
             string[] Assemblies = Directory.GetFiles(AppFolder, "*.dll");
             foreach (string AssemblyPath in Assemblies)
             {
-                FindPluginClientTypesByPath(AssemblyPath, out PluginAssembly, out PluginClientTypeList, ref exitCode, ref isBadSignature);
-                if (PluginAssembly != null && PluginClientTypeList != null)
+                if (FindPluginClientTypesByPath(AssemblyPath, out PluginAssembly, out PluginClientTypeList, ref exitCode, ref isBadSignature))
                     PluginClientTypeTable.Add(PluginAssembly, PluginClientTypeList);
             }
 
@@ -81,8 +81,7 @@ namespace TaskbarIconHost
                 foreach (KeyValuePair<Assembly, List<IPluginClient>> Entry in LoadedPluginTable)
                     foreach (IPluginClient Plugin in Entry.Value)
                     {
-                        IPluginSettings Settings = new PluginSettings(GuidToString(Plugin.Guid), logger);
-                        Plugin.Initialize(isElevated, dispatcher, Settings, logger);
+                        InitializePlugin(Plugin, isElevated, dispatcher, logger);
 
                         if (Plugin.RequireElevated)
                             RequireElevated = true;
@@ -133,69 +132,81 @@ namespace TaskbarIconHost
             }
         }
 
-        private static bool IsReferencingSharedAssembly(Assembly assembly, out AssemblyName SharedAssemblyName)
+        [SuppressMessage("Microsoft.Reliability", "CA2000: Dispose objects before losing scope")]
+        private static void InitializePlugin(IPluginClient plugin, bool isElevated, Dispatcher dispatcher, IPluginLogger logger)
+        {
+            IPluginSettings Settings = new PluginSettings(GuidToString(plugin.Guid), logger);
+            plugin.Initialize(isElevated, dispatcher, Settings, logger);
+        }
+
+        private static string GetDirectoryName(string path)
+        {
+            return Path.GetDirectoryName(path);
+        }
+
+        private static bool IsReferencingSharedAssembly(Assembly assembly, out AssemblyName sharedAssemblyName)
         {
             AssemblyName[] AssemblyNames = assembly.GetReferencedAssemblies();
             foreach (AssemblyName AssemblyName in AssemblyNames)
                 if (AssemblyName.Name == SharedPluginAssemblyName)
                 {
-                    SharedAssemblyName = AssemblyName;
+                    sharedAssemblyName = AssemblyName;
                     return true;
                 }
 
-            SharedAssemblyName = null;
+            sharedAssemblyName = Assembly.GetExecutingAssembly().GetName();
             return false;
         }
 
-        private static void FindPluginClientTypesByPath(string assemblyPath, out Assembly PluginAssembly, out List<Type> PluginClientTypeList, ref int exitCode, ref bool isBadSignature)
+        private static bool FindPluginClientTypesByPath(string assemblyPath, out Assembly pluginAssembly, out List<Type> pluginClientTypeList, ref int exitCode, ref bool isBadSignature)
         {
             try
             {
-                PluginAssembly = Assembly.LoadFrom(assemblyPath);
-                FindPluginClientTypes(PluginAssembly, out PluginClientTypeList, ref exitCode, ref isBadSignature);
+                pluginAssembly = Assembly.LoadFrom(assemblyPath);
+                return FindPluginClientTypes(pluginAssembly, out pluginClientTypeList, ref exitCode, ref isBadSignature);
             }
             catch
             {
                 if (exitCode == 0)
                     exitCode = -3;
 
-                PluginAssembly = null;
-                PluginClientTypeList = null;
+                pluginAssembly = Assembly.GetExecutingAssembly();
+                pluginClientTypeList = new List<Type>();
+                return false;
             }
         }
 
-        private static void FindPluginClientTypesByName(AssemblyName name, out Assembly PluginAssembly, out List<Type> PluginClientTypeList, ref int exitCode, ref bool isBadSignature)
+        private static bool FindPluginClientTypesByName(AssemblyName name, out Assembly pluginAssembly, out List<Type> pluginClientTypeList, ref int exitCode, ref bool isBadSignature)
         {
             try
             {
-                PluginAssembly = Assembly.Load(name);
-                FindPluginClientTypes(PluginAssembly, out PluginClientTypeList, ref exitCode, ref isBadSignature);
+                pluginAssembly = Assembly.Load(name);
+                return FindPluginClientTypes(pluginAssembly, out pluginClientTypeList, ref exitCode, ref isBadSignature);
             }
             catch
             {
                 if (exitCode == 0)
                     exitCode = -4;
 
-                PluginAssembly = null;
-                PluginClientTypeList = null;
+                pluginAssembly = Assembly.GetExecutingAssembly();
+                pluginClientTypeList = new List<Type>();
+                return false;
             }
         }
 
-        private static void FindPluginClientTypes(Assembly assembly, out List<Type> PluginClientTypeList, ref int exitCode, ref bool isBadSignature)
+        private static bool FindPluginClientTypes(Assembly assembly, out List<Type> pluginClientTypeList, ref int exitCode, ref bool isBadSignature)
         {
-            PluginClientTypeList = null;
+            pluginClientTypeList = new List<Type>();
 
             try
             {
                 if (!string.IsNullOrEmpty(assembly.Location) && !IsAssemblySigned(assembly, ref exitCode))
                 {
                     isBadSignature = true;
-                    return;
+                    return false;
                 }
 
-                PluginClientTypeList = new List<Type>();
-
-                if (IsReferencingSharedAssembly(assembly, out AssemblyName SharedAssemblyName))
+                if (IsReferencingSharedAssembly(assembly, out _))
                 {
                     Type[] AssemblyTypes;
                     try
@@ -208,7 +219,7 @@ namespace TaskbarIconHost
                     }
                     catch
                     {
-                        AssemblyTypes = new Type[0];
+                        AssemblyTypes = Array.Empty<Type>();
                     }
 
                     foreach (Type ClientType in AssemblyTypes)
@@ -218,8 +229,10 @@ namespace TaskbarIconHost
 
                         Type InterfaceType = ClientType.GetInterface(PluginInterfaceType.FullName);
                         if (InterfaceType != null)
-                            PluginClientTypeList.Add(ClientType);
+                            pluginClientTypeList.Add(ClientType);
                     }
+
+                    return pluginClientTypeList.Count > 0;
                 }
             }
             catch
@@ -227,6 +240,8 @@ namespace TaskbarIconHost
                 if (exitCode == 0)
                     exitCode = -6;
             }
+
+            return false;
         }
 
         private static bool IsAssemblySigned(Assembly assembly, ref int exitCode)
@@ -239,12 +254,12 @@ namespace TaskbarIconHost
 
         private static bool IsModuleSigned(Module module, ref int exitCode)
         {
-            int SignedExitCode;
-
             for (int i = 0; i < 3; i++)
-                if (IsModuleSignedOneTry(module, out SignedExitCode))
+            {
+                if (IsModuleSignedOneTry(module, out int SignedExitCode))
                     return true;
-                else if (!IsWakeUpDelayElapsed)
+
+                if (!IsWakeUpDelayElapsed)
                 {
                     Thread.Sleep(5000);
                     IsWakeUpDelayElapsed = true;
@@ -256,6 +271,7 @@ namespace TaskbarIconHost
 
                     return false;
                 }
+            }
 
             return false;
         }
@@ -281,44 +297,48 @@ namespace TaskbarIconHost
                 }
                 else
                 {
-                    X509Certificate2 certificate2 = new X509Certificate2(certificate);
-
-                    using (X509Chain CertificateChain = X509Chain.Create())
+                    using (X509Certificate2 Certificate2 = new X509Certificate2(certificate))
                     {
-                        CertificateChain.ChainPolicy.RevocationFlag = X509RevocationFlag.EndCertificateOnly;
-                        CertificateChain.ChainPolicy.UrlRetrievalTimeout = TimeSpan.FromSeconds(60);
-                        CertificateChain.ChainPolicy.RevocationMode = X509RevocationMode.Online;
-                        CertificateChain.ChainPolicy.VerificationFlags = X509VerificationFlags.IgnoreEndRevocationUnknown;
-                        bool IsEndCertificateValid = CertificateChain.Build(certificate2);
-
-                        if (!IsEndCertificateValid)
+                        using (X509Chain CertificateChain = X509Chain.Create())
                         {
-                            WriteDebug("End certificate not valid, " + CertificateChain.ToString());
-                            foreach (X509ChainStatus Item in CertificateChain.ChainStatus)
-                                WriteDebug(": " + Item.Status + ", " + Item.StatusInformation);
-
-                            signedExitCode = -8;
-                            return Success;
-                        }
-                        else
-                        {
-                            CertificateChain.ChainPolicy.RevocationFlag = X509RevocationFlag.EntireChain;
+                            CertificateChain.ChainPolicy.RevocationFlag = X509RevocationFlag.EndCertificateOnly;
                             CertificateChain.ChainPolicy.UrlRetrievalTimeout = TimeSpan.FromSeconds(60);
                             CertificateChain.ChainPolicy.RevocationMode = X509RevocationMode.Online;
-                            CertificateChain.ChainPolicy.VerificationFlags = X509VerificationFlags.IgnoreEndRevocationUnknown | X509VerificationFlags.IgnoreCertificateAuthorityRevocationUnknown;
-                            bool IsCertificateChainValid = CertificateChain.Build(certificate2);
+                            CertificateChain.ChainPolicy.VerificationFlags =
+                                X509VerificationFlags.IgnoreEndRevocationUnknown;
+                            bool IsEndCertificateValid = CertificateChain.Build(Certificate2);
 
-                            if (!IsCertificateChainValid)
+                            if (!IsEndCertificateValid)
                             {
-                                WriteDebug("Certificate chain not valid, " + CertificateChain.ToString());
+                                WriteDebug("End certificate not valid, " + CertificateChain.ToString());
                                 foreach (X509ChainStatus Item in CertificateChain.ChainStatus)
                                     WriteDebug(": " + Item.Status + ", " + Item.StatusInformation);
 
-                                signedExitCode = -9;
+                                signedExitCode = -8;
                                 return Success;
                             }
                             else
-                                Success = true;
+                            {
+                                CertificateChain.ChainPolicy.RevocationFlag = X509RevocationFlag.EntireChain;
+                                CertificateChain.ChainPolicy.UrlRetrievalTimeout = TimeSpan.FromSeconds(60);
+                                CertificateChain.ChainPolicy.RevocationMode = X509RevocationMode.Online;
+                                CertificateChain.ChainPolicy.VerificationFlags =
+                                    X509VerificationFlags.IgnoreEndRevocationUnknown | X509VerificationFlags
+                                        .IgnoreCertificateAuthorityRevocationUnknown;
+                                bool IsCertificateChainValid = CertificateChain.Build(Certificate2);
+
+                                if (!IsCertificateChainValid)
+                                {
+                                    WriteDebug("Certificate chain not valid, " + CertificateChain.ToString());
+                                    foreach (X509ChainStatus Item in CertificateChain.ChainStatus)
+                                        WriteDebug(": " + Item.Status + ", " + Item.StatusInformation);
+
+                                    signedExitCode = -9;
+                                    return Success;
+                                }
+                                else
+                                    Success = true;
+                            }
                         }
                     }
                 }
@@ -342,15 +362,15 @@ namespace TaskbarIconHost
                     object PluginHandle = pluginAssembly.CreateInstance(ClientType.FullName);
                     if (PluginHandle != null)
                     {
-                        string PluginName = PluginHandle.GetType().InvokeMember(nameof(IPluginClient.Name), BindingFlags.Default | BindingFlags.GetProperty, null, PluginHandle, null) as string;
-                        Guid PluginGuid = (Guid)PluginHandle.GetType().InvokeMember(nameof(IPluginClient.Guid), BindingFlags.Default | BindingFlags.GetProperty, null, PluginHandle, null);
-                        bool PluginRequireElevated = (bool)PluginHandle.GetType().InvokeMember(nameof(IPluginClient.RequireElevated), BindingFlags.Default | BindingFlags.GetProperty, null, PluginHandle, null);
-                        bool PluginHasClickHandler = (bool)PluginHandle.GetType().InvokeMember(nameof(IPluginClient.HasClickHandler), BindingFlags.Default | BindingFlags.GetProperty, null, PluginHandle, null);
+                        string? PluginName = PluginHandle.GetType().InvokeMember(nameof(IPluginClient.Name), BindingFlags.Default | BindingFlags.GetProperty, null, PluginHandle, null, CultureInfo.InvariantCulture) as string;
+                        Guid PluginGuid = (Guid)PluginHandle.GetType().InvokeMember(nameof(IPluginClient.Guid), BindingFlags.Default | BindingFlags.GetProperty, null, PluginHandle, null, CultureInfo.InvariantCulture);
+                        bool PluginRequireElevated = (bool)PluginHandle.GetType().InvokeMember(nameof(IPluginClient.RequireElevated), BindingFlags.Default | BindingFlags.GetProperty, null, PluginHandle, null, CultureInfo.InvariantCulture);
+                        bool PluginHasClickHandler = (bool)PluginHandle.GetType().InvokeMember(nameof(IPluginClient.HasClickHandler), BindingFlags.Default | BindingFlags.GetProperty, null, PluginHandle, null, CultureInfo.InvariantCulture);
 
                         if (!string.IsNullOrEmpty(PluginName) && PluginGuid != Guid.Empty)
                         {
                             bool createdNew;
-                            EventWaitHandle InstanceEvent;
+                            EventWaitHandle? InstanceEvent;
 
                             if (PluginGuid != embeddedPluginGuid)
                                 InstanceEvent = new EventWaitHandle(false, EventResetMode.ManualReset, GuidToString(PluginGuid), out createdNew);
@@ -360,7 +380,7 @@ namespace TaskbarIconHost
                                 InstanceEvent = null;
                             }
 
-                            if (createdNew)
+                            if (createdNew && PluginName != null)
                             {
                                 IPluginClient NewPlugin = new PluginClient(PluginHandle, PluginName, PluginGuid, PluginRequireElevated, PluginHasClickHandler, InstanceEvent);
                                 PluginList.Add(NewPlugin);
@@ -368,8 +388,7 @@ namespace TaskbarIconHost
                             else
                             {
                                 logger.AddLog("Another instance of a plugin is already running");
-                                InstanceEvent.Close();
-                                InstanceEvent = null;
+                                InstanceEvent?.Close();
                             }
                         }
                     }
@@ -394,29 +413,29 @@ namespace TaskbarIconHost
             }
         }
 
-        public static List<IPluginClient> ConsolidatedPluginList = new List<IPluginClient>();
-        private static IPluginClient PreferredPlugin;
+        public static List<IPluginClient> ConsolidatedPluginList { get; } = new List<IPluginClient>();
+        private static IPluginClient? PreferredPlugin;
 
         public static T PluginProperty<T>(object pluginHandle, string propertyName)
         {
-            return (T)pluginHandle.GetType().InvokeMember(propertyName, BindingFlags.Default | BindingFlags.GetProperty, null, pluginHandle, null);
+            return (T)pluginHandle.GetType().InvokeMember(propertyName, BindingFlags.Default | BindingFlags.GetProperty, null, pluginHandle, null, CultureInfo.InvariantCulture);
         }
 
         public static void ExecutePluginMethod(object pluginHandle, string methodName, params object[] args)
         {
-            pluginHandle.GetType().InvokeMember(methodName, BindingFlags.Default | BindingFlags.InvokeMethod, null, pluginHandle, args);
+            pluginHandle.GetType().InvokeMember(methodName, BindingFlags.Default | BindingFlags.InvokeMethod, null, pluginHandle, args, CultureInfo.InvariantCulture);
         }
 
         public static T GetPluginFunctionValue<T>(object pluginHandle, string functionName, params object[] args)
         {
-            return (T)pluginHandle.GetType().InvokeMember(functionName, BindingFlags.Default | BindingFlags.InvokeMethod, null, pluginHandle, args);
+            return (T)pluginHandle.GetType().InvokeMember(functionName, BindingFlags.Default | BindingFlags.InvokeMethod, null, pluginHandle, args, CultureInfo.InvariantCulture);
         }
 
         public static bool RequireElevated { get; private set; }
         public static Dictionary<ICommand, IPluginClient> CommandTable { get; } = new Dictionary<ICommand, IPluginClient>();
         public static Dictionary<List<ICommand>, string> FullCommandList { get; } = new Dictionary<List<ICommand>, string>();
 
-        public static List<ICommand> GetChangedCommands(bool beforeMenuOpening)
+        public static List<ICommand> GetChangedCommands()
         {
             List<ICommand> Result = new List<ICommand>();
 
@@ -456,7 +475,7 @@ namespace TaskbarIconHost
             return Plugin.GetMenuIsChecked(Command);
         }
 
-        public static Bitmap GetMenuIcon(ICommand Command)
+        public static Bitmap? GetMenuIcon(ICommand Command)
         {
             IPluginClient Plugin = CommandTable[Command];
             return Plugin.GetMenuIcon(Command);
@@ -482,7 +501,7 @@ namespace TaskbarIconHost
 
         public static Icon Icon
         {
-            get { return PreferredPlugin != null ? PreferredPlugin.Icon : null; }
+            get { return PreferredPlugin != null ? PreferredPlugin.Icon : new Icon(string.Empty); }
         }
 
         public static void OnIconClicked()
@@ -498,7 +517,7 @@ namespace TaskbarIconHost
 
         public static string ToolTip
         {
-            get { return PreferredPlugin != null ? PreferredPlugin.ToolTip : null; }
+            get { return PreferredPlugin != null ? PreferredPlugin.ToolTip : string.Empty; }
         }
 
         public static void OnActivated()
@@ -550,11 +569,11 @@ namespace TaskbarIconHost
 
         public static string GuidToString(Guid guid)
         {
-            return guid.ToString("B").ToUpper();
+            return guid.ToString("B", CultureInfo.InvariantCulture).ToUpper(CultureInfo.InvariantCulture);
         }
 
-        private static readonly string SharedPluginAssemblyName = "TaskbarIconShared";
-        private static Type PluginInterfaceType;
+        private const string SharedPluginAssemblyName = "TaskbarIconShared";
+        private static Type PluginInterfaceType = typeof(PluginManager);
         private static Dictionary<Assembly, List<IPluginClient>> LoadedPluginTable = new Dictionary<Assembly, List<IPluginClient>>();
         private static bool IsWakeUpDelayElapsed;
     }

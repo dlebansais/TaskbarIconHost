@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Windows;
 using System.Windows.Controls.Primitives;
@@ -8,9 +9,17 @@ using System.Windows.Input;
 
 namespace TaskbarTools
 {
-    public class TaskbarIcon : IDisposable
+    internal class TaskbarIcon : IDisposable
     {
         #region Init
+        public static TaskbarIcon Empty { get; } = new TaskbarIcon();
+
+        private TaskbarIcon()
+        {
+            NotifyIcon = new NotifyIcon();
+            Target = Keyboard.FocusedElement;
+        }
+
         protected TaskbarIcon(NotifyIcon notifyIcon, IInputElement target)
         {
             NotifyIcon = notifyIcon;
@@ -43,7 +52,7 @@ namespace TaskbarTools
                 TaskbarIcon NewTaskbarIcon = new TaskbarIcon(NotifyIcon, target);
                 NotifyIcon.ContextMenuStrip = NewTaskbarIcon.MenuToMenuStrip(menu);
                 ActiveIconList.Add(NewTaskbarIcon);
-                NewTaskbarIcon.UpdateToolTip(toolTipText);
+                NewTaskbarIcon.UpdateToolTipText(toolTipText);
                 NotifyIcon.Visible = true;
 
                 return NewTaskbarIcon;
@@ -59,7 +68,7 @@ namespace TaskbarTools
         /// </summary>
         /// <param name="command">The command associated to the menu item</param>
         /// <param name="isChecked">The new value of the check mark</param>
-        public void ToggleMenuIsChecked(ICommand command, out bool isChecked)
+        public void ToggleMenuCheck(ICommand command, out bool isChecked)
         {
             ToolStripMenuItem MenuItem = GetMenuItemFromCommand(command);
             isChecked = !MenuItem.Checked;
@@ -82,7 +91,7 @@ namespace TaskbarTools
         /// </summary>
         /// <param name="command">The command associated to the menu item</param>
         /// <param name="isChecked">True if the menu item must have a check mark, false otherwise</param>
-        public void SetMenuIsChecked(ICommand command, bool isChecked)
+        public static void SetMenuCheck(ICommand command, bool isChecked)
         {
             ToolStripMenuItem MenuItem = GetMenuItemFromCommand(command);
             MenuItem.Checked = isChecked;
@@ -92,11 +101,11 @@ namespace TaskbarTools
         /// Set the text of menu item. This can be called within a handler of the <see cref="MenuOpening"/> event, the change is applied as the menu pops up. 
         /// </summary>
         /// <param name="command">The command associated to the menu item</param>
-        /// <param name="header">The new menu item text</param>
-        public void SetMenuHeader(ICommand command, string header)
+        /// <param name="text">The new menu item text</param>
+        public static void SetMenuText(ICommand command, string text)
         {
             ToolStripMenuItem MenuItem = GetMenuItemFromCommand(command);
-            MenuItem.Text = header;
+            MenuItem.Text = text;
         }
 
         /// <summary>
@@ -104,7 +113,7 @@ namespace TaskbarTools
         /// </summary>
         /// <param name="command">The command associated to the menu item</param>
         /// <param name="isEnabled">True if enabled</param>
-        public void SetMenuIsEnabled(ICommand command, bool isEnabled)
+        public static void SetMenuIsEnabled(ICommand command, bool isEnabled)
         {
             ToolStripMenuItem MenuItem = GetMenuItemFromCommand(command);
             MenuItem.Enabled = isEnabled;
@@ -115,7 +124,7 @@ namespace TaskbarTools
         /// </summary>
         /// <param name="command">The command associated to the menu item</param>
         /// <param name="isVisible">True to show the menu item</param>
-        public void SetMenuIsVisible(ICommand command, bool isVisible)
+        public static void SetMenuIsVisible(ICommand command, bool isVisible)
         {
             ToolStripMenuItem MenuItem = GetMenuItemFromCommand(command);
             MenuItem.Visible = isVisible;
@@ -137,7 +146,7 @@ namespace TaskbarTools
         /// </summary>
         /// <param name="command">The command associated to the menu item</param>
         /// <param name="bitmap">The icon to set, as a bitmap, null for no icon</param>
-        public void SetMenuIcon(ICommand command, Bitmap bitmap)
+        public static void SetMenuIcon(ICommand command, Bitmap bitmap)
         {
             ToolStripMenuItem MenuItem = GetMenuItemFromCommand(command);
             MenuItem.Image = bitmap;
@@ -157,7 +166,7 @@ namespace TaskbarTools
         /// Set the tool tip text displayed when the mouse is over the taskbar icon.
         /// </summary>
         /// <param name="toolTipText">The new tool tip text</param>
-        public void UpdateToolTip(string toolTipText)
+        public void UpdateToolTipText(string toolTipText)
         {
             // Various versions of windows have length limitations (documented as usual).
             // We remove extra lines until it works...
@@ -203,8 +212,7 @@ namespace TaskbarTools
 
         private static void SetNotifyIconText(NotifyIcon ni, string text)
         {
-            if (text != null && text.Length >= 128)
-                throw new ArgumentOutOfRangeException("Text limited to 127 characters");
+            Debug.Assert(text.Length < 128);
 
             Type t = typeof(NotifyIcon);
             System.Reflection.BindingFlags hidden = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
@@ -222,7 +230,7 @@ namespace TaskbarTools
                 t.GetMethod("UpdateIcon", hidden).Invoke(ni, new object[] { true });
         }
 
-        private ToolStripMenuItem GetMenuItemFromCommand(ICommand command)
+        private static ToolStripMenuItem GetMenuItemFromCommand(ICommand command)
         {
             foreach (KeyValuePair<ToolStripMenuItem, ICommand> Entry in CommandTable)
                 if (Entry.Value == command)
@@ -234,12 +242,12 @@ namespace TaskbarTools
         /// <summary>
         /// Event raised before the menu pops up.
         /// </summary>
-        public event EventHandler MenuOpening;
+        public event EventHandler? MenuOpening;
 
         /// <summary>
         /// Event raised when the icon is clicked.
         /// </summary>
-        public event EventHandler IconClicked;
+        public event EventHandler? IconClicked;
         #endregion
 
         #region Events
@@ -261,11 +269,11 @@ namespace TaskbarTools
             switch (button)
             {
                 case MouseButtons.Left:
-                    IconClicked.Invoke(this, new EventArgs());
+                    IconClicked?.Invoke(this, new EventArgs());
                     break;
 
                 case MouseButtons.Right:
-                    MenuOpening.Invoke(this, new EventArgs());
+                    MenuOpening?.Invoke(this, new EventArgs());
                     break;
             }
         }
@@ -280,9 +288,6 @@ namespace TaskbarTools
         #region Menu
         private ContextMenuStrip MenuToMenuStrip(System.Windows.Controls.ContextMenu menu)
         {
-            if (menu == null)
-                return null;
-
             ContextMenuStrip Result = new ContextMenuStrip();
             ConvertToolStripMenuItems(menu.Items, Result.Items);
 
@@ -304,7 +309,7 @@ namespace TaskbarTools
 
         private void AddSubmenuItem(ToolStripItemCollection destinationItems, System.Windows.Controls.MenuItem menuItem)
         {
-            string MenuHeader = menuItem.Header as string;
+            string MenuHeader = (string)menuItem.Header;
             ToolStripMenuItem NewMenuItem = new ToolStripMenuItem(MenuHeader);
 
             ConvertToolStripMenuItems(menuItem.Items, NewMenuItem.DropDownItems);
@@ -314,7 +319,7 @@ namespace TaskbarTools
 
         private void AddMenuItem(ToolStripItemCollection destinationItems, System.Windows.Controls.MenuItem menuItem)
         {
-            string MenuHeader = menuItem.Header as string;
+            string MenuHeader = (string)menuItem.Header;
 
             ToolStripMenuItem NewMenuItem;
 
@@ -338,7 +343,7 @@ namespace TaskbarTools
             CommandTable.Add(NewMenuItem, menuItem.Command);
         }
 
-        private void AddSeparator(ToolStripItemCollection destinationItems)
+        private static void AddSeparator(ToolStripItemCollection destinationItems)
         {
             ToolStripSeparator NewSeparator = new ToolStripSeparator();
             destinationItems.Add(NewSeparator);
@@ -378,8 +383,6 @@ namespace TaskbarTools
                         ActiveIconList.Remove(Item);
                         break;
                     }
-
-                NotifyIcon = null;
             }
         }
 
@@ -394,17 +397,5 @@ namespace TaskbarTools
             Dispose(false);
         }
         #endregion
-    }
-
-    public class IconCreationFailedException : Exception
-    {
-        public IconCreationFailedException(Exception originalException) { OriginalException = originalException; }
-        public Exception OriginalException { get; private set; }
-    }
-
-    public class InvalidCommandException : Exception
-    {
-        public InvalidCommandException(ICommand command) { Command = command; }
-        public ICommand Command { get; private set; }
     }
 }

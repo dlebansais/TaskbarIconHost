@@ -9,7 +9,7 @@ namespace TaskbarIconHost
 {
     public class PluginClient : IPluginClient
     {
-        public PluginClient(object pluginHandle, string name, Guid guid, bool requireElevated, bool hasClickHandler, EventWaitHandle instanceEvent)
+        public PluginClient(object pluginHandle, string name, Guid guid, bool requireElevated, bool hasClickHandler, EventWaitHandle? instanceEvent)
         {
             PluginHandle = pluginHandle;
             Name = name;
@@ -24,7 +24,7 @@ namespace TaskbarIconHost
         public Guid Guid { get; private set; }
         public bool RequireElevated { get; private set; }
         public bool HasClickHandler { get; private set; }
-        public EventWaitHandle InstanceEvent { get; private set; }
+        public EventWaitHandle? InstanceEvent { get; private set; }
 
         public void Initialize(bool isElevated, Dispatcher dispatcher, IPluginSettings settings, IPluginLogger logger)
         {
@@ -58,7 +58,7 @@ namespace TaskbarIconHost
             return PluginManager.GetPluginFunctionValue<bool>(PluginHandle, nameof(IPluginClient.GetMenuIsChecked), Command);
         }
 
-        public Bitmap GetMenuIcon(ICommand Command)
+        public Bitmap? GetMenuIcon(ICommand Command)
         {
             return PluginManager.GetPluginFunctionValue<Bitmap>(PluginHandle, nameof(IPluginClient.GetMenuIcon), Command);
         }
@@ -110,9 +110,8 @@ namespace TaskbarIconHost
 
         public void BeginClose()
         {
-            using (EventWaitHandle EventWaitHandle = InstanceEvent)
+            using (InstanceEvent)
             {
-                InstanceEvent = null;
             }
 
             PluginManager.ExecutePluginMethod(PluginHandle, nameof(IPluginClient.BeginClose));

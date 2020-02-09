@@ -1,9 +1,10 @@
 ﻿using Microsoft.Win32;
 using System;
+using System.Globalization;
 
 namespace TaskbarIconHost
 {
-    public class PluginSettings : IPluginSettings, IDisposable
+    internal class PluginSettings : IPluginSettings, IDisposable
     {
         #region Init
         public PluginSettings(string pluginName, IPluginLogger logger)
@@ -39,7 +40,7 @@ namespace TaskbarIconHost
             RegistryKey Key = Registry.CurrentUser.OpenSubKey(@"Software", true);
             Key = Key.CreateSubKey("TaskbarIconHost");
 
-            if (PluginName != null)
+            if (PluginName.Length > 0)
                 SettingKey = Key.CreateSubKey("Settings-" + PluginName);
             else
                 SettingKey = Key.CreateSubKey("Main Settings");
@@ -59,14 +60,12 @@ namespace TaskbarIconHost
 
         public bool IsBoolKeySet(string valueName)
         {
-            int? value = GetSettingKey(valueName) as int?;
-            return value.HasValue;
+            return GetSettingKey(valueName) is int;
         }
 
         public bool GetSettingBool(string valueName, bool defaultValue)
         {
-            int? value = GetSettingKey(valueName) as int?;
-            return value.HasValue ? (value.Value != 0) : defaultValue;
+            return GetSettingKey(valueName) is int value ? (value != 0) : defaultValue;
         }
 
         public void SetSettingBool(string valueName, bool value)
@@ -77,7 +76,7 @@ namespace TaskbarIconHost
         public int GetSettingInt(string valueName, int defaultValue)
         {
             int? value = GetSettingKey(valueName) as int?;
-            return value.HasValue ? value.Value : defaultValue;
+            return value ?? defaultValue;
         }
 
         public void SetSettingInt(string valueName, int value)
@@ -87,8 +86,8 @@ namespace TaskbarIconHost
 
         public string GetSettingString(string valueName, string defaultValue)
         {
-            string value = GetSettingKey(valueName) as string;
-            return value != null ? value : defaultValue;
+            string? value = GetSettingKey(valueName) as string;
+            return value ?? defaultValue;
         }
 
         public void SetSettingString(string valueName, string value)
@@ -101,8 +100,8 @@ namespace TaskbarIconHost
 
         public double GetSettingDouble(string valueName, double defaultValue)
         {
-            string StringValue = GetSettingKey(valueName) as string;
-            if (StringValue != null && double.TryParse(StringValue, out double value))
+            string? StringValue = GetSettingKey(valueName) as string;
+            if (StringValue != null && double.TryParse(StringValue, NumberStyles.Float, CultureInfo.InvariantCulture, out double value))
                 return value;
             else
                 return defaultValue;
@@ -110,11 +109,11 @@ namespace TaskbarIconHost
 
         public void SetSettingDouble(string valueName, double value)
         {
-            string StringValue = value.ToString();
+            string StringValue = value.ToString(CultureInfo.InvariantCulture);
             SetSettingKey(valueName, StringValue, RegistryValueKind.String);
         }
 
-        private object GetSettingKey(string valueName)
+        private object? GetSettingKey(string valueName)
         {
             try
             {
@@ -149,7 +148,7 @@ namespace TaskbarIconHost
         }
 
         private IPluginLogger Logger;
-        private RegistryKey SettingKey;
+        private RegistryKey? SettingKey;
         #endregion
 
         #region Implementation of IDisposable

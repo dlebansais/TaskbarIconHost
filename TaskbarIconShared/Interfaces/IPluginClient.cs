@@ -101,7 +101,7 @@ namespace TaskbarIconHost
         /// </summary>
         /// <param name="command">The command associated to the menu item</param>
         /// <returns>The icon to display with the menu text, null if none.</returns>
-        Bitmap GetMenuIcon(ICommand command);
+        Bitmap? GetMenuIcon(ICommand command);
 
         /// <summary>
         /// This method is called before the menu is displayed, but after changes in the menu have been evaluated.

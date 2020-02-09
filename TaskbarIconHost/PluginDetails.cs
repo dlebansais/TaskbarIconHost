@@ -6,6 +6,6 @@ namespace TaskbarIconHost
     {
         public static readonly string Name = "TaskbarIconHost";
         public static readonly Guid Guid = Guid.Empty;
-        public static readonly string AssemblyName = null;
+        public static readonly string AssemblyName = string.Empty;
     }
 }

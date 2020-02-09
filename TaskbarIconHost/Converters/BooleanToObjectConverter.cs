@@ -1,7 +1,7 @@
-﻿using System;
+﻿/*
+using System;
 using System.Globalization;
 using System.Windows.Data;
-
 namespace Converters
 {
     [ValueConversion(typeof(bool), typeof(object))]
@@ -22,3 +22,4 @@ namespace Converters
         }
     }
 }
+*/
