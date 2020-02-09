@@ -171,10 +171,10 @@ namespace TaskbarIconHost
         {
             Point TaskbarCenter = new Point((TaskbarRect.Left + TaskbarRect.Right) / 2, (TaskbarRect.Top + TaskbarRect.Bottom) / 2);
 
-            bool IsTop = (TaskbarCenter.Y < CurrentScreen?.WorkingArea.Top + (CurrentScreen?.WorkingArea.Bottom - CurrentScreen?.WorkingArea.Top) / 4);
-            bool IsBottom = (TaskbarCenter.Y >= CurrentScreen?.WorkingArea.Bottom - (CurrentScreen?.WorkingArea.Bottom - CurrentScreen?.WorkingArea.Top) / 4);
-            bool IsLeft = (TaskbarCenter.X < CurrentScreen?.WorkingArea.Left + (CurrentScreen?.WorkingArea.Right - CurrentScreen?.WorkingArea.Left) / 4);
-            bool IsRight = (TaskbarCenter.X >= CurrentScreen?.WorkingArea.Right - (CurrentScreen?.WorkingArea.Right - CurrentScreen?.WorkingArea.Left) / 4);
+            bool IsTop = (TaskbarCenter.Y < CurrentScreen?.WorkingArea.Top + ((CurrentScreen?.WorkingArea.Bottom - CurrentScreen?.WorkingArea.Top) / 4));
+            bool IsBottom = (TaskbarCenter.Y >= CurrentScreen?.WorkingArea.Bottom - ((CurrentScreen?.WorkingArea.Bottom - CurrentScreen?.WorkingArea.Top) / 4));
+            bool IsLeft = (TaskbarCenter.X < CurrentScreen?.WorkingArea.Left + ((CurrentScreen?.WorkingArea.Right - CurrentScreen?.WorkingArea.Left) / 4));
+            bool IsRight = (TaskbarCenter.X >= CurrentScreen?.WorkingArea.Right - ((CurrentScreen?.WorkingArea.Right - CurrentScreen?.WorkingArea.Left) / 4));
 
             if (IsTop && !IsLeft && !IsRight)
                 return TaskBarLocation.Top;

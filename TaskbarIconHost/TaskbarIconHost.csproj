@@ -90,6 +90,7 @@
     <Compile Include="Plugin\PluginException.cs" />
     <Compile Include="Plugin\PluginLogger.cs" />
     <Compile Include="Plugin\PluginClient.cs" />
+    <Compile Include="Plugin\PluginManagerInitialization.cs" />
     <Compile Include="Plugin\PluginManager.cs" />
     <Compile Include="RemoveFromStartupWindow.xaml.cs">
       <DependentUpon>RemoveFromStartupWindow.xaml</DependentUpon>
