@@ -22,9 +22,18 @@ call .\coverage\wait.bat 5
 start "TaskbarIconHost" /B .\TaskbarIconHost\bin\x64\Debug\TaskbarIconHost.exe
 call .\coverage\wait.bat 10
 
+call .\coverage\app.bat TaskbarIconHost Debug bad
+call .\coverage\wait.bat 10
+
 call .\coverage\app.bat TaskbarIconHost Debug Exit
 call .\coverage\wait.bat 10
 
+ren .\TaskbarIconHost\bin\x64\Debug\Test-Plugin.dll Test-Plugin.dll.deleted
+
+call .\coverage\app.bat TaskbarIconHost Debug
+call .\coverage\wait.bat 10
+
+ren .\TaskbarIconHost\bin\x64\Debug\Test-Plugin.dll.deleted Test-Plugin.dll
 
 rem "%VSTESTPLATFORM_DIR%\VSTest.Console.exe" ".\Test-TaskbarIconHost\bin\x64\Debug\Test-TaskbarIconHost.dll" /Tests:Test1
 

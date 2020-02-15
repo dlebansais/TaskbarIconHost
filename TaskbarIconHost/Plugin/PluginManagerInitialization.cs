@@ -303,8 +303,8 @@
 
             try
             {
-                X509Certificate certificate = module.GetSignerCertificate();
-                if (certificate == null)
+                X509Certificate Certificate = module.GetSignerCertificate();
+                if (Certificate == null)
                 {
                     // File is not signed.
                     WriteDebug("File not signed");
@@ -313,7 +313,7 @@
                 }
                 else
                 {
-                    using (X509Certificate2 Certificate2 = new X509Certificate2(certificate))
+                    using (X509Certificate2 Certificate2 = new X509Certificate2(Certificate))
                     {
                         using (X509Chain CertificateChain = X509Chain.Create())
                         {
@@ -326,7 +326,7 @@
 
                             if (!IsEndCertificateValid)
                             {
-                                WriteDebug("End certificate not valid, " + CertificateChain.ToString());
+                                WriteDebug("End Certificate not valid, " + CertificateChain.ToString());
                                 foreach (X509ChainStatus Item in CertificateChain.ChainStatus)
                                     WriteDebug(": " + Item.Status + ", " + Item.StatusInformation);
 

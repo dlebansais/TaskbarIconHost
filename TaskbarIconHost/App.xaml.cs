@@ -1,4 +1,6 @@
-﻿namespace TaskbarIconHost
+﻿using System.Diagnostics;
+
+namespace TaskbarIconHost
 {
     using System.Globalization;
     using Microsoft.Win32.TaskScheduler;
@@ -44,15 +46,13 @@
 
             // This code is here mostly to make sure that the Taskbar static class is initialized ASAP.
             // The taskbar rectangle is never empty. And if it is, we have no purpose.
-            if (Taskbar.ScreenBounds.IsEmpty)
-                Shutdown();
-            else
-            {
-                Startup += OnStartup;
+            Rectangle ScreenBounds = Taskbar.ScreenBounds;
+            Debug.Assert(!ScreenBounds.IsEmpty);
 
-                // Make sure we stop only on a call to Shutdown. This is for plugins that have a main window, we don't want to exit when it's closed.
-                ShutdownMode = ShutdownMode.OnExplicitShutdown;
-            }
+            Startup += OnStartup;
+
+            // Make sure we stop only on a call to Shutdown. This is for plugins that have a main window, we don't want to exit when it's closed.
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
         }
 
         private static EventWaitHandle InitializeInstanceEvent()
@@ -97,6 +97,7 @@
                     break;
 
                 default:
+                case "bad":
                     break;
             }
         }
