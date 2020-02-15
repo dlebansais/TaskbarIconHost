@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
@@ -105,6 +106,7 @@ namespace TaskbarIconHost
         private void PrintLine(string line)
         {
             NativeMethods.OutputDebugString(line);
+            Debug.WriteLine(line);
 
             if (IsFileLogOn)
                 WriteLineToTraceFile(line);

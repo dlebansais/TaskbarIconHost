@@ -16,12 +16,15 @@ start cmd /k .\coverage\start_winappdriver.bat
 call .\coverage\app.bat TaskbarIconHost Debug
 call .\coverage\wait.bat 10
 
+.\TaskbarIconHost\bin\x64\Debug\TaskbarIconHost.exe Exit
+call .\coverage\wait.bat 5
+
 rem "%VSTESTPLATFORM_DIR%\VSTest.Console.exe" ".\Test-TaskbarIconHost\bin\x64\Debug\Test-TaskbarIconHost.dll" /Tests:Test1
 
 start cmd /c .\coverage\stop_winappdriver.bat
 
 call ..\Certification\set_tokens.bat
-if exist .\Test-TaskbarIconHost\obj\x64\Debug\Coverage-Debug_coverage.xml .\packages\Codecov.1.10.0\tools\codecov -f ".\Test-TaskbarIconHost\obj\x64\Debug\Coverage-Debug_coverage.xml" -t "%TASKBARICONHOST_CODECOV_TOKEN%"
+rem if exist .\Test-TaskbarIconHost\obj\x64\Debug\Coverage-Debug_coverage.xml .\packages\Codecov.1.10.0\tools\codecov -f ".\Test-TaskbarIconHost\obj\x64\Debug\Coverage-Debug_coverage.xml" -t "%TASKBARICONHOST_CODECOV_TOKEN%"
 goto end
 
 :error1

@@ -1,13 +1,11 @@
-﻿using System.Globalization;
-
-namespace TaskbarIconHost
+﻿namespace TaskbarIconHost
 {
+    using System.Globalization;
     using Microsoft.Win32.TaskScheduler;
     using SchedulerTools;
     using System;
     using System.Collections.Generic;
     using System.Drawing;
-    using System.IO;
     using System.Reflection;
     using System.Runtime.InteropServices;
     using System.Security.Principal;
@@ -28,37 +26,18 @@ namespace TaskbarIconHost
 
         public App()
         {
-            // Ensure only one instance is running at a time.
-            Logger.AddLog("Checking uniqueness");
+            ParseArguments();
 
-            try
+            // IsCreatedNew is updated during static fields initialization.
+            if (!IsCreatedNew)
             {
-                Guid AppGuid = PluginDetails.Guid;
-                if (AppGuid == Guid.Empty)
-                {
-                    // In case the guid is provided by the project settings and not source code.
-                    GuidAttribute AppGuidAttribute = Assembly.GetExecutingAssembly().GetCustomAttribute<GuidAttribute>();
-                    AppGuid = Guid.Parse(AppGuidAttribute.Value);
-                }
+                Logger.AddLog("Another instance is already running");
 
-                string AppUniqueId = AppGuid.ToString("B", CultureInfo.InvariantCulture).ToUpper(CultureInfo.InvariantCulture);
+                // Optionally tell the other instance to stop.
+                if (IsExitRequested)
+                    InstanceEvent.Set();
 
-                // Try to create a global named event with a unique name. If we can create it we are first, otherwise there is another instance.
-                // In that case, we just abort.
-                InstanceEvent = new EventWaitHandle(false, EventResetMode.ManualReset, AppUniqueId, out bool CreatedNew);
-                if (!CreatedNew)
-                {
-                    Logger.AddLog("Another instance is already running");
-                    InstanceEvent.Close();
-                    InstanceEvent = null;
-                    Shutdown();
-                    return;
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.AddLog($"(from App) {e.Message}");
-
+                UpdateLogger();
                 Shutdown();
                 return;
             }
@@ -73,6 +52,52 @@ namespace TaskbarIconHost
 
                 // Make sure we stop only on a call to Shutdown. This is for plugins that have a main window, we don't want to exit when it's closed.
                 ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            }
+        }
+
+        private static EventWaitHandle InitializeInstanceEvent()
+        {
+            // Ensure only one instance is running at a time.
+            Logger.AddLog("Checking uniqueness");
+
+            // Try to create a global named event with a unique name. If we can create it we are first, otherwise there is another instance.
+            // In that case, we will just abort.
+            return new EventWaitHandle(false, EventResetMode.ManualReset, GetAppUniqueId(), out IsCreatedNew);
+        }
+
+        private static string GetAppUniqueId()
+        {
+            Guid AppGuid = PluginDetails.Guid;
+            if (AppGuid == Guid.Empty)
+            {
+                // In case the guid is provided by the project settings and not source code.
+                GuidAttribute AppGuidAttribute = Assembly.GetExecutingAssembly().GetCustomAttribute<GuidAttribute>();
+                AppGuid = Guid.Parse(AppGuidAttribute.Value);
+            }
+
+            string AppUniqueId = AppGuid.ToString("B", CultureInfo.InvariantCulture).ToUpper(CultureInfo.InvariantCulture);
+
+            return AppUniqueId;
+        }
+
+        private void ParseArguments()
+        {
+            string[] Arguments = Environment.GetCommandLineArgs();
+
+            foreach (string Argument in Arguments)
+                ParseArgument(Argument);
+        }
+
+        private void ParseArgument(string argument)
+        {
+            switch (argument)
+            {
+                case "Exit":
+                    IsExitRequested = true;
+                    break;
+
+                default:
+                    break;
             }
         }
 
@@ -116,16 +141,9 @@ namespace TaskbarIconHost
             TaskbarBalloon.Show(InvalidSignatureAlert, 15000);
         }
 
-        // The taskbar got the focus.
-        private void OnActivated(object sender, EventArgs e)
+        private bool IsAnotherInstanceRequestingExit
         {
-            PluginManager.OnActivated();
-        }
-
-        // The taskbar lost the focus.
-        private void OnDeactivated(object sender, EventArgs e)
-        {
-            PluginManager.OnDeactivated();
+            get { return InstanceEvent.WaitOne(0); }
         }
 
         // Someone called Exit on the application. Time to clean things up.
@@ -153,8 +171,10 @@ namespace TaskbarIconHost
             }
         }
 
+        private bool IsExitRequested;
         private bool IsExiting;
-        private EventWaitHandle? InstanceEvent;
+        private readonly EventWaitHandle InstanceEvent = InitializeInstanceEvent();
+        private static bool IsCreatedNew;
         #endregion
 
         #region Properties
@@ -541,6 +561,18 @@ namespace TaskbarIconHost
         #endregion
 
         #region Events
+        // The taskbar got the focus.
+        private void OnActivated(object sender, EventArgs e)
+        {
+            PluginManager.OnActivated();
+        }
+
+        // The taskbar lost the focus.
+        private void OnDeactivated(object sender, EventArgs e)
+        {
+            PluginManager.OnDeactivated();
+        }
+
         private void OnCommandLoadAtStartup(object sender, ExecutedRoutedEventArgs e)
         {
             Logger.AddLog("OnCommandLoadAtStartup");
@@ -645,7 +677,7 @@ namespace TaskbarIconHost
         #region Timer
         private void InitTimer()
         {
-            // Create a timer to display traces asynchrousnously.
+            // Create a timer to display traces asynchronously.
             AppTimer = new Timer(new TimerCallback(AppTimerCallback));
             AppTimer.Change(CheckInterval, CheckInterval);
         }
@@ -656,12 +688,23 @@ namespace TaskbarIconHost
             if (IsExiting)
                 return;
 
-            // Print traces asynchronously from the timer thread.
-            UpdateLogger();
+            // If another instance is requesting exit, schedule a task to do it.
+            if (IsAnotherInstanceRequestingExit)
+                Dispatcher.BeginInvoke(DispatcherPriority.Normal, new System.Action(OnExitRequested));
+            else
+            {
+                // Print traces asynchronously from the timer thread.
+                UpdateLogger();
 
-            // Also, schedule an update of the icon and tooltip if they changed, or the first time.
-            if (AppTimerOperation == null || (AppTimerOperation.Status == DispatcherOperationStatus.Completed && GetIsIconOrToolTipChanged()))
-                AppTimerOperation = Dispatcher.BeginInvoke(DispatcherPriority.Normal, new System.Action(OnAppTimer));
+                // Also, schedule an update of the icon and tooltip if they changed, or the first time.
+                if (AppTimerOperation == null || (AppTimerOperation.Status == DispatcherOperationStatus.Completed && GetIsIconOrToolTipChanged()))
+                    AppTimerOperation = Dispatcher.BeginInvoke(DispatcherPriority.Normal, new System.Action(OnAppTimer));
+            }
+        }
+
+        private void OnExitRequested()
+        {
+            Shutdown();
         }
 
         private void OnAppTimer()
