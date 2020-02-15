@@ -1,4 +1,6 @@
-﻿namespace TaskbarIconHost
+﻿using System.Runtime.CompilerServices;
+
+namespace TaskbarIconHost
 {
     using System;
     using System.IO;
@@ -17,8 +19,9 @@
         /// <param name="iconName">The name of the icon "Embedded Resource" file in the project</param>
         public static ImageSource LoadEmbeddedIcon(string iconName)
         {
-            string ResourceName = GetResourceName(iconName);
-            using Stream ResourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(ResourceName);
+            Assembly ResourceAssembly = Assembly.GetCallingAssembly();
+            string ResourceName = GetResourceName(ResourceAssembly, iconName);
+            using Stream ResourceStream = ResourceAssembly.GetManifestResourceStream(ResourceName);
 
             //Decode the icon from the stream and set the first frame to the BitmapSource
             BitmapDecoder decoder = IconBitmapDecoder.Create(ResourceStream, BitmapCreateOptions.None, BitmapCacheOption.None);
@@ -33,20 +36,22 @@
         /// <param name="name">The name of the "Embedded Resource" in the project.</param>
         public static T LoadEmbeddedResource<T>(string name)
         {
-            string ResourceName = GetResourceName(name);
-            using Stream ResourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(ResourceName);
+            Assembly ResourceAssembly = Assembly.GetCallingAssembly();
+            string ResourceName = GetResourceName(ResourceAssembly, name);
+            using Stream ResourceStream = ResourceAssembly.GetManifestResourceStream(ResourceName);
 
             T Result = (T)Activator.CreateInstance(typeof(T), ResourceStream);
 
             return Result;
         }
 
-        private static string GetResourceName(string name)
+        private static string GetResourceName(Assembly resourceAssembly, string name)
         {
             string ResourceName = string.Empty;
 
             // Loads an "Embedded Resource".
-            foreach (string Item in Assembly.GetExecutingAssembly().GetManifestResourceNames())
+            string[] ResourceNames = resourceAssembly.GetManifestResourceNames();
+            foreach (string Item in ResourceNames)
                 if (Item.EndsWith(name, StringComparison.InvariantCulture))
                     ResourceName = Item;
 

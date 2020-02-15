@@ -123,7 +123,15 @@
 
         public static Icon Icon
         {
-            get { return PreferredPlugin != null ? PreferredPlugin.Icon : new Icon(string.Empty); }
+            get
+            {
+                if (PreferredPlugin != null)
+                    return PreferredPlugin.Icon;
+
+                using Bitmap Bitmap = new Bitmap(16, 16);
+                Bitmap.MakeTransparent(Color.White);
+                return Icon.FromHandle(Bitmap.GetHicon());
+            }
         }
 
         public static void OnIconClicked()
