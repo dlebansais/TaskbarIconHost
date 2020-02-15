@@ -19,6 +19,13 @@ call .\coverage\wait.bat 10
 .\TaskbarIconHost\bin\x64\Debug\TaskbarIconHost.exe Exit
 call .\coverage\wait.bat 5
 
+start "TaskbarIconHost" /B .\TaskbarIconHost\bin\x64\Debug\TaskbarIconHost.exe
+call .\coverage\wait.bat 10
+
+call .\coverage\app.bat TaskbarIconHost Debug Exit
+call .\coverage\wait.bat 10
+
+
 rem "%VSTESTPLATFORM_DIR%\VSTest.Console.exe" ".\Test-TaskbarIconHost\bin\x64\Debug\Test-TaskbarIconHost.dll" /Tests:Test1
 
 start cmd /c .\coverage\stop_winappdriver.bat
