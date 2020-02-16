@@ -1,4 +1,7 @@
-﻿namespace TaskbarIconHost
+﻿using System.Diagnostics;
+using System.Security.Cryptography;
+
+namespace TaskbarIconHost
 {
     using System;
     using System.Collections.Generic;
@@ -14,7 +17,7 @@
 
     internal static partial class PluginManager
     {
-        public static bool Init(bool isElevated, string embeddedPluginName, Guid embeddedPluginGuid, Dispatcher dispatcher, IPluginLogger logger, out int exitCode, out bool isBadSignature)
+        public static bool Init(bool isElevated, string embeddedPluginName, Guid embeddedPluginGuid, Dispatcher dispatcher, IPluginLogger logger, OidCollection oidCheckList, out int exitCode, out bool isBadSignature)
         {
             exitCode = 0;
             isBadSignature = false;
@@ -26,8 +29,8 @@
 
             Dictionary<Assembly, List<Type>> PluginClientTypeTable = new Dictionary<Assembly, List<Type>>();
 
-            AddEmbeddedPlugins(embeddedPluginName, PluginClientTypeTable, ref exitCode, ref isBadSignature);
-            AddExternalPlugins(AppFolder, PluginClientTypeTable, ref exitCode, ref isBadSignature);
+            AddEmbeddedPlugins(embeddedPluginName, PluginClientTypeTable, oidCheckList, ref exitCode, ref isBadSignature);
+            AddExternalPlugins(AppFolder, PluginClientTypeTable, oidCheckList, ref exitCode, ref isBadSignature);
 
             LoadEnumeratedPlugins(PluginClientTypeTable, embeddedPluginGuid, logger, out int AssemblyCount, out int CompatibleAssemblyCount);
 
@@ -48,7 +51,7 @@
             }
         }
 
-        private static void AddEmbeddedPlugins(string embeddedPluginName, Dictionary<Assembly, List<Type>> pluginClientTypeTable, ref int exitCode, ref bool isBadSignature)
+        private static void AddEmbeddedPlugins(string embeddedPluginName, Dictionary<Assembly, List<Type>> pluginClientTypeTable, OidCollection oidCheckList, ref int exitCode, ref bool isBadSignature)
         {
             if (embeddedPluginName != null)
             {
@@ -58,18 +61,18 @@
                 foreach (AssemblyName Name in AssemblyNames)
                     if (Name.Name == embeddedPluginName)
                     {
-                        if (FindPluginClientTypesByName(Name, out Assembly PluginAssembly, out List<Type> PluginClientTypeList, ref exitCode, ref isBadSignature))
+                        if (FindPluginClientTypesByName(Name, oidCheckList, out Assembly PluginAssembly, out List<Type> PluginClientTypeList, ref exitCode, ref isBadSignature))
                             pluginClientTypeTable.Add(PluginAssembly, PluginClientTypeList);
                     }
             }
         }
 
-        private static void AddExternalPlugins(string appFolder, Dictionary<Assembly, List<Type>> pluginClientTypeTable, ref int exitCode, ref bool isBadSignature)
+        private static void AddExternalPlugins(string appFolder, Dictionary<Assembly, List<Type>> pluginClientTypeTable, OidCollection oidCheckList, ref int exitCode, ref bool isBadSignature)
         {
             string[] Assemblies = Directory.GetFiles(appFolder, "*.dll");
             foreach (string AssemblyPath in Assemblies)
             {
-                if (FindPluginClientTypesByPath(AssemblyPath, out Assembly PluginAssembly, out List<Type> PluginClientTypeList, ref exitCode, ref isBadSignature))
+                if (FindPluginClientTypesByPath(AssemblyPath, oidCheckList, out Assembly PluginAssembly, out List<Type> PluginClientTypeList, ref exitCode, ref isBadSignature))
                     pluginClientTypeTable.Add(PluginAssembly, PluginClientTypeList);
             }
         }
@@ -174,12 +177,12 @@
             return false;
         }
 
-        private static bool FindPluginClientTypesByPath(string assemblyPath, out Assembly pluginAssembly, out List<Type> pluginClientTypeList, ref int exitCode, ref bool isBadSignature)
+        private static bool FindPluginClientTypesByPath(string assemblyPath, OidCollection oidCheckList, out Assembly pluginAssembly, out List<Type> pluginClientTypeList, ref int exitCode, ref bool isBadSignature)
         {
             try
             {
                 pluginAssembly = Assembly.LoadFrom(assemblyPath);
-                return FindPluginClientTypes(pluginAssembly, out pluginClientTypeList, ref exitCode, ref isBadSignature);
+                return FindPluginClientTypes(pluginAssembly, oidCheckList, out pluginClientTypeList, ref exitCode, ref isBadSignature);
             }
             catch
             {
@@ -192,12 +195,12 @@
             }
         }
 
-        private static bool FindPluginClientTypesByName(AssemblyName name, out Assembly pluginAssembly, out List<Type> pluginClientTypeList, ref int exitCode, ref bool isBadSignature)
+        private static bool FindPluginClientTypesByName(AssemblyName name, OidCollection oidCheckList, out Assembly pluginAssembly, out List<Type> pluginClientTypeList, ref int exitCode, ref bool isBadSignature)
         {
             try
             {
                 pluginAssembly = Assembly.Load(name);
-                return FindPluginClientTypes(pluginAssembly, out pluginClientTypeList, ref exitCode, ref isBadSignature);
+                return FindPluginClientTypes(pluginAssembly, oidCheckList, out pluginClientTypeList, ref exitCode, ref isBadSignature);
             }
             catch
             {
@@ -210,13 +213,13 @@
             }
         }
 
-        private static bool FindPluginClientTypes(Assembly assembly, out List<Type> pluginClientTypeList, ref int exitCode, ref bool isBadSignature)
+        private static bool FindPluginClientTypes(Assembly assembly, OidCollection oidCheckList, out List<Type> pluginClientTypeList, ref int exitCode, ref bool isBadSignature)
         {
             pluginClientTypeList = new List<Type>();
 
             try
             {
-                if (!string.IsNullOrEmpty(assembly.Location) && !IsAssemblySigned(assembly, ref exitCode))
+                if (!string.IsNullOrEmpty(assembly.Location) && !IsAssemblySigned(assembly, oidCheckList, ref exitCode))
                 {
                     isBadSignature = true;
                     return false;
@@ -260,19 +263,19 @@
             return false;
         }
 
-        private static bool IsAssemblySigned(Assembly assembly, ref int exitCode)
+        private static bool IsAssemblySigned(Assembly assembly, OidCollection oidCheckList, ref int exitCode)
         {
             foreach (Module Module in assembly.GetModules())
-                return IsModuleSigned(Module, ref exitCode);
+                return IsModuleSigned(Module, oidCheckList, ref exitCode);
 
             return false;
         }
 
-        private static bool IsModuleSigned(Module module, ref int exitCode)
+        private static bool IsModuleSigned(Module module, OidCollection oidCheckList, ref int exitCode)
         {
             for (int i = 0; i < 3; i++)
             {
-                if (IsModuleSignedOneTry(module, out int SignedExitCode))
+                if (IsModuleSignedOneTry(module, oidCheckList, out int SignedExitCode))
                     return true;
 
                 if (!IsWakeUpDelayElapsed)
@@ -292,7 +295,7 @@
             return false;
         }
 
-        private static bool IsModuleSignedOneTry(Module module, out int signedExitCode)
+        private static bool IsModuleSignedOneTry(Module module, OidCollection oidCheckList, out int signedExitCode)
         {
 #if DEBUG
             bool Success = true;
@@ -311,51 +314,14 @@
                     signedExitCode = -7;
                     return Success;
                 }
-                else
+
+                using (X509Certificate2 Certificate2 = new X509Certificate2(Certificate))
                 {
-                    using (X509Certificate2 Certificate2 = new X509Certificate2(Certificate))
+                    using (X509Chain CertificateChain = X509Chain.Create())
                     {
-                        using (X509Chain CertificateChain = X509Chain.Create())
-                        {
-                            CertificateChain.ChainPolicy.RevocationFlag = X509RevocationFlag.EndCertificateOnly;
-                            CertificateChain.ChainPolicy.UrlRetrievalTimeout = TimeSpan.FromSeconds(60);
-                            CertificateChain.ChainPolicy.RevocationMode = X509RevocationMode.Online;
-                            CertificateChain.ChainPolicy.VerificationFlags =
-                                X509VerificationFlags.IgnoreEndRevocationUnknown;
-                            bool IsEndCertificateValid = CertificateChain.Build(Certificate2);
-
-                            if (!IsEndCertificateValid)
-                            {
-                                WriteDebug("End Certificate not valid, " + CertificateChain.ToString());
-                                foreach (X509ChainStatus Item in CertificateChain.ChainStatus)
-                                    WriteDebug(": " + Item.Status + ", " + Item.StatusInformation);
-
-                                signedExitCode = -8;
-                                return Success;
-                            }
-                            else
-                            {
-                                CertificateChain.ChainPolicy.RevocationFlag = X509RevocationFlag.EntireChain;
-                                CertificateChain.ChainPolicy.UrlRetrievalTimeout = TimeSpan.FromSeconds(60);
-                                CertificateChain.ChainPolicy.RevocationMode = X509RevocationMode.Online;
-                                CertificateChain.ChainPolicy.VerificationFlags =
-                                    X509VerificationFlags.IgnoreEndRevocationUnknown | X509VerificationFlags
-                                        .IgnoreCertificateAuthorityRevocationUnknown;
-                                bool IsCertificateChainValid = CertificateChain.Build(Certificate2);
-
-                                if (!IsCertificateChainValid)
-                                {
-                                    WriteDebug("Certificate chain not valid, " + CertificateChain.ToString());
-                                    foreach (X509ChainStatus Item in CertificateChain.ChainStatus)
-                                        WriteDebug(": " + Item.Status + ", " + Item.StatusInformation);
-
-                                    signedExitCode = -9;
-                                    return Success;
-                                }
-                                else
-                                    Success = true;
-                            }
-                        }
+                        Success = true;
+                        CheckCertificateChain(Certificate2, CertificateChain, oidCheckList, X509RevocationFlag.EndCertificateOnly, X509VerificationFlags.IgnoreEndRevocationUnknown, -8, ref Success, ref signedExitCode);
+                        CheckCertificateChain(Certificate2, CertificateChain, oidCheckList, X509RevocationFlag.EntireChain, X509VerificationFlags.IgnoreEndRevocationUnknown | X509VerificationFlags.IgnoreCertificateAuthorityRevocationUnknown, -9, ref Success, ref signedExitCode);
                     }
                 }
             }
@@ -365,6 +331,33 @@
             }
 
             return Success;
+        }
+
+        private static void CheckCertificateChain(X509Certificate2 certificate, X509Chain certificateChain, OidCollection oidCheckList, X509RevocationFlag revocationFlags, X509VerificationFlags verificationFlags, int exitCode, ref bool success, ref int signedExitCode)
+        {
+            TimeSpan UrlRetrievalTimeout = TimeSpan.FromSeconds(60);
+            Oid CodeSigningOid = new Oid("1.3.6.1.5.5.7.3.3");
+
+            certificateChain.ChainPolicy.RevocationFlag = revocationFlags;
+            certificateChain.ChainPolicy.UrlRetrievalTimeout = UrlRetrievalTimeout;
+            certificateChain.ChainPolicy.RevocationMode = X509RevocationMode.Online;
+            certificateChain.ChainPolicy.VerificationFlags = verificationFlags;
+
+            foreach (Oid Item in oidCheckList)
+                certificateChain.ChainPolicy.CertificatePolicy.Add(Item);
+
+            bool IsEndCertificateValid = certificateChain.Build(certificate);
+
+            if (!IsEndCertificateValid)
+            {
+                WriteDebug($"End Certificate not valid, {certificateChain}");
+
+                foreach (X509ChainStatus Item in certificateChain.ChainStatus)
+                    WriteDebug($": {Item.Status}, {Item.StatusInformation}");
+
+                signedExitCode = exitCode;
+                success = false;
+            }
         }
 
         private static void CreatePluginList(Assembly pluginAssembly, List<Type> PluginClientTypeList, Guid embeddedPluginGuid, IPluginLogger logger, out List<IPluginClient> PluginList)

@@ -35,12 +35,18 @@ call .\coverage\wait.bat 10
 
 ren .\TaskbarIconHost\bin\x64\Debug\Test-Plugin.dll.deleted Test-Plugin.dll
 
+call .\coverage\app.bat TaskbarIconHost Debug FailSigned
+call .\coverage\wait.bat 60
+
+call .\coverage\app.bat TaskbarIconHost Debug Exit
+call .\coverage\wait.bat 10
+
 rem "%VSTESTPLATFORM_DIR%\VSTest.Console.exe" ".\Test-TaskbarIconHost\bin\x64\Debug\Test-TaskbarIconHost.dll" /Tests:Test1
 
 start cmd /c .\coverage\stop_winappdriver.bat
 
 call ..\Certification\set_tokens.bat
-rem if exist .\Test-TaskbarIconHost\obj\x64\Debug\Coverage-Debug_coverage.xml .\packages\Codecov.1.10.0\tools\codecov -f ".\Test-TaskbarIconHost\obj\x64\Debug\Coverage-Debug_coverage.xml" -t "%TASKBARICONHOST_CODECOV_TOKEN%"
+if exist .\Test-TaskbarIconHost\obj\x64\Debug\Coverage-Debug_coverage.xml .\packages\Codecov.1.10.0\tools\codecov -f ".\Test-TaskbarIconHost\obj\x64\Debug\Coverage-Debug_coverage.xml" -t "%TASKBARICONHOST_CODECOV_TOKEN%"
 goto end
 
 :error1

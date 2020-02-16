@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace TaskbarIconHost
+﻿namespace TaskbarIconHost
 {
     using System.Globalization;
     using Microsoft.Win32.TaskScheduler;
@@ -16,7 +14,11 @@ namespace TaskbarIconHost
     using System.Windows.Controls;
     using System.Windows.Input;
     using System.Windows.Threading;
+    using System.Diagnostics;
+    using System.Security.Cryptography;
     using TaskbarTools;
+    using static TaskbarIconHost.Properties.Resources;
+
 
     public partial class App : Application, IDisposable
     {
@@ -96,6 +98,12 @@ namespace TaskbarIconHost
                     IsExitRequested = true;
                     break;
 
+                case "FailSigned":
+                    // Add an unsupported certificate feature to the list of mandatory features.
+                    OidCheckList.Add(new Oid("1.3.6.1.5.5.7.3.3"));
+                    SignatureAlertTimeout = TimeSpan.Zero;
+                    break;
+
                 default:
                 case "bad":
                     break;
@@ -109,7 +117,7 @@ namespace TaskbarIconHost
             InitTimer();
 
             // The plugin manager can fail for various reasons. If it does, we just abort.
-            if (InitPlugInManager(out int ExitCode, out bool IsBadSignature))
+            if (InitPlugInManager(OidCheckList, out int ExitCode, out bool IsBadSignature))
             {
                 // Install the taskbar icon and create its menu.
                 InitTaskbarIcon();
@@ -136,9 +144,12 @@ namespace TaskbarIconHost
         // Display a notification to signal that one of the plugins has a bad digital signature.
         private void ShowBadSignatureAlert()
         {
-            Thread.Sleep(40000);
+            SignatureAlertTimer = new Timer(SignatureAlertTimerCallback);
+            SignatureAlertTimer.Change(SignatureAlertTimeout, Timeout.InfiniteTimeSpan);
+        }
 
-            string InvalidSignatureAlert = (string) FindResource("InvalidSignatureAlert");
+        private void SignatureAlertTimerCallback(object parameter)
+        {
             TaskbarBalloon.Show(InvalidSignatureAlert, 15000);
         }
 
@@ -159,6 +170,7 @@ namespace TaskbarIconHost
             CleanupTaskbarIcon();
             CleanupTimer();
             CleanupInstanceEvent();
+            CleanupSignatureAlertTimer();
 
             // Explicit display of the last message since timed debug is not running anymore.
             Logger.AddLog("Done");
@@ -172,7 +184,17 @@ namespace TaskbarIconHost
             }
         }
 
+        private void CleanupSignatureAlertTimer()
+        {
+            using (SignatureAlertTimer)
+            {
+            }
+        }
+
         private bool IsExitRequested;
+        private OidCollection OidCheckList = new OidCollection();
+        private Timer SignatureAlertTimer = new Timer((object parameter) => { });
+        private TimeSpan SignatureAlertTimeout = TimeSpan.FromSeconds(40);
         private bool IsExiting;
         private readonly EventWaitHandle InstanceEvent = InitializeInstanceEvent();
         private static bool IsCreatedNew;
@@ -209,9 +231,9 @@ namespace TaskbarIconHost
         #endregion
 
         #region Plugin Manager
-        private bool InitPlugInManager(out int exitCode, out bool isBadSignature)
+        private bool InitPlugInManager(OidCollection oidCheckList, out int exitCode, out bool isBadSignature)
         {
-            if (!PluginManager.Init(IsElevated, PluginDetails.AssemblyName, PluginDetails.Guid, Dispatcher, Logger, out exitCode, out isBadSignature))
+            if (!PluginManager.Init(IsElevated, PluginDetails.AssemblyName, PluginDetails.Guid, Dispatcher, Logger, oidCheckList, out exitCode, out isBadSignature))
                 return false;
 
             // In the case of a single plugin version, this code won't do anything.
@@ -552,8 +574,6 @@ namespace TaskbarIconHost
         }
 
         internal TaskbarIcon TaskbarIcon { get; private set; } = TaskbarIcon.Empty;
-        private string LoadAtStartupHeader { get { return (string)TryFindResource("LoadAtStartupHeader"); } }
-        private string RemoveFromStartupHeader { get { return (string)TryFindResource("RemoveFromStartupHeader"); } }
         private ICommand LoadAtStartupCommand = new RoutedUICommand();
         private ICommand ExitCommand = new RoutedUICommand();
         private Dictionary<Guid, ICommand> IconSelectionTable = new Dictionary<Guid, ICommand>();
@@ -679,7 +699,7 @@ namespace TaskbarIconHost
         private void InitTimer()
         {
             // Create a timer to display traces asynchronously.
-            AppTimer = new Timer(new TimerCallback(AppTimerCallback));
+            AppTimer = new Timer(AppTimerCallback);
             AppTimer.Change(CheckInterval, CheckInterval);
         }
 
@@ -766,6 +786,7 @@ namespace TaskbarIconHost
             CleanupTimer();
             CleanupPlugInManager();
             CleanupInstanceEvent();
+            CleanupSignatureAlertTimer();
         }
 
         public void Dispose()
