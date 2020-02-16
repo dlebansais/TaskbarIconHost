@@ -46,6 +46,15 @@ call .\coverage\wait.bat 30
 .\TaskbarIconHost\bin\x64\Debug\TaskbarIconHost.exe Exit
 call .\coverage\wait.bat 5
 
+ren .\TaskbarIconHost\bin\x64\Debug\Test-Plugin.dll Test-Plugin.dll.deleted
+
+call .\coverage\app.bat TaskbarIconHost Debug FailSigned
+call .\coverage\wait.bat 10
+
+.\TaskbarIconHost\bin\x64\Debug\TaskbarIconHost.exe Exit
+call .\coverage\wait.bat 5
+
+ren .\TaskbarIconHost\bin\x64\Debug\Test-Plugin.dll.deleted Test-Plugin.dll
 del .\TaskbarIconHost\bin\x64\Debug\Test-GoodPlugin.dll
 
 rem "%VSTESTPLATFORM_DIR%\VSTest.Console.exe" ".\Test-TaskbarIconHost\bin\x64\Debug\Test-TaskbarIconHost.dll" /Tests:Test1

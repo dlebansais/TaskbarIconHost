@@ -231,16 +231,9 @@
             // However, if several single plugin versions run concurrently, the last one to run will be the preferred one for another plugin host.
             GlobalSettings = new PluginSettings(string.Empty, Logger);
 
-            try
-            {
-                // Assign the guid with a value taken from the registry. The try/catch blocks allows us to ignore invalid ones.
-                PluginManager.PreferredPluginGuid = new Guid(GlobalSettings.GetSettingString(PreferredPluginSettingName, PluginManager.GuidToString(Guid.Empty)));
-                exitCode = 0;
-            }
-            catch
-            {
-                exitCode = -1;
-            }
+            // Assign the guid with a value taken from the registry.
+            PluginManager.PreferredPluginGuid = GlobalSettings.GetSettingGuid(PreferredPluginSettingName, Guid.Empty);
+            exitCode = 0;
 
             return true;
         }

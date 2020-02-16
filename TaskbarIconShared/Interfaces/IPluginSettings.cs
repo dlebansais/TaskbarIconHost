@@ -78,5 +78,20 @@
         /// <param name="valueName">Value name</param>
         /// <param name="value">The value to set</param>
         void SetSettingDouble(string valueName, double value);
+
+        /// <summary>
+        /// Read a guid value from the registry.
+        /// </summary>
+        /// <param name="valueName">Value name</param>
+        /// <param name="defaultValue">Default if the value doesn't exist</param>
+        /// <returns>The value in the registry, or <paramref name="defaultValue"/> if it doesn't</returns>
+        Guid GetSettingGuid(string valueName, Guid defaultValue);
+
+        /// <summary>
+        /// Set a guid value in the registry.
+        /// </summary>
+        /// <param name="valueName">Value name</param>
+        /// <param name="value">The value to set</param>
+        void SetSettingGuid(string valueName, Guid value);
     }
 }

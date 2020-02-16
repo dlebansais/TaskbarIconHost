@@ -37,7 +37,12 @@ namespace Empty
 
         public List<ICommand> CommandList
         {
-            get { return null; }
+            get
+            {
+                List<ICommand> Result = new List<ICommand>();
+                Result.Add(new RoutedUICommand());
+                return Result;
+            }
         }
 
         public bool GetIsMenuChanged(bool beforeMenuOpening)
@@ -47,7 +52,7 @@ namespace Empty
 
         public string GetMenuHeader(ICommand Command)
         {
-            return null;
+            return string.Empty;
         }
 
         public bool GetMenuIsVisible(ICommand Command)

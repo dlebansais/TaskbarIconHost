@@ -64,6 +64,15 @@
         public void SetSettingDouble(string valueName, double value)
         {
         }
+
+        public Guid GetSettingGuid(string valueName, Guid defaultValue)
+        {
+            return defaultValue;
+        }
+
+        public void SetSettingGuid(string valueName, Guid value)
+        {
+        }
         #endregion
 
         #region Implementation of IDisposable
