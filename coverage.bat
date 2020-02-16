@@ -33,6 +33,9 @@ ren .\TaskbarIconHost\bin\x64\Debug\Test-Plugin.dll Test-Plugin.dll.deleted
 call .\coverage\app.bat TaskbarIconHost Debug
 call .\coverage\wait.bat 10
 
+.\TaskbarIconHost\bin\x64\Debug\TaskbarIconHost.exe Exit
+call .\coverage\wait.bat 5
+
 ren .\TaskbarIconHost\bin\x64\Debug\Test-Plugin.dll.deleted Test-Plugin.dll
 
 call .\coverage\app.bat TaskbarIconHost Debug FailSigned
