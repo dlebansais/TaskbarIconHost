@@ -299,12 +299,14 @@
 
         private static void AddMenuCommand(ICommand command, ExecutedRoutedEventHandler executed)
         {
-            // The command can be null if a separator is intended.
-            if (command == null)
-                return;
-
             // Bind the command to the corresponding handler. Requires the menu to be the target of notifications in TaskbarIcon.
-            CommandManager.RegisterClassCommandBinding(typeof(ContextMenu), new CommandBinding(command, executed));
+            if (!IsSeparatorCommand(command))
+                CommandManager.RegisterClassCommandBinding(typeof(ContextMenu), new CommandBinding(command, executed));
+        }
+
+        private static bool IsSeparatorCommand(ICommand command)
+        {
+            return command is RoutedUICommand AsRoutedUiCommand && AsRoutedUiCommand.Text.Length == 0;
         }
 
         private ContextMenu LoadContextMenu()

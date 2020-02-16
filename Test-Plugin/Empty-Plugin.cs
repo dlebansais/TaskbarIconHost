@@ -41,6 +41,7 @@ namespace Empty
             {
                 List<ICommand> Result = new List<ICommand>();
                 Result.Add(new RoutedUICommand());
+                Result.Add(new RoutedUICommand(TestPlugin.Properties.Resources.Test, "test", GetType()));
                 return Result;
             }
         }
