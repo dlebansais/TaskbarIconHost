@@ -104,7 +104,6 @@
                     SignatureAlertTimeout = TimeSpan.Zero;
                     break;
 
-                default:
                 case "bad":
                     break;
             }
