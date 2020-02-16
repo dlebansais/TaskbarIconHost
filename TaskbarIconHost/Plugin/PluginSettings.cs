@@ -1,9 +1,9 @@
-﻿using Microsoft.Win32;
-using System;
-using System.Globalization;
-
-namespace TaskbarIconHost
+﻿namespace TaskbarIconHost
 {
+    using Microsoft.Win32;
+    using System;
+    using System.Globalization;
+
     internal class PluginSettings : IPluginSettings, IDisposable
     {
         #region Init

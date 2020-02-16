@@ -209,16 +209,8 @@
                 if (!_IsElevated.HasValue)
                 {
                     WindowsIdentity wi = WindowsIdentity.GetCurrent();
-                    if (wi != null)
-                    {
-                        WindowsPrincipal wp = new WindowsPrincipal(wi);
-                        if (wp != null)
-                            _IsElevated = wp.IsInRole(WindowsBuiltInRole.Administrator);
-                        else
-                            _IsElevated = false;
-                    }
-                    else
-                        _IsElevated = false;
+                    WindowsPrincipal wp = new WindowsPrincipal(wi);
+                    _IsElevated = wp.IsInRole(WindowsBuiltInRole.Administrator);
 
                     Logger.AddLog($"IsElevated={_IsElevated}");
                 }
@@ -242,7 +234,7 @@
             try
             {
                 // Assign the guid with a value taken from the registry. The try/catch blocks allows us to ignore invalid ones.
-                PluginManager.PreferredPluginGuid = new Guid(GlobalSettings?.GetSettingString(PreferredPluginSettingName, PluginManager.GuidToString(Guid.Empty)));
+                PluginManager.PreferredPluginGuid = new Guid(GlobalSettings.GetSettingString(PreferredPluginSettingName, PluginManager.GuidToString(Guid.Empty)));
                 exitCode = 0;
             }
             catch
@@ -256,7 +248,7 @@
         private void StopPlugInManager()
         {
             // Save this plugin guid so that the last saved will be the preferred one if there is another plugin host.
-            GlobalSettings?.SetSettingString(PreferredPluginSettingName, PluginManager.GuidToString(PluginManager.PreferredPluginGuid));
+            GlobalSettings.SetSettingString(PreferredPluginSettingName, PluginManager.GuidToString(PluginManager.PreferredPluginGuid));
             PluginManager.Shutdown();
 
             CleanupPlugInManager();
@@ -270,7 +262,7 @@
         }
 
         private const string PreferredPluginSettingName = "PreferredPlugin";
-        private PluginSettings? GlobalSettings;
+        private IPluginSettings GlobalSettings = new PluginEmptySettings(new PluginEmptyLogger());
         #endregion
 
         #region Taskbar Icon
@@ -754,7 +746,7 @@
             Logger.PrintLog();
         }
 
-        private static PluginLogger Logger = new PluginLogger();
+        private static readonly PluginLogger Logger = new PluginLogger();
         #endregion
 
         #region Load at startup

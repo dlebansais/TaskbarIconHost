@@ -1,9 +1,11 @@
 ﻿namespace TaskbarIconHost
 {
+    using System;
+
     /// <summary>
     /// Interface to an object that reads and writes setting in the registry.
     /// </summary>
-    public interface IPluginSettings
+    public interface IPluginSettings : IDisposable
     {
         /// <summary>
         /// Disconnect and reconnect to the registry.

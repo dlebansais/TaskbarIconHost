@@ -88,10 +88,12 @@
     <Compile Include="NativeMethods.cs" />
     <Compile Include="PluginDetails.cs" />
     <Compile Include="Plugin\PluginException.cs" />
+    <Compile Include="Plugin\PluginEmptyLogger.cs" />
     <Compile Include="Plugin\PluginLogger.cs" />
     <Compile Include="Plugin\PluginClient.cs" />
     <Compile Include="Plugin\PluginManagerInitialization.cs" />
     <Compile Include="Plugin\PluginManager.cs" />
+    <Compile Include="Plugin\PluginEmptySettings.cs" />
     <Compile Include="RemoveFromStartupWindow.xaml.cs">
       <DependentUpon>RemoveFromStartupWindow.xaml</DependentUpon>
     </Compile>
