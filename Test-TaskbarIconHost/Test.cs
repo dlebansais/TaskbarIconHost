@@ -14,12 +14,12 @@
         [TestMethod]
         public void Test1()
         {
-            WindowsDriver<WindowsElement> Session = LaunchApp();
+            //WindowsDriver<WindowsElement> Session = LaunchApp();
 
             //WindowsElement ButtonNoElement = Session.FindElementByName("Non");
             //ButtonNoElement.Click();
 
-            StopApp(Session);
+            //StopApp(Session);
         }
 
         private WindowsDriver<WindowsElement> LaunchApp()
