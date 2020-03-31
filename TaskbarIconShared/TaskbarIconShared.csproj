@@ -70,6 +70,7 @@
     <Compile Include="NativeMethods.cs" />
     <Compile Include="Tools\ResourceTools.cs" />
     <Compile Include="Tools\Taskbar.cs" />
+    <Compile Include="Tools\TaskbarBalloon.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

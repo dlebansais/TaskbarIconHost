@@ -149,7 +149,7 @@
 
         private void SignatureAlertTimerCallback(object parameter)
         {
-            TaskbarBalloon.Show(InvalidSignatureAlert, 15000);
+            TaskbarBalloon.Show(InvalidSignatureAlert, TimeSpan.FromSeconds(15));
         }
 
         private bool IsAnotherInstanceRequestingExit
@@ -306,7 +306,10 @@
 
         private static bool IsSeparatorCommand(ICommand command)
         {
-            return command is RoutedUICommand AsRoutedUiCommand && AsRoutedUiCommand.Text.Length == 0;
+            if (command is RoutedUICommand AsRoutedUiCommand)
+                return AsRoutedUiCommand.Text.Length == 0;
+            else
+                return true;
         }
 
         private ContextMenu LoadContextMenu()
@@ -560,8 +563,8 @@
         }
 
         internal TaskbarIcon TaskbarIcon { get; private set; } = TaskbarIcon.Empty;
-        private ICommand LoadAtStartupCommand = new RoutedUICommand();
-        private ICommand ExitCommand = new RoutedUICommand();
+        private ICommand LoadAtStartupCommand = new RoutedUICommand("{2E4589C5-620C-42C2-B68D-0E3AA9F9E362}", "LoadAtStartup", typeof(App));
+        private ICommand ExitCommand = new RoutedUICommand("{FA8D16C1-16F0-461B-BF10-082DB4D76208}", "Exit", typeof(App));
         private Dictionary<Guid, ICommand> IconSelectionTable = new Dictionary<Guid, ICommand>();
         private bool IsIconChanged;
         private bool IsToolTipChanged;

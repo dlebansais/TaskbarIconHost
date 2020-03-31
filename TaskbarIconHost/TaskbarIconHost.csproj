@@ -101,7 +101,6 @@
     <Compile Include="Plugin\PluginSettings.cs" />
     <Compile Include="Taskbar\IconCreationFailedException.cs" />
     <Compile Include="Taskbar\InvalidCommandException.cs" />
-    <Compile Include="Taskbar\TaskbarBalloon.cs" />
     <Compile Include="Taskbar\TaskbarIcon.cs" />
   </ItemGroup>
   <ItemGroup>
