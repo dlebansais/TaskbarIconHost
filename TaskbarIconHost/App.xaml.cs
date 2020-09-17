@@ -529,7 +529,7 @@
             PluginManager.OnMenuOpening();
         }
 
-        private void UpdateMenu()
+        private static void UpdateMenu()
         {
             List<ICommand> ChangedCommandList = PluginManager.GetChangedCommands();
 
@@ -748,7 +748,7 @@
         #endregion
 
         #region Load at startup
-        private void InstallLoad(bool isInstalled, string appName)
+        private static void InstallLoad(bool isInstalled, string appName)
         {
             string ExeName = Assembly.GetExecutingAssembly().Location;
 

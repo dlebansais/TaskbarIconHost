@@ -76,25 +76,9 @@
         #endregion
 
         #region Implementation of IDisposable
-        protected virtual void Dispose(bool isDisposing)
-        {
-            if (isDisposing)
-                DisposeNow();
-        }
-
-        private void DisposeNow()
-        {
-        }
-
         public void Dispose()
         {
-            Dispose(true);
             GC.SuppressFinalize(this);
-        }
-
-        ~PluginEmptySettings()
-        {
-            Dispose(false);
         }
         #endregion
     }

@@ -68,7 +68,7 @@ namespace TaskbarTools
         /// </summary>
         /// <param name="command">The command associated to the menu item</param>
         /// <param name="isChecked">The new value of the check mark</param>
-        public void ToggleMenuCheck(ICommand command, out bool isChecked)
+        public static void ToggleMenuCheck(ICommand command, out bool isChecked)
         {
             ToolStripMenuItem MenuItem = GetMenuItemFromCommand(command);
             isChecked = !MenuItem.Checked;
@@ -80,7 +80,7 @@ namespace TaskbarTools
         /// </summary>
         /// <param name="command">The command associated to the menu item</param>
         /// <returns>True if the menu item has a check mark, false otherwise</returns>
-        public bool IsMenuChecked(ICommand command)
+        public static bool IsMenuChecked(ICommand command)
         {
             ToolStripMenuItem MenuItem = GetMenuItemFromCommand(command);
             return MenuItem.Checked;
@@ -135,7 +135,7 @@ namespace TaskbarTools
         /// </summary>
         /// <param name="command">The command associated to the menu item</param>
         /// <param name="icon">The icon to set, null for no icon</param>
-        public void SetMenuIcon(ICommand command, Icon icon)
+        public static void SetMenuIcon(ICommand command, Icon icon)
         {
             ToolStripMenuItem MenuItem = GetMenuItemFromCommand(command);
             MenuItem.Image = icon.ToBitmap();

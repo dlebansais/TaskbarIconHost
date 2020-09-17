@@ -71,7 +71,7 @@ namespace Empty
             return false;
         }
 
-        public Bitmap GetMenuIcon(ICommand Command)
+        public Bitmap? GetMenuIcon(ICommand Command)
         {
             return null;
         }
@@ -91,12 +91,12 @@ namespace Empty
 
         public Icon Icon
         {
-            get { return null; }
+            get { return new Icon(string.Empty); }
         }
 
         public Bitmap SelectionBitmap
         {
-            get { return null; }
+            get { return new Bitmap(0, 0); }
         }
 
         public void OnIconClicked()
@@ -110,7 +110,7 @@ namespace Empty
 
         public string ToolTip
         {
-            get { return null; }
+            get { return string.Empty; }
         }
 
         public void OnActivated()
