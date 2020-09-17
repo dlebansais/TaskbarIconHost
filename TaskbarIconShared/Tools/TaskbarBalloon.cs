@@ -30,7 +30,7 @@
         /// <param name="delay">The delay, in milliseconds.</param>
         public static void Show(string text, TimeSpan delay)
         {
-            NotifyIcon Notification = new NotifyIcon() { Visible = true, Icon = SystemIcons.Shield, Text = text, BalloonTipText = text };
+            NotifyIcon Notification = new NotifyIcon() { Visible = true, Icon = SystemIcons.Shield, Text = ShortString(text), BalloonTipText = ShortString(text) };
 #pragma warning disable CA2000 // Dispose objects before losing scope
             BallonPrivateData Data = new BallonPrivateData(Notification);
 #pragma warning restore CA2000 // Dispose objects before losing scope
@@ -46,7 +46,7 @@
         /// <param name="clickData">Handler data for the click event.</param>
         public static void Show(string text, TimeSpan delay, Action<object> clickHandler, object clickData)
         {
-            NotifyIcon Notification = new NotifyIcon() { Visible = true, Icon = SystemIcons.Shield, Text = text, BalloonTipText = text };
+            NotifyIcon Notification = new NotifyIcon() { Visible = true, Icon = SystemIcons.Shield, Text = ShortString(text), BalloonTipText = ShortString(text) };
 #pragma warning disable CA2000 // Dispose objects before losing scope
             BallonPrivateData Data = new BallonPrivateData(Notification, clickHandler, clickData);
 #pragma warning restore CA2000 // Dispose objects before losing scope
@@ -55,6 +55,14 @@
         #endregion
 
         #region Implementation
+        private static string? ShortString(string? text)
+        {
+            if (text != null && text.Length >= 16)
+                return text.Substring(0, 8) + "..." + text.Substring(text.Length - 8, 8);
+            else
+                return text;
+        }
+
         private static void Show(TimeSpan delay, NotifyIcon notification, BallonPrivateData data)
         {
             try
