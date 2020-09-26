@@ -98,11 +98,9 @@
     <Compile Include="Plugin\PluginClient.cs" />
     <Compile Include="Plugin\PluginManagerInitialization.cs" />
     <Compile Include="Plugin\PluginManager.cs" />
-    <Compile Include="Plugin\PluginEmptySettings.cs" />
     <Compile Include="RemoveFromStartupWindow.xaml.cs">
       <DependentUpon>RemoveFromStartupWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Plugin\PluginSettings.cs" />
     <Compile Include="Taskbar\IconCreationFailedException.cs" />
     <Compile Include="Taskbar\InvalidCommandException.cs" />
     <Compile Include="Taskbar\TaskbarIcon.cs" />

@@ -72,7 +72,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Interfaces\IPluginClient.cs" />
     <Compile Include="Interfaces\IPluginLogger.cs" />
-    <Compile Include="Interfaces\IPluginSettings.cs" />
     <Compile Include="NativeMethods.cs" />
     <Compile Include="Tools\ResourceTools.cs" />
     <Compile Include="Tools\Taskbar.cs" />
