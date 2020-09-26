@@ -26,7 +26,7 @@ namespace TaskbarIconHost
         public bool HasClickHandler { get; private set; }
         public EventWaitHandle? InstanceEvent { get; private set; }
 
-        public void Initialize(bool isElevated, Dispatcher dispatcher, IPluginSettings settings, IPluginLogger logger)
+        public void Initialize(bool isElevated, Dispatcher dispatcher, RegistryTools.Settings settings, Tracing.ITracer logger)
         {
             PluginManager.ExecutePluginMethod(PluginHandle, nameof(IPluginClient.Initialize), isElevated, dispatcher, settings, logger);
         }

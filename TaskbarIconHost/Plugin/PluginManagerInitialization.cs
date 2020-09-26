@@ -14,10 +14,11 @@ namespace TaskbarIconHost
     using System.Security.Cryptography.X509Certificates;
     using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
+    using Tracing;
 
     internal static partial class PluginManager
     {
-        public static bool Init(bool isElevated, string embeddedPluginName, Guid embeddedPluginGuid, Dispatcher dispatcher, IPluginLogger logger, OidCollection oidCheckList, out int exitCode, out bool isBadSignature)
+        public static bool Init(bool isElevated, string embeddedPluginName, Guid embeddedPluginGuid, Dispatcher dispatcher, Tracing.ITracer logger, OidCollection oidCheckList, out int exitCode, out bool isBadSignature)
         {
             exitCode = 0;
             isBadSignature = false;
@@ -46,7 +47,7 @@ namespace TaskbarIconHost
                 if (exitCode == 0)
                     exitCode = -2;
 
-                logger.AddLog($"Could not load plugins, {AssemblyCount} assemblies found, {CompatibleAssemblyCount} are compatible.");
+                logger.Write(Category.Warning, $"Could not load plugins, {AssemblyCount} assemblies found, {CompatibleAssemblyCount} are compatible.");
                 return false;
             }
         }
@@ -77,7 +78,7 @@ namespace TaskbarIconHost
             }
         }
 
-        private static void LoadEnumeratedPlugins(Dictionary<Assembly, List<Type>> pluginClientTypeTable, Guid embeddedPluginGuid, IPluginLogger logger, out int assemblyCount, out int compatibleAssemblyCount)
+        private static void LoadEnumeratedPlugins(Dictionary<Assembly, List<Type>> pluginClientTypeTable, Guid embeddedPluginGuid, Tracing.ITracer logger, out int assemblyCount, out int compatibleAssemblyCount)
         {
             assemblyCount = 0;
             compatibleAssemblyCount = 0;
@@ -100,7 +101,7 @@ namespace TaskbarIconHost
             }
         }
 
-        private static void InitializeAllPlugins(bool isElevated, Dispatcher dispatcher, IPluginLogger logger)
+        private static void InitializeAllPlugins(bool isElevated, Dispatcher dispatcher, Tracing.ITracer logger)
         {
             foreach (KeyValuePair<Assembly, List<IPluginClient>> Entry in LoadedPluginTable)
                 foreach (IPluginClient Plugin in Entry.Value)
@@ -152,9 +153,9 @@ namespace TaskbarIconHost
         }
 
         [SuppressMessage("Microsoft.Reliability", "CA2000: Dispose objects before losing scope")]
-        private static void InitializePlugin(IPluginClient plugin, bool isElevated, Dispatcher dispatcher, IPluginLogger logger)
+        private static void InitializePlugin(IPluginClient plugin, bool isElevated, Dispatcher dispatcher, Tracing.ITracer logger)
         {
-            IPluginSettings Settings = new PluginSettings(GuidToString(plugin.Guid), logger);
+            RegistryTools.Settings Settings = new RegistryTools.Settings("TaskbarIconHost", GuidToString(plugin.Guid), logger);
             plugin.Initialize(isElevated, dispatcher, Settings, logger);
         }
 
@@ -360,7 +361,7 @@ namespace TaskbarIconHost
             }
         }
 
-        private static void CreatePluginList(Assembly pluginAssembly, List<Type> PluginClientTypeList, Guid embeddedPluginGuid, IPluginLogger logger, out List<IPluginClient> PluginList)
+        private static void CreatePluginList(Assembly pluginAssembly, List<Type> PluginClientTypeList, Guid embeddedPluginGuid, Tracing.ITracer logger, out List<IPluginClient> PluginList)
         {
             PluginList = new List<IPluginClient>();
 
@@ -396,7 +397,7 @@ namespace TaskbarIconHost
                             }
                             else
                             {
-                                logger.AddLog("Another instance of a plugin is already running");
+                                logger.Write(Category.Warning, "Another instance of a plugin is already running");
                                 InstanceEvent?.Close();
                             }
                         }

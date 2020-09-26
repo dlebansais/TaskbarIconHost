@@ -47,9 +47,11 @@
     <Reference Include="Costura, Version=4.1.0.0, Culture=neutral, PublicKeyToken=9919ef960d84173d, processorArchitecture=MSIL">
       <HintPath>..\packages\Costura.Fody.4.1.0\lib\net40\Costura.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Win32.TaskScheduler, Version=2.5.28.0, Culture=neutral, PublicKeyToken=0d013ddd5178a2ae, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>Scheduler\Microsoft.Win32.TaskScheduler.dll</HintPath>
+    <Reference Include="RegistryTools">
+      <HintPath>..\dependencies\RegistryTools\$(Platform)\$(Configuration)\RegistryTools.dll</HintPath>
+    </Reference>
+    <Reference Include="SchedulerTools">
+      <HintPath>..\dependencies\SchedulerTools\$(Platform)\$(Configuration)\SchedulerTools.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -63,6 +65,9 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="Tracing, Version=2.2.19302.1, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Tracing.2.2.19302.1\lib\net45\Tracing.dll</HintPath>
     </Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
@@ -97,7 +102,6 @@
     <Compile Include="RemoveFromStartupWindow.xaml.cs">
       <DependentUpon>RemoveFromStartupWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Scheduler.cs" />
     <Compile Include="Plugin\PluginSettings.cs" />
     <Compile Include="Taskbar\IconCreationFailedException.cs" />
     <Compile Include="Taskbar\InvalidCommandException.cs" />
@@ -133,7 +137,6 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\UAC-16.png" />
     <EmbeddedResource Include="Resources\TaskbarIconHost.xml" />
-    <Content Include="Scheduler\Microsoft.Win32.TaskScheduler.dll" />
   </ItemGroup>
   <ItemGroup>
     <COMReference Include="Shell32">

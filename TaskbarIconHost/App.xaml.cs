@@ -1,7 +1,6 @@
 ﻿namespace TaskbarIconHost
 {
     using System.Globalization;
-    using Microsoft.Win32.TaskScheduler;
     using SchedulerTools;
     using System;
     using System.Collections.Generic;
@@ -18,7 +17,7 @@
     using System.Security.Cryptography;
     using TaskbarTools;
     using static TaskbarIconHost.Properties.Resources;
-
+    using System.Threading.Tasks;
 
     public partial class App : Application, IDisposable
     {
@@ -227,12 +226,9 @@
             if (!PluginManager.Init(IsElevated, PluginDetails.AssemblyName, PluginDetails.Guid, Dispatcher, Logger, oidCheckList, out exitCode, out isBadSignature))
                 return false;
 
-            // In the case of a single plugin version, this code won't do anything.
-            // However, if several single plugin versions run concurrently, the last one to run will be the preferred one for another plugin host.
-            GlobalSettings = new PluginSettings(string.Empty, Logger);
-
             // Assign the guid with a value taken from the registry.
-            PluginManager.PreferredPluginGuid = GlobalSettings.GetSettingGuid(PreferredPluginSettingName, Guid.Empty);
+            GlobalSettings.GetGuid(PreferredPluginSettingName, Guid.Empty, out Guid PreferredPluginGuid);
+            PluginManager.PreferredPluginGuid = PreferredPluginGuid;
             exitCode = 0;
 
             return true;
@@ -241,7 +237,7 @@
         private void StopPlugInManager()
         {
             // Save this plugin guid so that the last saved will be the preferred one if there is another plugin host.
-            GlobalSettings.SetSettingString(PreferredPluginSettingName, PluginManager.GuidToString(PluginManager.PreferredPluginGuid));
+            GlobalSettings.SetString(PreferredPluginSettingName, PluginManager.GuidToString(PluginManager.PreferredPluginGuid));
             PluginManager.Shutdown();
 
             CleanupPlugInManager();
@@ -255,7 +251,10 @@
         }
 
         private const string PreferredPluginSettingName = "PreferredPlugin";
-        private IPluginSettings GlobalSettings = new PluginEmptySettings(new PluginEmptyLogger());
+
+        // In the case of a single plugin version, this code won't do anything.
+        // However, if several single plugin versions run concurrently, the last one to run will be the preferred one for another plugin host.
+        private RegistryTools.Settings GlobalSettings = new RegistryTools.Settings("TaskbarIconHost", "Main Settings", Logger);
         #endregion
 
         #region Taskbar Icon
@@ -756,7 +755,15 @@
             if (isInstalled)
             {
                 TaskRunLevel RunLevel = PluginManager.RequireElevated ? TaskRunLevel.Highest : TaskRunLevel.LUA;
-                Scheduler.AddTask(appName, ExeName, RunLevel, Logger);
+
+                try
+                {
+                    Scheduler.AddTask(appName, ExeName, RunLevel);
+                }
+                catch (AddTaskFailedException e)
+                {
+                    Logger.AddLog($"(from Scheduler.AddTask) {e.Message}");
+                }
             }
             else
                 Scheduler.RemoveTask(ExeName, out bool IsFound); // Ignore it if the task was not found.

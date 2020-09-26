@@ -46,7 +46,7 @@ namespace TaskbarIconHost
         /// <param name="dispatcher">A dispatcher that can be used to synchronize with the UI</param>
         /// <param name="settings">An interface to read and write settings in the registry</param>
         /// <param name="logger">An interface to log events asynchronously</param>
-        void Initialize(bool isElevated, Dispatcher dispatcher, IPluginSettings settings, IPluginLogger logger);
+        void Initialize(bool isElevated, Dispatcher dispatcher, RegistryTools.Settings settings, Tracing.ITracer logger);
 
         /// <summary>
         /// List of commands that the plugin can receive when an item is clicked in the context menu.

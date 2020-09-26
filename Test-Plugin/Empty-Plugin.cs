@@ -31,7 +31,7 @@ namespace Empty
             get { return false; }
         }
 
-        public void Initialize(bool isElevated, Dispatcher dispatcher, TaskbarIconHost.IPluginSettings settings, TaskbarIconHost.IPluginLogger logger)
+        public void Initialize(bool isElevated, Dispatcher dispatcher, RegistryTools.Settings settings, Tracing.ITracer logger)
         {
         }
 
