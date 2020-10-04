@@ -19,6 +19,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test-TaskbarIconHost", "Tes
 		{DAB7B295-158F-46EB-AED3-756A80B9CAB8} = {DAB7B295-158F-46EB-AED3-756A80B9CAB8}
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SinglePluginHost", "SinglePluginHost\SinglePluginHost.csproj", "{8DFF37AC-07B1-4F34-9A10-AE39C00E6CEE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test-SinglePluginHost", "Test-SinglePlginHost\Test-SinglePluginHost.csproj", "{94E3E007-11B1-4E61-B7F8-F1893B41E254}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -41,6 +45,14 @@ Global
 		{4A9AC2D3-26EC-4530-B99D-18C077AE147E}.Debug|x64.Build.0 = Debug|x64
 		{4A9AC2D3-26EC-4530-B99D-18C077AE147E}.Release|x64.ActiveCfg = Release|x64
 		{4A9AC2D3-26EC-4530-B99D-18C077AE147E}.Release|x64.Build.0 = Release|x64
+		{8DFF37AC-07B1-4F34-9A10-AE39C00E6CEE}.Debug|x64.ActiveCfg = Debug|x64
+		{8DFF37AC-07B1-4F34-9A10-AE39C00E6CEE}.Debug|x64.Build.0 = Debug|x64
+		{8DFF37AC-07B1-4F34-9A10-AE39C00E6CEE}.Release|x64.ActiveCfg = Release|x64
+		{8DFF37AC-07B1-4F34-9A10-AE39C00E6CEE}.Release|x64.Build.0 = Release|x64
+		{94E3E007-11B1-4E61-B7F8-F1893B41E254}.Debug|x64.ActiveCfg = Debug|x64
+		{94E3E007-11B1-4E61-B7F8-F1893B41E254}.Debug|x64.Build.0 = Debug|x64
+		{94E3E007-11B1-4E61-B7F8-F1893B41E254}.Release|x64.ActiveCfg = Release|x64
+		{94E3E007-11B1-4E61-B7F8-F1893B41E254}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

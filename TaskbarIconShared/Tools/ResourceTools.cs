@@ -2,8 +2,10 @@
 
 namespace TaskbarIconHost
 {
+    using Contracts;
     using System;
     using System.IO;
+    using System.IO.Compression;
     using System.Reflection;
     using System.Windows.Media;
     using System.Windows.Media.Imaging;
@@ -45,6 +47,12 @@ namespace TaskbarIconHost
             return Result;
         }
 
+        /// <summary>
+        /// Returns the full resource name from the resource name without path.
+        /// </summary>
+        /// <param name="resourceAssembly">Assembly where to look for the resource.</param>
+        /// <param name="name">The name of the "Embedded Resource" in the project.</param>
+        /// <returns>The full resource name.</returns>
         private static string GetResourceName(Assembly resourceAssembly, string name)
         {
             string ResourceName = string.Empty;
@@ -57,5 +65,73 @@ namespace TaskbarIconHost
 
             return ResourceName;
         }
+
+        /// <summary>
+        /// Returns an object of type <typeparam name="T"/> loaded from embedded resources.
+        /// </summary>
+        /// <param name="embeddedAssemblyName">Name of the embedded assembly.</param>
+        /// <param name="resourceName">Name of the "Embedded Resource" in the project.</param>
+        /// <param name="result">The loaded resource.</param>
+        /// <returns>True if the reosurce was found; otherwise, false.</returns>
+        public static bool LoadEmbeddedResource<T>(string embeddedAssemblyName, string resourceName, out T result)
+            where T : class
+        {
+            if (DecompressedAssembly == null)
+                DecompressedAssembly = LoadEmbeddedAssemblyStream(embeddedAssemblyName);
+
+            string ResourcePath = string.Empty;
+
+            // Loads an "Embedded Resource" of type T (ex: Bitmap for a PNG file).
+            // Make sure the resource is tagged as such in the resource properties.
+            string[] ResourceNames = DecompressedAssembly.GetManifestResourceNames();
+            foreach (string Item in ResourceNames)
+                if (Item.EndsWith(resourceName, StringComparison.InvariantCulture))
+                {
+                    ResourcePath = Item;
+                    break;
+                }
+
+            // If not found, it could be because it's not tagged as "Embedded Resource".
+            if (ResourcePath.Length > 0)
+            {
+                using Stream ResourceStream = DecompressedAssembly.GetManifestResourceStream(ResourcePath);
+
+                result = (T)Activator.CreateInstance(typeof(T), ResourceStream);
+                return true;
+            }
+            else
+            {
+                Contract.Unused(out result);
+                return false;
+            }
+        }
+
+        private static Assembly LoadEmbeddedAssemblyStream(string embeddedAssemblyName)
+        {
+            Assembly assembly = Assembly.GetEntryAssembly();
+
+            string EmbeddedAssemblyResourcePath = $"costura.{embeddedAssemblyName}.dll.compressed";
+#pragma warning disable CA1308 // Normalize strings to uppercase
+            EmbeddedAssemblyResourcePath = EmbeddedAssemblyResourcePath.ToLowerInvariant();
+#pragma warning restore CA1308 // Normalize strings to uppercase
+
+            using Stream CompressedStream = assembly.GetManifestResourceStream(EmbeddedAssemblyResourcePath);
+            using Stream UncompressedStream = new DeflateStream(CompressedStream, CompressionMode.Decompress);
+            using MemoryStream TemporaryStream = new MemoryStream();
+
+            int Count;
+            var Buffer = new byte[81920];
+            while ((Count = UncompressedStream.Read(Buffer, 0, Buffer.Length)) != 0)
+                TemporaryStream.Write(Buffer, 0, Count);
+
+            TemporaryStream.Position = 0;
+
+            byte[] array = new byte[TemporaryStream.Length];
+            TemporaryStream.Read(array, 0, array.Length);
+
+            return Assembly.Load(array);
+        }
+
+        private static Assembly? DecompressedAssembly;
     }
 }

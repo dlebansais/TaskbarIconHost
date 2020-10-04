@@ -44,6 +44,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Contracts, Version=1.0.1.8, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\Contracts.1.0.3\lib\net48\Contracts.dll</HintPath>
+    </Reference>
     <Reference Include="Costura, Version=4.1.0.0, Culture=neutral, PublicKeyToken=9919ef960d84173d, processorArchitecture=MSIL">
       <HintPath>..\packages\Costura.Fody.4.1.0\lib\net40\Costura.dll</HintPath>
     </Reference>
