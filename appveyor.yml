@@ -15,6 +15,9 @@ branches:
 skip_commits:
   message: "*[skip ci]*"
 
+# Start builds on tags only
+skip_non_tags: true
+
 # Build worker image (VM template)
 image: Visual Studio 2019
 
@@ -26,28 +29,44 @@ init:
 matrix:
   fast_finish: true     # set this flag to immediately finish build once one of the jobs fails.
 
-install:
-- cmd: choco install resharper-clt
-
-# exclude configuration from the matrix. Works similarly to 'allow_failures' but build not even being started for excluded combination.
-  exclude:
-    - platform: x64
-      configuration: Debug
-
 # scripts to run before build
 before_build:
-  - nuget restore
+  - nuget restore TaskbarIconHost.sln
 
+# path to Visual Studio solution or project
 build:
-  project: TaskbarIconHost.sln      # path to Visual Studio solution or project
+  project: TaskbarIconHost.sln
+
+platform: x64
+configuration: Release
 
 after_build:
-- cmd: InspectCode.exe -o=resharper-clt-output.xml TaskbarIconHost.sln
-- ps: $result = [xml](Get-Content .\resharper-clt-output.xml)
-- ps: $result.Report.Issues.ChildNodes | ForEach-Object {$project = $_.Name; $_.ChildNodes | ForEach-Object {Add-AppveyorCompilationMessage -Message $_.Message -Line $_.Line -FileName $_.File -ProjectName $project}}
+  - nuget pack nuget\TaskbarIconHost.nuspec
 
-# Skipping test plugin
-test:
-  assemblies:
-    except:
-      - Test-Plugin.dll
+test: off
+
+artifacts:
+  - path: nuget/lib/
+    name: TaskbarIconHost-Release
+  - path: TaskbarIconHost.*.nupkg
+    name: TaskbarIconHost-Package
+
+deploy:
+  - provider: GitHub
+    release: '%APPVEYOR_REPO_TAG_NAME%'
+    description: '%APPVEYOR_REPO_COMMIT_MESSAGE%'
+    auth_token:
+      secure: dUpQSnUT5/m88z1BqHNnRjaxxZzz09CmyqFJr/cAyWjqKeLgnKunlIZlEKAXlNIm
+    artifact: TaskbarIconHost-Release
+    draft: true
+    prerelease: false
+    on:
+      branch: master
+      APPVEYOR_REPO_TAG: true
+  - provider: NuGet
+    server: https://nuget.pkg.github.com/dlebansais/index.json
+    artifact: TaskbarIconHost-Package
+    username: dlebansais
+    api_key:
+      secure: GOksqNi8I7Vs6dcsfosJvSa9vMaZH3zLQJjnx+ruJy6ZeLF075mifj4MdRI34E8W
+    skip_symbols: true
