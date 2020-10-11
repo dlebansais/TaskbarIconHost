@@ -1,16 +1,24 @@
-﻿using System;
-using System.Diagnostics;
-using System.Globalization;
-using System.IO;
-using System.Reflection;
-using System.Windows;
-using System.Windows.Input;
-
-namespace TaskbarIconHost
+﻿namespace TaskbarIconHost
 {
+    using System;
+    using System.Diagnostics;
+    using System.Globalization;
+    using System.IO;
+    using System.Reflection;
+    using System.Windows;
+    using System.Windows.Input;
+
+    /// <summary>
+    /// Represents an interface with instructions on how to manually enable loading as administrator.
+    /// </summary>
     public partial class LoadAtStartupWindow : Window
     {
         #region Init
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LoadAtStartupWindow"/> class.
+        /// </summary>
+        /// <param name="requireElevated">True if the application must be run as administrator.</param>
+        /// <param name="appName">The application name.</param>
         public LoadAtStartupWindow(bool requireElevated, string appName)
         {
             InitializeComponent();
@@ -72,7 +80,14 @@ namespace TaskbarIconHost
                 }
         }
 
+        /// <summary>
+        /// Gets a value indicating whether the application requires being run as administrator.
+        /// </summary>
         public bool RequireElevated { get; }
+
+        /// <summary>
+        /// Gets the text with task selection.
+        /// </summary>
         public string TaskSelectionText { get; }
 
         private string TaskFile = string.Empty;

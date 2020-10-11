@@ -1,25 +1,41 @@
-﻿using System.Diagnostics;
-using System.Security.Cryptography;
-
-namespace TaskbarIconHost
+﻿namespace TaskbarIconHost
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Drawing;
+    using System.Globalization;
     using System.IO;
     using System.Reflection;
+    using System.Security.Cryptography;
+    using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Windows.Input;
     using System.Windows.Threading;
-    using System.Security.Cryptography.X509Certificates;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
+    using Contracts;
     using Tracing;
 
-    internal static partial class PluginManager
+    /// <summary>
+    /// Represents an object that manages plugins.
+    /// </summary>
+    public static partial class PluginManager
     {
-        public static bool Init(bool isElevated, string embeddedPluginName, Guid embeddedPluginGuid, Dispatcher dispatcher, Tracing.ITracer logger, OidCollection oidCheckList, out int exitCode, out bool isBadSignature)
+        /// <summary>
+        /// Initializes the plug in manager.
+        /// </summary>
+        /// <param name="isElevated">True if the application is running as adiminstrator.</param>
+        /// <param name="embeddedPluginName">Name of the embedded plugin.</param>
+        /// <param name="embeddedPluginGuid">GUID of the embedded plugin.</param>
+        /// <param name="dispatcher">An instance of a dispatcher.</param>
+        /// <param name="logger">An instance of a logger.</param>
+        /// <param name="oidCheckList">A list of OIDs.</param>
+        /// <param name="exitCode">The exit code to report in case of error.</param>
+        /// <param name="isBadSignature">True upon return if the error is because of a bad signature.</param>
+        /// <returns>True if successful; otherwise, false.</returns>
+        public static bool Init(bool isElevated, string embeddedPluginName, Guid embeddedPluginGuid, Dispatcher dispatcher, ITracer logger, OidCollection oidCheckList, out int exitCode, out bool isBadSignature)
         {
+            Contract.RequireNotNull(logger, out ITracer Logger);
+
             exitCode = 0;
             isBadSignature = false;
             PluginInterfaceType = typeof(IPluginClient);
@@ -47,7 +63,7 @@ namespace TaskbarIconHost
                 if (exitCode == 0)
                     exitCode = -2;
 
-                logger.Write(Category.Warning, $"Could not load plugins, {AssemblyCount} assemblies found, {CompatibleAssemblyCount} are compatible.");
+                Logger.Write(Category.Warning, $"Could not load plugins, {AssemblyCount} assemblies found, {CompatibleAssemblyCount} are compatible.");
                 return false;
             }
         }
@@ -152,8 +168,8 @@ namespace TaskbarIconHost
                 PreferredPlugin = ConsolidatedPluginList[0];
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000: Dispose objects before losing scope")]
-        private static void InitializePlugin(IPluginClient plugin, bool isElevated, Dispatcher dispatcher, Tracing.ITracer logger)
+        [SuppressMessage("Microsoft.Reliability", "CA2000: Dispose objects before losing scope", Justification = "Disposable object is stored")]
+        private static void InitializePlugin(IPluginClient plugin, bool isElevated, Dispatcher dispatcher, ITracer logger)
         {
             RegistryTools.Settings Settings = new RegistryTools.Settings("TaskbarIconHost", GuidToString(plugin.Guid), logger);
             plugin.Initialize(isElevated, dispatcher, Settings, logger);
@@ -361,11 +377,11 @@ namespace TaskbarIconHost
             }
         }
 
-        private static void CreatePluginList(Assembly pluginAssembly, List<Type> PluginClientTypeList, Guid embeddedPluginGuid, Tracing.ITracer logger, out List<IPluginClient> PluginList)
+        private static void CreatePluginList(Assembly pluginAssembly, List<Type> pluginClientTypeList, Guid embeddedPluginGuid, Tracing.ITracer logger, out List<IPluginClient> pluginList)
         {
-            PluginList = new List<IPluginClient>();
+            pluginList = new List<IPluginClient>();
 
-            foreach (Type ClientType in PluginClientTypeList)
+            foreach (Type ClientType in pluginClientTypeList)
             {
                 try
                 {
@@ -393,7 +409,7 @@ namespace TaskbarIconHost
                             if (createdNew && PluginName != null)
                             {
                                 IPluginClient NewPlugin = new PluginClient(PluginHandle, PluginName, PluginGuid, PluginRequireElevated, PluginHasClickHandler, InstanceEvent);
-                                PluginList.Add(NewPlugin);
+                                pluginList.Add(NewPlugin);
                             }
                             else
                             {

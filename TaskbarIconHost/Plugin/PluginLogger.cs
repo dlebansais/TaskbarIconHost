@@ -7,8 +7,14 @@
     using System.Reflection;
     using Tracing;
 
+    /// <summary>
+    /// Represents an object that can write log trace on the disk.
+    /// </summary>
     public class PluginLogger : ITracer
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PluginLogger"/> class.
+        /// </summary>
         public PluginLogger()
         {
 #if DEBUG
@@ -58,6 +64,12 @@
             }
         }
 
+        /// <summary>
+        /// Writes a log message.
+        /// </summary>
+        /// <param name="category">The message category.</param>
+        /// <param name="message">The message text.</param>
+        /// <param name="arguments">Arguments used when for formatting the final message.</param>
         public void Write(Category category, string message, params object[] arguments)
         {
             if (arguments.Length > 0)
@@ -66,6 +78,13 @@
                 AddLog(message);
         }
 
+        /// <summary>
+        /// Writes a log message associated to an exception.
+        /// </summary>
+        /// <param name="category">The message category.</param>
+        /// <param name="exception">The exception.</param>
+        /// <param name="message">The message text.</param>
+        /// <param name="arguments">Arguments used when for formatting the final message.</param>
         public void Write(Category category, Exception exception, string message, params object[] arguments)
         {
             if (arguments.Length > 0)
@@ -77,12 +96,21 @@
                 AddLog(exception.Message);
         }
 
+        /// <summary>
+        /// Adds a simple log message.
+        /// </summary>
+        /// <param name="logText">The text message.</param>
         public void AddLog(string logText)
         {
             AddLog(logText, false);
         }
 
-        public void AddLog(string text, bool showNow)
+        /// <summary>
+        /// Adds a simple log message and flush logs on the disk.
+        /// </summary>
+        /// <param name="logText">The text message.</param>
+        /// <param name="showNow">True if logs should be flushed on this disk now.</param>
+        public void AddLog(string logText, bool showNow)
         {
             if (IsLogOn)
             {
@@ -91,7 +119,7 @@
                     DateTime UtcNow = DateTime.UtcNow;
                     string TimeLog = UtcNow.ToString(CultureInfo.InvariantCulture) + UtcNow.Millisecond.ToString("D3", CultureInfo.InvariantCulture);
 
-                    string Line = $"TaskbarIconHost - {TimeLog}: {text}\n";
+                    string Line = $"TaskbarIconHost - {TimeLog}: {logText}\n";
 
                     if (LogLines.Length == 0)
                         LogLines = Line;
@@ -104,6 +132,9 @@
                 PrintLog();
         }
 
+        /// <summary>
+        /// Prints log traces on the debugging terminal.
+        /// </summary>
         public void PrintLog()
         {
             if (IsLogOn)
@@ -152,7 +183,7 @@
         }
 
         private string LogLines = string.Empty;
-        private object GlobalLock = "";
+        private object GlobalLock = string.Empty;
         private bool IsLogOn;
         private bool IsFileLogOn;
         private string TraceFilePath = string.Empty;

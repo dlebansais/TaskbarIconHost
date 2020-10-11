@@ -1,12 +1,13 @@
 ﻿namespace TestTaskbarIconHost
 {
     using System;
-    using System.Collections.ObjectModel;
     using System.Threading;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using OpenQA.Selenium;
     using OpenQA.Selenium.Appium;
     using OpenQA.Selenium.Appium.Windows;
+
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+#pragma warning disable SA1600 // Elements should be documented
 
     [TestClass]
     public class Test
@@ -14,15 +15,17 @@
         [TestMethod]
         public void Test1()
         {
-            //WindowsDriver<WindowsElement> Session = LaunchApp();
+            /*
+            WindowsDriver<WindowsElement> Session = LaunchApp();
 
-            //WindowsElement ButtonNoElement = Session.FindElementByName("Non");
-            //ButtonNoElement.Click();
+            WindowsElement ButtonNoElement = Session.FindElementByName("Non");
+            ButtonNoElement.Click();
 
-            //StopApp(Session);
+            StopApp(Session);
+            */
         }
 
-        private WindowsDriver<WindowsElement> LaunchApp()
+        private static WindowsDriver<WindowsElement> LaunchApp()
         {
             Thread.Sleep(TimeSpan.FromSeconds(10));
 
@@ -33,10 +36,13 @@
             return new WindowsDriver<WindowsElement>(new Uri("http://127.0.0.1:4723"), AppiumOptions);
         }
 
-        private void StopApp(WindowsDriver<WindowsElement> session)
+        private static void StopApp(WindowsDriver<WindowsElement> session)
         {
             Thread.Sleep(TimeSpan.FromSeconds(2));
             using WindowsDriver<WindowsElement> DeletedSession = session;
         }
     }
+
+#pragma warning restore SA1600 // Elements should be documented
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 }

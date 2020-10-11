@@ -7,9 +7,17 @@
     using System.Windows;
     using System.Windows.Input;
 
+    /// <summary>
+    /// Represents an interface with instructions on how to manually enable loading as administrator.
+    /// </summary>
     public partial class LoadAtStartupWindow : Window
     {
         #region Init
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LoadAtStartupWindow"/> class.
+        /// </summary>
+        /// <param name="requireElevated">True if the application must be run as administrator.</param>
+        /// <param name="appName">The application name.</param>
         public LoadAtStartupWindow(bool requireElevated, string appName)
         {
             InitializeComponent();
@@ -65,7 +73,14 @@
             }
         }
 
+        /// <summary>
+        /// Gets a value indicating whether the application requires being run as administrator.
+        /// </summary>
         public bool RequireElevated { get; private set; }
+
+        /// <summary>
+        /// Gets the text with task selection.
+        /// </summary>
         public string TaskSelectiontext { get; private set; }
 
         private string TaskFile = string.Empty;

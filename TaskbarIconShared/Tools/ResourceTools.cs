@@ -1,14 +1,12 @@
-﻿using System.Runtime.CompilerServices;
-
-namespace TaskbarIconHost
+﻿namespace TaskbarIconHost
 {
-    using Contracts;
     using System;
     using System.IO;
     using System.IO.Compression;
     using System.Reflection;
     using System.Windows.Media;
     using System.Windows.Media.Imaging;
+    using Contracts;
 
     /// <summary>
     /// Misc tools.
@@ -16,16 +14,17 @@ namespace TaskbarIconHost
     public static class ResourceTools
     {
         /// <summary>
-        /// Returns an ImageSource object that can be used as the icon for a WPF window.
+        /// Returns a <see cref="ImageSource"/> object that can be used as the icon for a WPF window.
         /// </summary>
-        /// <param name="iconName">The name of the icon "Embedded Resource" file in the project</param>
+        /// <param name="iconName">The name of the icon "Embedded Resource" file in the project.</param>
+        /// <returns>The <see cref="ImageSource"/>.</returns>
         public static ImageSource LoadEmbeddedIcon(string iconName)
         {
             Assembly ResourceAssembly = Assembly.GetCallingAssembly();
             string ResourceName = GetResourceName(ResourceAssembly, iconName);
             using Stream ResourceStream = ResourceAssembly.GetManifestResourceStream(ResourceName);
 
-            //Decode the icon from the stream and set the first frame to the BitmapSource
+            // Decode the icon from the stream and set the first frame to the BitmapSource
             BitmapDecoder decoder = IconBitmapDecoder.Create(ResourceStream, BitmapCreateOptions.None, BitmapCacheOption.None);
             ImageSource Result = decoder.Frames[0];
 
@@ -33,9 +32,11 @@ namespace TaskbarIconHost
         }
 
         /// <summary>
-        /// Returns an object of type <typeparam name="T"/> loaded from embedded resources.
+        /// Returns an object loaded from embedded resources.
         /// </summary>
+        /// <typeparam name="T">The object type.</typeparam>
         /// <param name="name">The name of the "Embedded Resource" in the project.</param>
+        /// <returns>The loaded resource.</returns>
         public static T LoadEmbeddedResource<T>(string name)
         {
             Assembly ResourceAssembly = Assembly.GetCallingAssembly();
@@ -67,12 +68,13 @@ namespace TaskbarIconHost
         }
 
         /// <summary>
-        /// Returns an object of type <typeparam name="T"/> loaded from embedded resources.
+        /// Returns an object loaded from embedded resources.
         /// </summary>
+        /// <typeparam name="T">The object type.</typeparam>
         /// <param name="embeddedAssemblyName">Name of the embedded assembly.</param>
         /// <param name="resourceName">Name of the "Embedded Resource" in the project.</param>
         /// <param name="result">The loaded resource.</param>
-        /// <returns>True if the reosurce was found; otherwise, false.</returns>
+        /// <returns>True if the resource was found; otherwise, false.</returns>
         public static bool LoadEmbeddedResource<T>(string embeddedAssemblyName, string resourceName, out T result)
             where T : class
         {

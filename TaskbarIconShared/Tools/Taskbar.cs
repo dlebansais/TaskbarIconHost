@@ -1,11 +1,11 @@
-﻿using Microsoft.Win32;
-using System;
-using System.Collections.Generic;
-using System.Windows;
-using System.Windows.Forms;
-
-namespace TaskbarIconHost
+﻿namespace TaskbarIconHost
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Windows;
+    using System.Windows.Forms;
+    using Microsoft.Win32;
+
     /// <summary>
     /// Class that provide some information about the Windows taskbar.
     /// </summary>
@@ -53,7 +53,6 @@ namespace TaskbarIconHost
                         ScreenDrawingRect.Intersect(TrayDrawingRect);
                         int IntersectionArea = ScreenDrawingRect.Width * ScreenDrawingRect.Height;
 
-                        //System.Diagnostics.Debug.Print(s.DeviceName + ": " + IntersectionArea);
                         AreaTable.Add(s, IntersectionArea);
                     }
 
@@ -70,7 +69,6 @@ namespace TaskbarIconHost
                     }
 
                     CurrentScreen = SelectedScreen;
-                    //System.Diagnostics.Debug.Print("Selected: " + CurrentScreen.DeviceName);
                 }
             }
         }
@@ -81,7 +79,7 @@ namespace TaskbarIconHost
 
         #region User Interface
         /// <summary>
-        /// Bounds of the current screen used to display the taskbar.
+        /// Gets the bounds of the current screen used to display the taskbar.
         /// </summary>
         public static System.Drawing.Rectangle ScreenBounds
         {
@@ -91,8 +89,8 @@ namespace TaskbarIconHost
         /// <summary>
         /// Return the position a FrameworkElement should take to be on the edge of the task bar. In screen coordinates.
         /// </summary>
-        /// <param name="element">The element for which the position should be calculated</param>
-        /// <returns>The position <paramref name="element"/> should be at to be on the side where the taskbar is</returns>
+        /// <param name="element">The element for which the position should be calculated.</param>
+        /// <returns>The position <paramref name="element"/> should be at to be on the side where the taskbar is.</returns>
         public static Point GetRelativePosition(FrameworkElement element)
         {
             if (element == null || double.IsNaN(element.ActualWidth) || double.IsNaN(element.ActualHeight) || ScreenBounds.IsEmpty)
@@ -121,10 +119,10 @@ namespace TaskbarIconHost
 
         // From a position, and a window size, all in screen coordinates, return the position the window should take
         // to be on the edge of the task bar. In screen coordinates.
-        private static Point GetRelativePosition(Point Position, Size Size)
+        private static Point GetRelativePosition(Point position, Size size)
         {
             NativeMethods.RECT TrayRect, NotificationAreaRect, IconAreaRect;
-            if (CurrentScreen == null ||!GetSystemTrayRect(out TrayRect, out NotificationAreaRect, out IconAreaRect))
+            if (CurrentScreen == null || !GetSystemTrayRect(out TrayRect, out NotificationAreaRect, out IconAreaRect))
                 return new Point(0, 0);
 
             // Use the full taskbar rectangle.
@@ -134,28 +132,28 @@ namespace TaskbarIconHost
             double Y;
 
             // If the potion isn't within the taskbar (shouldn't happen), default to bottom.
-            if (!(Position.X >= TaskbarRect.Left && Position.X < TaskbarRect.Right && Position.Y >= TaskbarRect.Top && Position.Y < TaskbarRect.Bottom))
-                AlignedToBottom(Position, Size, TaskbarRect, out X, out Y);
+            if (!(position.X >= TaskbarRect.Left && position.X < TaskbarRect.Right && position.Y >= TaskbarRect.Top && position.Y < TaskbarRect.Bottom))
+                AlignedToBottom(position, size, TaskbarRect, out X, out Y);
             else
             {
                 // Otherwise, check where the taskbar is, and calculate an aligned position.
                 switch (GetTaskBarLocation(TaskbarRect))
                 {
                     case TaskBarLocation.Top:
-                        AlignedToTop(Position, Size, TaskbarRect, out X, out Y);
+                        AlignedToTop(position, size, TaskbarRect, out X, out Y);
                         break;
 
                     default:
                     case TaskBarLocation.Bottom:
-                        AlignedToBottom(Position, Size, TaskbarRect, out X, out Y);
+                        AlignedToBottom(position, size, TaskbarRect, out X, out Y);
                         break;
 
                     case TaskBarLocation.Left:
-                        AlignedToLeft(Position, Size, TaskbarRect, out X, out Y);
+                        AlignedToLeft(position, size, TaskbarRect, out X, out Y);
                         break;
 
                     case TaskBarLocation.Right:
-                        AlignedToRight(Position, Size, TaskbarRect, out X, out Y);
+                        AlignedToRight(position, size, TaskbarRect, out X, out Y);
                         break;
                 }
             }
@@ -165,16 +163,22 @@ namespace TaskbarIconHost
         #endregion
 
         #region Implementation
-        private enum TaskBarLocation { Top, Bottom, Left, Right }
-
-        private static TaskBarLocation GetTaskBarLocation(NativeMethods.RECT TaskbarRect)
+        private enum TaskBarLocation
         {
-            Point TaskbarCenter = new Point((TaskbarRect.Left + TaskbarRect.Right) / 2, (TaskbarRect.Top + TaskbarRect.Bottom) / 2);
+            Top,
+            Bottom,
+            Left,
+            Right,
+        }
 
-            bool IsTop = (TaskbarCenter.Y < CurrentScreen?.WorkingArea.Top + ((CurrentScreen?.WorkingArea.Bottom - CurrentScreen?.WorkingArea.Top) / 4));
-            bool IsBottom = (TaskbarCenter.Y >= CurrentScreen?.WorkingArea.Bottom - ((CurrentScreen?.WorkingArea.Bottom - CurrentScreen?.WorkingArea.Top) / 4));
-            bool IsLeft = (TaskbarCenter.X < CurrentScreen?.WorkingArea.Left + ((CurrentScreen?.WorkingArea.Right - CurrentScreen?.WorkingArea.Left) / 4));
-            bool IsRight = (TaskbarCenter.X >= CurrentScreen?.WorkingArea.Right - ((CurrentScreen?.WorkingArea.Right - CurrentScreen?.WorkingArea.Left) / 4));
+        private static TaskBarLocation GetTaskBarLocation(NativeMethods.RECT taskbarRect)
+        {
+            Point TaskbarCenter = new Point((taskbarRect.Left + taskbarRect.Right) / 2, (taskbarRect.Top + taskbarRect.Bottom) / 2);
+
+            bool IsTop = TaskbarCenter.Y < CurrentScreen?.WorkingArea.Top + ((CurrentScreen?.WorkingArea.Bottom - CurrentScreen?.WorkingArea.Top) / 4);
+            bool IsBottom = TaskbarCenter.Y >= CurrentScreen?.WorkingArea.Bottom - ((CurrentScreen?.WorkingArea.Bottom - CurrentScreen?.WorkingArea.Top) / 4);
+            bool IsLeft = TaskbarCenter.X < CurrentScreen?.WorkingArea.Left + ((CurrentScreen?.WorkingArea.Right - CurrentScreen?.WorkingArea.Left) / 4);
+            bool IsRight = TaskbarCenter.X >= CurrentScreen?.WorkingArea.Right - ((CurrentScreen?.WorkingArea.Right - CurrentScreen?.WorkingArea.Left) / 4);
 
             if (IsTop && !IsLeft && !IsRight)
                 return TaskBarLocation.Top;
@@ -188,28 +192,28 @@ namespace TaskbarIconHost
                 return TaskBarLocation.Bottom;
         }
 
-        private static void AlignedToLeft(Point Position, Size Size, NativeMethods.RECT TaskbarRect, out double X, out double Y)
+        private static void AlignedToLeft(Point position, Size size, NativeMethods.RECT taskbarRect, out double x, out double y)
         {
-            X = TaskbarRect.Right;
-            Y = Position.Y - (Size.Height / 2);
+            x = taskbarRect.Right;
+            y = position.Y - (size.Height / 2);
         }
 
-        private static void AlignedToRight(Point Position, Size Size, NativeMethods.RECT TaskbarRect, out double X, out double Y)
+        private static void AlignedToRight(Point position, Size size, NativeMethods.RECT taskbarRect, out double x, out double y)
         {
-            X = TaskbarRect.Left - Size.Width;
-            Y = Position.Y - (Size.Height / 2);
+            x = taskbarRect.Left - size.Width;
+            y = position.Y - (size.Height / 2);
         }
 
-        private static void AlignedToTop(Point Position, Size Size, NativeMethods.RECT TaskbarRect, out double X, out double Y)
+        private static void AlignedToTop(Point position, Size size, NativeMethods.RECT taskbarRect, out double x, out double y)
         {
-            X = Position.X - (Size.Width / 2);
-            Y = TaskbarRect.Bottom;
+            x = position.X - (size.Width / 2);
+            y = taskbarRect.Bottom;
         }
 
-        private static void AlignedToBottom(Point Position, Size Size, NativeMethods.RECT TaskbarRect, out double X, out double Y)
+        private static void AlignedToBottom(Point position, Size size, NativeMethods.RECT taskbarRect, out double x, out double y)
         {
-            X = Position.X - (Size.Width / 2);
-            Y = TaskbarRect.Top - Size.Height;
+            x = position.X - (size.Width / 2);
+            y = taskbarRect.Top - size.Height;
         }
 
         private static bool GetSystemTrayHandle(out IntPtr hwnd)
@@ -239,21 +243,21 @@ namespace TaskbarIconHost
             return false;
         }
 
-        private static bool GetSystemTrayRect(out NativeMethods.RECT TrayRect, out NativeMethods.RECT NotificationAreaRect, out NativeMethods.RECT IconAreaRect)
+        private static bool GetSystemTrayRect(out NativeMethods.RECT trayRect, out NativeMethods.RECT notificationAreaRect, out NativeMethods.RECT iconAreaRect)
         {
-            TrayRect = new NativeMethods.RECT() { Left = 0, Top = 0, Right = 0, Bottom = 0 };
-            NotificationAreaRect = new NativeMethods.RECT() { Left = 0, Top = 0, Right = 0, Bottom = 0 };
-            IconAreaRect = new NativeMethods.RECT() { Left = 0, Top = 0, Right = 0, Bottom = 0 };
+            trayRect = new NativeMethods.RECT() { Left = 0, Top = 0, Right = 0, Bottom = 0 };
+            notificationAreaRect = new NativeMethods.RECT() { Left = 0, Top = 0, Right = 0, Bottom = 0 };
+            iconAreaRect = new NativeMethods.RECT() { Left = 0, Top = 0, Right = 0, Bottom = 0 };
 
             IntPtr hWndTray = NativeMethods.FindWindow("Shell_TrayWnd", null);
             if (hWndTray != IntPtr.Zero)
             {
-                NativeMethods.GetWindowRect(hWndTray, ref TrayRect);
+                NativeMethods.GetWindowRect(hWndTray, ref trayRect);
 
                 hWndTray = NativeMethods.FindWindowEx(hWndTray, IntPtr.Zero, "TrayNotifyWnd", null);
                 if (hWndTray != IntPtr.Zero)
                 {
-                    NativeMethods.GetWindowRect(hWndTray, ref NotificationAreaRect);
+                    NativeMethods.GetWindowRect(hWndTray, ref notificationAreaRect);
 
                     hWndTray = NativeMethods.FindWindowEx(hWndTray, IntPtr.Zero, "SysPager", null);
                     if (hWndTray != IntPtr.Zero)
@@ -261,7 +265,7 @@ namespace TaskbarIconHost
                         hWndTray = NativeMethods.FindWindowEx(hWndTray, IntPtr.Zero, "ToolbarWindow32", null);
                         if (hWndTray != IntPtr.Zero)
                         {
-                            NativeMethods.GetWindowRect(hWndTray, ref IconAreaRect);
+                            NativeMethods.GetWindowRect(hWndTray, ref iconAreaRect);
                             return true;
                         }
                     }
@@ -271,7 +275,7 @@ namespace TaskbarIconHost
             return false;
         }
 
-        private static bool ToScreen(ref Point Position)
+        private static bool ToScreen(ref Point position)
         {
             NativeMethods.POINT p1 = new NativeMethods.POINT() { X = 0, Y = 0 };
             NativeMethods.POINT p2 = new NativeMethods.POINT() { X = 1000, Y = 1000 };
@@ -281,14 +285,14 @@ namespace TaskbarIconHost
                 double RatioX = (double)(p2.X - p1.X) / 1000;
                 double RatioY = (double)(p2.Y - p1.Y) / 1000;
 
-                Position = new Point(Position.X * RatioX, Position.Y * RatioY);
+                position = new Point(position.X * RatioX, position.Y * RatioY);
                 return true;
             }
 
             return false;
         }
 
-        private static bool ToScreen(ref Size Size)
+        private static bool ToScreen(ref Size size)
         {
             NativeMethods.POINT p1 = new NativeMethods.POINT() { X = 0, Y = 0 };
             NativeMethods.POINT p2 = new NativeMethods.POINT() { X = 1000, Y = 1000 };
@@ -298,14 +302,14 @@ namespace TaskbarIconHost
                 double RatioX = (double)(p2.X - p1.X) / 1000;
                 double RatioY = (double)(p2.Y - p1.Y) / 1000;
 
-                Size = new Size(Size.Width * RatioX, Size.Height * RatioY);
+                size = new Size(size.Width * RatioX, size.Height * RatioY);
                 return true;
             }
 
             return false;
         }
 
-        private static bool ToClient(ref Point Position)
+        private static bool ToClient(ref Point position)
         {
             NativeMethods.POINT p1 = new NativeMethods.POINT() { X = 0, Y = 0 };
             NativeMethods.POINT p2 = new NativeMethods.POINT() { X = 1000, Y = 1000 };
@@ -315,14 +319,14 @@ namespace TaskbarIconHost
                 double RatioX = (double)(p2.X - p1.X) / 1000;
                 double RatioY = (double)(p2.Y - p1.Y) / 1000;
 
-                Position = new Point(Position.X * RatioX, Position.Y * RatioY);
+                position = new Point(position.X * RatioX, position.Y * RatioY);
                 return true;
             }
 
             return false;
         }
 
-        private static bool ToClient(ref Size Size)
+        private static bool ToClient(ref Size size)
         {
             NativeMethods.POINT p1 = new NativeMethods.POINT() { X = 0, Y = 0 };
             NativeMethods.POINT p2 = new NativeMethods.POINT() { X = 1000, Y = 1000 };
@@ -332,7 +336,7 @@ namespace TaskbarIconHost
                 double RatioX = (double)(p2.X - p1.X) / 1000;
                 double RatioY = (double)(p2.Y - p1.Y) / 1000;
 
-                Size = new Size(Size.Width * RatioX, Size.Height * RatioY);
+                size = new Size(size.Width * RatioX, size.Height * RatioY);
                 return true;
             }
 

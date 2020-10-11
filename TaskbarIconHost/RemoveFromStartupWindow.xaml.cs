@@ -1,12 +1,19 @@
-﻿using System.Diagnostics;
-using System.Windows;
-using System.Windows.Input;
-
-namespace TaskbarIconHost
+﻿namespace TaskbarIconHost
 {
+    using System.Diagnostics;
+    using System.Windows;
+    using System.Windows.Input;
+
+    /// <summary>
+    /// Represents an interface with instructions on how to manually disable loading as administrator.
+    /// </summary>
     public partial class RemoveFromStartupWindow : Window
     {
         #region Init
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RemoveFromStartupWindow"/> class.
+        /// </summary>
+        /// <param name="appName">The application name.</param>
         public RemoveFromStartupWindow(string appName)
         {
             InitializeComponent();
@@ -16,6 +23,9 @@ namespace TaskbarIconHost
             TaskSelectiontext = $"From the Task Scheduler, select 'Task Scheduler Library' and search for the task called '{appName}'.";
         }
 
+        /// <summary>
+        /// Gets the text with task selection.
+        /// </summary>
         public string TaskSelectiontext { get; private set; }
         #endregion
 

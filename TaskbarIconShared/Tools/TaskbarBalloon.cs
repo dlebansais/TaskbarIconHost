@@ -72,7 +72,7 @@
                 notification.BalloonTipClicked += new EventHandler(OnClicked);
                 notification.Click += new EventHandler(OnClicked);
                 notification.MouseClick += new MouseEventHandler(OnMouseClicked);
-                notification.ShowBalloonTip((int)(delay.TotalMilliseconds));
+                notification.ShowBalloonTip((int)delay.TotalMilliseconds);
                 DisplayedBalloonList.Add(data);
             }
             catch

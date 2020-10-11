@@ -3,17 +3,29 @@
     using System;
     using System.Collections.Generic;
     using System.Drawing;
+    using System.Globalization;
     using System.IO;
     using System.Reflection;
+    using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Windows.Input;
     using System.Windows.Threading;
-    using System.Security.Cryptography.X509Certificates;
-    using System.Globalization;
     using Tracing;
 
+    /// <summary>
+    /// Represents an object that manages plugins.
+    /// </summary>
     public static class PluginManager
     {
+        /// <summary>
+        /// Initializes the plug in manager.
+        /// </summary>
+        /// <param name="isElevated">True if the application is running as adiminstrator.</param>
+        /// <param name="embeddedPluginName">Name of the embedded plugin.</param>
+        /// <param name="embeddedPluginGuid">GUID of the embedded plugin.</param>
+        /// <param name="dispatcher">An instance of a dispatcher.</param>
+        /// <param name="logger">An instance of a logger.</param>
+        /// <returns>True if successful; otherwise, false.</returns>
         public static bool Init(bool isElevated, string embeddedPluginName, Guid embeddedPluginGuid, Dispatcher dispatcher, ITracer logger)
         {
             if (logger == null)
@@ -120,51 +132,51 @@
             }
         }
 
-        private static bool IsReferencingSharedAssembly(Assembly assembly, out AssemblyName SharedAssemblyName)
+        private static bool IsReferencingSharedAssembly(Assembly assembly, out AssemblyName sharedAssemblyName)
         {
             AssemblyName[] AssemblyNames = assembly.GetReferencedAssemblies();
             foreach (AssemblyName AssemblyName in AssemblyNames)
                 if (AssemblyName.Name == SharedPluginAssemblyName)
                 {
-                    SharedAssemblyName = AssemblyName;
+                    sharedAssemblyName = AssemblyName;
                     return true;
                 }
 
-            SharedAssemblyName = null !;
+            sharedAssemblyName = null !;
             return false;
         }
 
-        private static void FindPluginClientTypesByPath(string assemblyPath, out Assembly? PluginAssembly, out List<Type>? PluginClientTypeList)
+        private static void FindPluginClientTypesByPath(string assemblyPath, out Assembly? pluginAssembly, out List<Type>? pluginClientTypeList)
         {
             try
             {
-                PluginAssembly = Assembly.LoadFrom(assemblyPath);
-                FindPluginClientTypes(PluginAssembly, out PluginClientTypeList);
+                pluginAssembly = Assembly.LoadFrom(assemblyPath);
+                FindPluginClientTypes(pluginAssembly, out pluginClientTypeList);
             }
             catch
             {
-                PluginAssembly = null;
-                PluginClientTypeList = null;
+                pluginAssembly = null;
+                pluginClientTypeList = null;
             }
         }
 
-        private static void FindPluginClientTypesByName(AssemblyName name, out Assembly? PluginAssembly, out List<Type>? PluginClientTypeList)
+        private static void FindPluginClientTypesByName(AssemblyName name, out Assembly? pluginAssembly, out List<Type>? pluginClientTypeList)
         {
             try
             {
-                PluginAssembly = Assembly.Load(name);
-                FindPluginClientTypes(PluginAssembly, out PluginClientTypeList);
+                pluginAssembly = Assembly.Load(name);
+                FindPluginClientTypes(pluginAssembly, out pluginClientTypeList);
             }
             catch
             {
-                PluginAssembly = null;
-                PluginClientTypeList = null;
+                pluginAssembly = null;
+                pluginClientTypeList = null;
             }
         }
 
-        private static void FindPluginClientTypes(Assembly assembly, out List<Type>? PluginClientTypeList)
+        private static void FindPluginClientTypes(Assembly assembly, out List<Type>? pluginClientTypeList)
         {
-            PluginClientTypeList = null;
+            pluginClientTypeList = null;
 
             try
             {
@@ -172,7 +184,7 @@
                 if (!string.IsNullOrEmpty(assembly.Location) && !IsAssemblySigned(assembly))
                     return;
 #endif
-                PluginClientTypeList = new List<Type>();
+                pluginClientTypeList = new List<Type>();
 
                 if (IsReferencingSharedAssembly(assembly, out AssemblyName SharedAssemblyName))
                 {
@@ -197,7 +209,7 @@
 
                         Type InterfaceType = ClientType.GetInterface(PluginInterfaceType.FullName);
                         if (InterfaceType != null)
-                            PluginClientTypeList.Add(ClientType);
+                            pluginClientTypeList.Add(ClientType);
                     }
                 }
             }
@@ -268,11 +280,11 @@
             }
         }
 
-        private static void CreatePluginList(Assembly pluginAssembly, List<Type> PluginClientTypeList, Guid embeddedPluginGuid, ITracer logger, out List<IPluginClient> PluginList)
+        private static void CreatePluginList(Assembly pluginAssembly, List<Type> pluginClientTypeList, Guid embeddedPluginGuid, ITracer logger, out List<IPluginClient> pluginList)
         {
-            PluginList = new List<IPluginClient>();
+            pluginList = new List<IPluginClient>();
 
-            foreach (Type ClientType in PluginClientTypeList)
+            foreach (Type ClientType in pluginClientTypeList)
             {
                 try
                 {
@@ -300,7 +312,7 @@
                             if (createdNew)
                             {
                                 IPluginClient NewPlugin = new PluginClient(PluginHandle, PluginName, PluginGuid, PluginRequireElevated, PluginHasClickHandler, InstanceEvent);
-                                PluginList.Add(NewPlugin);
+                                pluginList.Add(NewPlugin);
                             }
                             else
                             {
@@ -318,6 +330,9 @@
             }
         }
 
+        /// <summary>
+        /// Gets or sets the GUID of the preferred plugin.
+        /// </summary>
         public static Guid PreferredPluginGuid
         {
             get { return PreferredPlugin != null ? PreferredPlugin.Guid : Guid.Empty; }
@@ -332,9 +347,19 @@
             }
         }
 
+        /// <summary>
+        /// Gets the list of plugins that are deemed valid.
+        /// </summary>
         public static List<IPluginClient> ConsolidatedPluginList { get; } = new List<IPluginClient>();
         private static IPluginClient? PreferredPlugin;
 
+        /// <summary>
+        /// Gets the value of plugin property.
+        /// </summary>
+        /// <typeparam name="T">The property type.</typeparam>
+        /// <param name="pluginHandle">The plugin handle.</param>
+        /// <param name="propertyName">The property name.</param>
+        /// <returns>The property value.</returns>
         public static T PluginProperty<T>(object pluginHandle, string propertyName)
         {
             if (pluginHandle == null)
@@ -345,6 +370,12 @@
             return (T)pluginHandle.GetType().InvokeMember(propertyName, BindingFlags.Default | BindingFlags.GetProperty, null, pluginHandle, null, CultureInfo.InvariantCulture);
         }
 
+        /// <summary>
+        /// Executes a plugin method.
+        /// </summary>
+        /// <param name="pluginHandle">The plugin handle.</param>
+        /// <param name="methodName">The method name.</param>
+        /// <param name="args">Arguments for the method.</param>
         public static void ExecutePluginMethod(object pluginHandle, string methodName, params object[] args)
         {
             if (pluginHandle == null)
@@ -355,6 +386,14 @@
             pluginHandle.GetType().InvokeMember(methodName, BindingFlags.Default | BindingFlags.InvokeMethod, null, pluginHandle, args, CultureInfo.InvariantCulture);
         }
 
+        /// <summary>
+        /// Calls a plugin function.
+        /// </summary>
+        /// <typeparam name="T">The plugin function return type.</typeparam>
+        /// <param name="pluginHandle">The plugin handle.</param>
+        /// <param name="functionName">The plugin function name.</param>
+        /// <param name="args">Arguments for the function.</param>
+        /// <returns>The function return value.</returns>
         public static T GetPluginFunctionValue<T>(object pluginHandle, string functionName, params object[] args)
         {
             if (pluginHandle == null)
@@ -365,10 +404,25 @@
             return (T)pluginHandle.GetType().InvokeMember(functionName, BindingFlags.Default | BindingFlags.InvokeMethod, null, pluginHandle, args, CultureInfo.InvariantCulture);
         }
 
+        /// <summary>
+        /// Gets a value indicating whether the plugin must run as administrator.
+        /// </summary>
         public static bool RequireElevated { get; private set; }
+
+        /// <summary>
+        /// Gets the table associating a command to a plugin.
+        /// </summary>
         public static Dictionary<ICommand, IPluginClient> CommandTable { get; } = new Dictionary<ICommand, IPluginClient>();
+
+        /// <summary>
+        /// Gets the table associating a list of commands to a plugin name.
+        /// </summary>
         public static Dictionary<List<ICommand>, string> FullCommandList { get; } = new Dictionary<List<ICommand>, string>();
 
+        /// <summary>
+        /// Gets the list of commands for which some visual has changed.
+        /// </summary>
+        /// <returns>The list of commands.</returns>
         public static List<ICommand> GetChangedCommands()
         {
             List<ICommand> Result = new List<ICommand>();
@@ -385,36 +439,64 @@
             return Result;
         }
 
-        public static string GetMenuHeader(ICommand Command)
+        /// <summary>
+        /// Gets the menu header associated to a command.
+        /// </summary>
+        /// <param name="command">The command.</param>
+        /// <returns>The menu header.</returns>
+        public static string GetMenuHeader(ICommand command)
         {
-            IPluginClient Plugin = CommandTable[Command];
-            return Plugin.GetMenuHeader(Command);
+            IPluginClient Plugin = CommandTable[command];
+            return Plugin.GetMenuHeader(command);
         }
 
-        public static bool GetMenuIsVisible(ICommand Command)
+        /// <summary>
+        /// Gets the command visibility status.
+        /// </summary>
+        /// <param name="command">The command.</param>
+        /// <returns>The visibility status.</returns>
+        public static bool GetMenuIsVisible(ICommand command)
         {
-            IPluginClient Plugin = CommandTable[Command];
-            return Plugin.GetMenuIsVisible(Command);
+            IPluginClient Plugin = CommandTable[command];
+            return Plugin.GetMenuIsVisible(command);
         }
 
-        public static bool GetMenuIsEnabled(ICommand Command)
+        /// <summary>
+        /// Gets the command enabled status.
+        /// </summary>
+        /// <param name="command">The command.</param>
+        /// <returns>The enabled status.</returns>
+        public static bool GetMenuIsEnabled(ICommand command)
         {
-            IPluginClient Plugin = CommandTable[Command];
-            return Plugin.GetMenuIsEnabled(Command);
+            IPluginClient Plugin = CommandTable[command];
+            return Plugin.GetMenuIsEnabled(command);
         }
 
-        public static bool GetMenuIsChecked(ICommand Command)
+        /// <summary>
+        /// Gets the command checked status.
+        /// </summary>
+        /// <param name="command">The command.</param>
+        /// <returns>The checked status.</returns>
+        public static bool GetMenuIsChecked(ICommand command)
         {
-            IPluginClient Plugin = CommandTable[Command];
-            return Plugin.GetMenuIsChecked(Command);
+            IPluginClient Plugin = CommandTable[command];
+            return Plugin.GetMenuIsChecked(command);
         }
 
-        public static Bitmap? GetMenuIcon(ICommand Command)
+        /// <summary>
+        /// Gets the command icon as a bitmap.
+        /// </summary>
+        /// <param name="command">The command.</param>
+        /// <returns>The command icon.</returns>
+        public static Bitmap? GetMenuIcon(ICommand command)
         {
-            IPluginClient Plugin = CommandTable[Command];
-            return Plugin.GetMenuIcon(Command);
+            IPluginClient Plugin = CommandTable[command];
+            return Plugin.GetMenuIcon(command);
         }
 
+        /// <summary>
+        /// Called when the context menu is opening.
+        /// </summary>
         public static void OnMenuOpening()
         {
             foreach (KeyValuePair<Assembly, List<IPluginClient>> Entry in LoadedPluginTable)
@@ -422,38 +504,62 @@
                     Plugin.OnMenuOpening();
         }
 
-        public static void OnExecuteCommand(ICommand Command)
+        /// <summary>
+        /// Called when a command must be executed.
+        /// </summary>
+        /// <param name="command">The command to execute.</param>
+        public static void OnExecuteCommand(ICommand command)
         {
-            IPluginClient Plugin = CommandTable[Command];
-            Plugin.OnExecuteCommand(Command);
+            IPluginClient Plugin = CommandTable[command];
+            Plugin.OnExecuteCommand(command);
         }
 
+        /// <summary>
+        /// Gets a value indicating whether the icon associated to a command has changed.
+        /// </summary>
+        /// <returns>True if the icon has changed; otherwise, false.</returns>
         public static bool GetIsIconChanged()
         {
             return PreferredPlugin != null ? PreferredPlugin.GetIsIconChanged() : false;
         }
 
+        /// <summary>
+        /// Gets the icon to display in the taskbar.
+        /// </summary>
         public static Icon? Icon
         {
             get { return PreferredPlugin != null ? PreferredPlugin.Icon : null; }
         }
 
+        /// <summary>
+        /// Called when the icon is clicked.
+        /// </summary>
         public static void OnIconClicked()
         {
             if (PreferredPlugin != null)
                 PreferredPlugin.OnIconClicked();
         }
 
+        /// <summary>
+        /// Gets a value indicating whether the tooltip associated to a command has changed.
+        /// </summary>
+        /// <returns>True if the tooltip has changed; otherwise, false.</returns>
         public static bool GetIsToolTipChanged()
         {
             return PreferredPlugin != null ? PreferredPlugin.GetIsToolTipChanged() : false;
         }
 
+        /// <summary>
+        /// Gets the icon to display in the taskbar.
+        /// </summary>
         public static string? ToolTip
         {
             get { return PreferredPlugin != null ? PreferredPlugin.ToolTip : null; }
         }
 
+        /// <summary>
+        /// Called when the alplication is activated.
+        /// </summary>
         public static void OnActivated()
         {
             foreach (KeyValuePair<Assembly, List<IPluginClient>> Entry in LoadedPluginTable)
@@ -461,6 +567,9 @@
                     Plugin.OnActivated();
         }
 
+        /// <summary>
+        /// Called when the alplication is deactivated.
+        /// </summary>
         public static void OnDeactivated()
         {
             foreach (KeyValuePair<Assembly, List<IPluginClient>> Entry in LoadedPluginTable)
@@ -468,6 +577,9 @@
                     Plugin.OnDeactivated();
         }
 
+        /// <summary>
+        /// Called when the alplication is shut down.
+        /// </summary>
         public static void Shutdown()
         {
             bool CanClose = true;
@@ -501,9 +613,14 @@
             LoadedPluginTable.Clear();
         }
 
+        /// <summary>
+        /// Converts a GUID to a well-formatted string.
+        /// </summary>
+        /// <param name="guid">The GUID to convert.</param>
+        /// <returns>The converted value.</returns>
         public static string GuidToString(Guid guid)
         {
-            return guid.ToString("B").ToUpperInvariant();
+            return guid.ToString("B", CultureInfo.InvariantCulture).ToUpperInvariant();
         }
 
         private const string SharedPluginAssemblyName = "TaskbarIconShared";

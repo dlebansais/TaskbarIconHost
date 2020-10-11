@@ -1,24 +1,26 @@
 ﻿namespace TaskbarIconHost
 {
-    using System.Globalization;
-    using SchedulerTools;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Drawing;
+    using System.Globalization;
     using System.Reflection;
     using System.Runtime.InteropServices;
+    using System.Security.Cryptography;
     using System.Security.Principal;
     using System.Threading;
     using System.Windows;
     using System.Windows.Controls;
     using System.Windows.Input;
     using System.Windows.Threading;
-    using System.Diagnostics;
-    using System.Security.Cryptography;
+    using SchedulerTools;
     using TaskbarTools;
     using static TaskbarIconHost.Properties.Resources;
-    using System.Threading.Tasks;
 
+    /// <summary>
+    /// Represents an application that can manage plugins having an icon in the taskbar.
+    /// </summary>
     public partial class App : Application, IDisposable
     {
         #region Init
@@ -27,6 +29,9 @@
             Logger.AddLog("Starting");
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="App"/> class.
+        /// </summary>
         public App()
         {
             ParseArguments();
@@ -199,25 +204,28 @@
         #endregion
 
         #region Properties
+        /// <summary>
+        /// Gets a value indicating whether the application is running with elevated privileges.
+        /// </summary>
         public bool IsElevated
         {
             get
             {
                 // Evaluate this property once, and return the same value after that.
                 // This elevated status is the administrator mode, it never changes during the lifetime of the application.
-                if (!_IsElevated.HasValue)
+                if (!IsElevatedInternal.HasValue)
                 {
                     WindowsIdentity wi = WindowsIdentity.GetCurrent();
                     WindowsPrincipal wp = new WindowsPrincipal(wi);
-                    _IsElevated = wp.IsInRole(WindowsBuiltInRole.Administrator);
+                    IsElevatedInternal = wp.IsInRole(WindowsBuiltInRole.Administrator);
 
-                    Logger.AddLog($"IsElevated={_IsElevated}");
+                    Logger.AddLog($"IsElevated={IsElevatedInternal}");
                 }
 
-                return _IsElevated.Value;
+                return IsElevatedInternal.Value;
             }
         }
-        private bool? _IsElevated;
+        private bool? IsElevatedInternal;
         #endregion
 
         #region Plugin Manager
@@ -420,13 +428,16 @@
                 foreach (IPluginClient Plugin in PluginManager.ConsolidatedPluginList)
                 {
                     Guid SubmenuGuid = Plugin.Guid;
-                    if (!IconSelectionTable.ContainsKey(SubmenuGuid)) // Protection against plugins reusing a guid...
+
+                    // Protection against plugins reusing a guid...
+                    if (!IconSelectionTable.ContainsKey(SubmenuGuid))
                     {
                         RoutedUICommand SubmenuCommand = new RoutedUICommand();
                         SubmenuCommand.Text = PluginManager.GuidToString(SubmenuGuid);
 
+                        // The currently preferred plugin will be checked as so.
                         string SubmenuHeader = Plugin.Name;
-                        bool SubmenuIsChecked = (SubmenuGuid == PluginManager.PreferredPluginGuid); // The currently preferred plugin will be checked as so.
+                        bool SubmenuIsChecked = SubmenuGuid == PluginManager.PreferredPluginGuid;
                         Bitmap SubmenuIcon = Plugin.SelectionBitmap;
 
                         AddMenuCommand(SubmenuCommand, OnCommandSelectPreferred);
@@ -561,6 +572,9 @@
             PluginManager.OnIconClicked();
         }
 
+        /// <summary>
+        /// Gets the taskbar icon.
+        /// </summary>
         internal TaskbarIcon TaskbarIcon { get; private set; } = TaskbarIcon.Empty;
         private ICommand LoadAtStartupCommand = new RoutedUICommand("{2E4589C5-620C-42C2-B68D-0E3AA9F9E362}", "LoadAtStartup", typeof(App));
         private ICommand ExitCommand = new RoutedUICommand("{FA8D16C1-16F0-461B-BF10-082DB4D76208}", "Exit", typeof(App));
@@ -771,29 +785,52 @@
         #endregion
 
         #region Implementation of IDisposable
+        /// <summary>
+        /// Called when an object should release its resources.
+        /// </summary>
+        /// <param name="isDisposing">Indicates if resources must be disposed now.</param>
         protected virtual void Dispose(bool isDisposing)
         {
-            if (isDisposing)
-                DisposeNow();
+            if (!IsDisposed)
+            {
+                IsDisposed = true;
+
+                if (isDisposing)
+                    DisposeNow();
+            }
         }
 
-        private void DisposeNow()
-        {
-            CleanupTimer();
-            CleanupPlugInManager();
-            CleanupInstanceEvent();
-            CleanupSignatureAlertTimer();
-        }
-
+        /// <summary>
+        /// Called when an object should release its resources.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Finalizes an instance of the <see cref="App"/> class.
+        /// </summary>
         ~App()
         {
             Dispose(false);
+        }
+
+        /// <summary>
+        /// True after <see cref="Dispose(bool)"/> has been invoked.
+        /// </summary>
+        private bool IsDisposed;
+
+        /// <summary>
+        /// Disposes of every reference that must be cleaned up.
+        /// </summary>
+        private void DisposeNow()
+        {
+            CleanupTimer();
+            CleanupPlugInManager();
+            CleanupInstanceEvent();
+            CleanupSignatureAlertTimer();
         }
         #endregion
     }

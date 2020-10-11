@@ -19,6 +19,9 @@
     using TaskbarTools;
     using Tracing;
 
+    /// <summary>
+    /// Represents an application that can manage a plugin having an icon in the taskbar.
+    /// </summary>
     public partial class App : IDisposable
     {
         #region Init
@@ -27,6 +30,12 @@
             Logger.Write(Category.Debug, "Starting");
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="App"/> class.
+        /// </summary>
+        /// <param name="owner">The owner program.</param>
+        /// <param name="plugin">The plugin.</param>
+        /// <param name="assemblyName">The assembly containg the plugin code and resources.</param>
         public App(Application owner, IPluginClient plugin, string assemblyName)
         {
             Owner = owner;
@@ -152,34 +161,37 @@
         #endregion
 
         #region Properties
+        /// <summary>
+        /// Gets a value indicating whether the plugin is running as administrator.
+        /// </summary>
         public bool IsElevated
         {
             get
             {
                 // Evaluate this property once, and return the same value after that.
                 // This elevated status is the administrator mode, it never changes during the lifetime of the application.
-                if (!_IsElevated.HasValue)
+                if (!IsElevatedInternal.HasValue)
                 {
                     WindowsIdentity wi = WindowsIdentity.GetCurrent();
                     if (wi != null)
                     {
                         WindowsPrincipal wp = new WindowsPrincipal(wi);
                         if (wp != null)
-                            _IsElevated = wp.IsInRole(WindowsBuiltInRole.Administrator);
+                            IsElevatedInternal = wp.IsInRole(WindowsBuiltInRole.Administrator);
                         else
-                            _IsElevated = false;
+                            IsElevatedInternal = false;
                     }
                     else
-                        _IsElevated = false;
+                        IsElevatedInternal = false;
 
-                    Logger.Write(Category.Information, $"IsElevated={_IsElevated}");
+                    Logger.Write(Category.Information, $"IsElevated={IsElevatedInternal}");
                 }
 
-                return _IsElevated.Value;
+                return IsElevatedInternal.Value;
             }
         }
 
-        private bool? _IsElevated;
+        private bool? IsElevatedInternal;
         #endregion
 
         #region Plugin Manager
@@ -318,7 +330,9 @@
             Assembly assembly = Assembly.GetEntryAssembly();
 
             string EmbeddedAssemblyResourcePath = $"costura.{AssemblyName}.dll.compressed";
+#pragma warning disable CA1308 // Normalize strings to uppercase
             EmbeddedAssemblyResourcePath = EmbeddedAssemblyResourcePath.ToLowerInvariant();
+#pragma warning restore CA1308 // Normalize strings to uppercase
 
             using Stream CompressedStream = assembly.GetManifestResourceStream(EmbeddedAssemblyResourcePath);
             using Stream UncompressedStream = new DeflateStream(CompressedStream, CompressionMode.Decompress);
@@ -425,13 +439,16 @@
                 foreach (IPluginClient Plugin in PluginManager.ConsolidatedPluginList)
                 {
                     Guid SubmenuGuid = Plugin.Guid;
-                    if (!IconSelectionTable.ContainsKey(SubmenuGuid)) // Protection against plugins reusing a guid...
+
+                    // Protection against plugins reusing a guid...
+                    if (!IconSelectionTable.ContainsKey(SubmenuGuid))
                     {
                         RoutedUICommand SubmenuCommand = new RoutedUICommand();
                         SubmenuCommand.Text = PluginManager.GuidToString(SubmenuGuid);
 
+                        // The currently preferred plugin will be checked as so.
                         string SubmenuHeader = Plugin.Name;
-                        bool SubmenuIsChecked = (SubmenuGuid == PluginManager.PreferredPluginGuid); // The currently preferred plugin will be checked as so.
+                        bool SubmenuIsChecked = SubmenuGuid == PluginManager.PreferredPluginGuid;
                         Bitmap SubmenuIcon = Plugin.SelectionBitmap;
 
                         AddMenuCommand(SubmenuCommand, OnCommandSelectPreferred);
@@ -459,11 +476,11 @@
             return Result;
         }
 
-        private static void AddPluginMenuItems(ItemCollection Items, Dictionary<List<MenuItem?>, string> FullPluginMenuList, bool largeSubmenu, bool useSubmenus)
+        private static void AddPluginMenuItems(ItemCollection items, Dictionary<List<MenuItem?>, string> fullPluginMenuList, bool largeSubmenu, bool useSubmenus)
         {
             bool AddSeparator = true;
 
-            foreach (KeyValuePair<List<MenuItem?>, string> Entry in FullPluginMenuList)
+            foreach (KeyValuePair<List<MenuItem?>, string> Entry in fullPluginMenuList)
             {
                 List<MenuItem?> PluginMenuList = Entry.Key;
 
@@ -474,7 +491,7 @@
                 string PluginName = Entry.Value;
 
                 if (AddSeparator)
-                    Items.Add(new Separator());
+                    items.Add(new Separator());
 
                 ItemCollection SubmenuItems;
                 if (useSubmenus)
@@ -483,12 +500,12 @@
                     MenuItem PluginSubmenu = new MenuItem();
                     PluginSubmenu.Header = PluginName;
                     SubmenuItems = PluginSubmenu.Items;
-                    Items.Add(PluginSubmenu);
+                    items.Add(PluginSubmenu);
                 }
                 else
                 {
                     AddSeparator = true;
-                    SubmenuItems = Items;
+                    SubmenuItems = items;
                 }
 
                 // null in the plugin menu means separator.
@@ -567,8 +584,19 @@
             PluginManager.OnIconClicked();
         }
 
+        /// <summary>
+        /// Gets the icon to display in the taskbar.
+        /// </summary>
         public TaskbarIcon AppTaskbarIcon { get; private set; } = TaskbarIcon.Empty;
+
+        /// <summary>
+        /// Gets the text to display in the plugin menu to load at startup.
+        /// </summary>
         private const string LoadAtStartupHeader = "Load at startup";
+
+        /// <summary>
+        /// Gets the text to display in the plugin menu to not load at startup.
+        /// </summary>
         private const string RemoveFromStartupHeader = "Remove from startup";
         private ICommand LoadAtStartupCommand = new RoutedCommand();
         private ICommand ExitCommand = new RoutedCommand();
@@ -732,7 +760,7 @@
         #region Logger
         private static void UpdateLogger()
         {
-            //Logger.PrintLog();
+            // Logger.PrintLog();
         }
 
         private static ITracer Logger = new PluginLogger();
@@ -755,28 +783,51 @@
         #endregion
 
         #region Implementation of IDisposable
+        /// <summary>
+        /// Called when an object should release its resources.
+        /// </summary>
+        /// <param name="isDisposing">Indicates if resources must be disposed now.</param>
         protected virtual void Dispose(bool isDisposing)
         {
-            if (isDisposing)
-                DisposeNow();
+            if (!IsDisposed)
+            {
+                IsDisposed = true;
+
+                if (isDisposing)
+                    DisposeNow();
+            }
         }
 
-        private void DisposeNow()
-        {
-            CleanupTimer();
-            CleanupPlugInManager();
-            CleanupInstanceEvent();
-        }
-
+        /// <summary>
+        /// Called when an object should release its resources.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Finalizes an instance of the <see cref="App"/> class.
+        /// </summary>
         ~App()
         {
             Dispose(false);
+        }
+
+        /// <summary>
+        /// True after <see cref="Dispose(bool)"/> has been invoked.
+        /// </summary>
+        private bool IsDisposed;
+
+        /// <summary>
+        /// Disposes of every reference that must be cleaned up.
+        /// </summary>
+        private void DisposeNow()
+        {
+            CleanupTimer();
+            CleanupPlugInManager();
+            CleanupInstanceEvent();
         }
         #endregion
     }

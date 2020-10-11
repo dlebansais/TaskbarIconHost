@@ -1,16 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Windows.Input;
-using System.Windows.Threading;
-
-/// <summary>
-/// This sample code demonstrates how to implement a default plugin that does nothing.
-/// </summary>
-namespace Empty
+﻿namespace Empty
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Drawing;
+    using System.Windows.Input;
+    using System.Windows.Threading;
+
+    /// <summary>
+    /// This sample code demonstrates how to implement a default plugin that does nothing.
+    /// </summary>
     public class EmptyPlugin : TaskbarIconHost.IPluginClient
     {
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+#pragma warning disable SA1600 // Elements should be documented
         public string Name
         {
             get { return "Empty"; }
@@ -51,27 +53,27 @@ namespace Empty
             return false;
         }
 
-        public string GetMenuHeader(ICommand Command)
+        public string GetMenuHeader(ICommand command)
         {
             return string.Empty;
         }
 
-        public bool GetMenuIsVisible(ICommand Command)
+        public bool GetMenuIsVisible(ICommand command)
         {
             return true;
         }
 
-        public bool GetMenuIsEnabled(ICommand Command)
+        public bool GetMenuIsEnabled(ICommand command)
         {
             return true;
         }
 
-        public bool GetMenuIsChecked(ICommand Command)
+        public bool GetMenuIsChecked(ICommand command)
         {
             return false;
         }
 
-        public Bitmap? GetMenuIcon(ICommand Command)
+        public Bitmap? GetMenuIcon(ICommand command)
         {
             return null;
         }
@@ -80,7 +82,7 @@ namespace Empty
         {
         }
 
-        public void OnExecuteCommand(ICommand Command)
+        public void OnExecuteCommand(ICommand command)
         {
         }
 
@@ -134,5 +136,7 @@ namespace Empty
         {
             get { return true; }
         }
+#pragma warning restore SA1600 // Elements should be documented
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     }
 }

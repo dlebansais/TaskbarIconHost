@@ -21,7 +21,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test-TaskbarIconHost", "Tes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SinglePluginHost", "SinglePluginHost\SinglePluginHost.csproj", "{8DFF37AC-07B1-4F34-9A10-AE39C00E6CEE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test-SinglePluginHost", "Test-SinglePlginHost\Test-SinglePluginHost.csproj", "{94E3E007-11B1-4E61-B7F8-F1893B41E254}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test-SinglePluginHost", "Test-SinglePluginHost\Test-SinglePluginHost.csproj", "{94E3E007-11B1-4E61-B7F8-F1893B41E254}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6006B37A-F1AA-4983-AD6F-89E39879B4AD}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

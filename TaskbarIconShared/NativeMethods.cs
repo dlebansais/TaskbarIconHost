@@ -3,6 +3,7 @@
     using System;
     using System.Runtime.InteropServices;
 
+#pragma warning disable SA1600 // Elements should be documented
     internal class NativeMethods
     {
         [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
@@ -39,4 +40,5 @@
             public int Bottom;      // y position of lower-right corner
         }
     }
+#pragma warning restore SA1600 // Elements should be documented
 }
