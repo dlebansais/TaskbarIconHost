@@ -16,7 +16,6 @@
     <Copyright>Copyright © David Le Bansais 2019</Copyright>
     <AssemblyVersion>1.0.0.362</AssemblyVersion>
     <FileVersion>1.0.0.10</FileVersion>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <RepositoryUrl>https://github.com/dlebansais/TaskbarIconHost</RepositoryUrl>
     <NeutralLanguage>en-US</NeutralLanguage>
     <RootNamespace>TestSinglePluginHost</RootNamespace>
