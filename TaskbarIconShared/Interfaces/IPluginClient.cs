@@ -124,7 +124,7 @@
         bool GetIsIconChanged();
 
         /// <summary>
-        /// Gets the ihe icon displayed in the taskbar. Based on the current Windows style at the time of this writing (2018), it should be a mainly white, small (16x16) icon.
+        /// Gets the icon displayed in the taskbar. Based on the current Windows style at the time of this writing (2018), it should be a mainly white, small (16x16) icon.
         /// </summary>
         Icon Icon { get; }
 
