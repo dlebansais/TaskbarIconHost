@@ -6,13 +6,13 @@
     <Nullable>enable</Nullable>
     <Platforms>x64</Platforms>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <Authors>David Le Bansais</Authors>
     <Company />
     <Product />
     <Description>TaskbarIconShared</Description>
     <Copyright>Copyright © 2019 David Le Bansais</Copyright>
-    <AssemblyVersion>1.0.0.362</AssemblyVersion>
+    <AssemblyVersion>1.0.1.362</AssemblyVersion>
     <FileVersion>1.0.0.20</FileVersion>
     <RepositoryUrl>https://github.com/dlebansais/TaskbarIconHost</RepositoryUrl>
     <NeutralLanguage>en-US</NeutralLanguage>
