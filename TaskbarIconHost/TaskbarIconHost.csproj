@@ -41,14 +41,19 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="SchedulerTools" Version="1.0.3" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="TaskbarTools" Version="1.2.0" />
     <PackageReference Include="Tracing" Version="2.2.19302.1" />
-    <PackageReference Include="XamlConverterLibrary" Version="1.0.2" />
+    <PackageReference Include="RegistryTools-Debug" Version="1.0.1" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+    <PackageReference Include="RegistryTools" Version="1.0.1" Condition="'$(Configuration)|$(Platform)'!='Debug|x64'" />
+    <PackageReference Include="SchedulerTools-Debug" Version="1.0.4" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+    <PackageReference Include="SchedulerTools" Version="1.0.4" Condition="'$(Configuration)|$(Platform)'!='Debug|x64'" />
+    <PackageReference Include="TaskbarTools-Debug" Version="1.2.1" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+    <PackageReference Include="TaskbarTools" Version="1.2.1" Condition="'$(Configuration)|$(Platform)'!='Debug|x64'" />
+    <PackageReference Include="XamlConverterLibrary-Debug" Version="1.0.2" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+    <PackageReference Include="XamlConverterLibrary" Version="1.0.2" Condition="'$(Configuration)|$(Platform)'!='Debug|x64'" />
   </ItemGroup>
 
   <ItemGroup>
