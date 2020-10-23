@@ -30,13 +30,30 @@
             if (logger == null)
                 throw new ArgumentNullException(nameof(logger));
 
+            FindPluginCandidates(embeddedPluginName, out Dictionary<Assembly, List<Type>> PluginClientTypeTable);
+            FindLoadablePlugins(embeddedPluginGuid,  PluginClientTypeTable, logger, out int AssemblyCount, out int CompatibleAssemblyCount);
+
+            if (LoadedPluginTable.Count > 0)
+            {
+                InitializePlugins(isElevated, dispatcher, logger);
+                FindPluginsWithIcon();
+                SetPreferredPlugin();
+                return true;
+            }
+            else
+            {
+                logger.Write(Category.Warning, $"Could not load plugins, {AssemblyCount} assemblies found, {CompatibleAssemblyCount} are compatible.");
+                return false;
+            }
+        }
+
+        private static void FindPluginCandidates(string embeddedPluginName, out Dictionary<Assembly, List<Type>> pluginClientTypeTable)
+        {
             Assembly CurrentAssembly = Assembly.GetEntryAssembly();
             string Location = CurrentAssembly.Location;
             string AppFolder = Path.GetDirectoryName(Location);
-            int AssemblyCount = 0;
-            int CompatibleAssemblyCount = 0;
 
-            Dictionary<Assembly, List<Type>> PluginClientTypeTable = new Dictionary<Assembly, List<Type>>();
+            pluginClientTypeTable = new Dictionary<Assembly, List<Type>>();
             Assembly? PluginAssembly;
             List<Type>? PluginClientTypeList;
 
@@ -48,7 +65,7 @@
                     {
                         FindPluginClientTypesByName(name, out PluginAssembly, out PluginClientTypeList);
                         if (PluginAssembly != null && PluginClientTypeList != null && PluginClientTypeList.Count > 0)
-                            PluginClientTypeTable.Add(PluginAssembly, PluginClientTypeList);
+                            pluginClientTypeTable.Add(PluginAssembly, PluginClientTypeList);
                     }
             }
 
@@ -57,78 +74,86 @@
             {
                 FindPluginClientTypesByPath(AssemblyPath, out PluginAssembly, out PluginClientTypeList);
                 if (PluginAssembly != null && PluginClientTypeList != null)
-                    PluginClientTypeTable.Add(PluginAssembly, PluginClientTypeList);
+                    pluginClientTypeTable.Add(PluginAssembly, PluginClientTypeList);
             }
+        }
 
-            foreach (KeyValuePair<Assembly, List<Type>> Entry in PluginClientTypeTable)
+        private static void FindLoadablePlugins(Guid embeddedPluginGuid, Dictionary<Assembly, List<Type>> pluginClientTypeTable, ITracer logger, out int assemblyCount, out int compatibleAssemblyCount)
+        {
+            Assembly? PluginAssembly;
+            List<Type>? PluginClientTypeList;
+
+            assemblyCount = 0;
+            compatibleAssemblyCount = 0;
+
+            foreach (KeyValuePair<Assembly, List<Type>> Entry in pluginClientTypeTable)
             {
-                AssemblyCount++;
+                assemblyCount++;
 
                 PluginAssembly = Entry.Key;
                 PluginClientTypeList = Entry.Value;
 
                 if (PluginClientTypeList.Count > 0)
                 {
-                    CompatibleAssemblyCount++;
+                    compatibleAssemblyCount++;
 
                     CreatePluginList(PluginAssembly, PluginClientTypeList, embeddedPluginGuid, logger, out List<IPluginClient> PluginList);
                     if (PluginList.Count > 0)
                         LoadedPluginTable.Add(PluginAssembly, PluginList);
                 }
             }
+        }
 
-            if (LoadedPluginTable.Count > 0)
-            {
-                foreach (KeyValuePair<Assembly, List<IPluginClient>> Entry in LoadedPluginTable)
-                    foreach (IPluginClient Plugin in Entry.Value)
+        private static void InitializePlugins(bool isElevated, Dispatcher dispatcher, ITracer logger)
+        {
+            foreach (KeyValuePair<Assembly, List<IPluginClient>> Entry in LoadedPluginTable)
+                foreach (IPluginClient Plugin in Entry.Value)
+                {
+                    using RegistryTools.Settings Settings = new RegistryTools.Settings("TaskbarIconHost", GuidToString(Plugin.Guid), logger);
+                    Plugin.Initialize(isElevated, dispatcher, Settings, logger);
+
+                    if (Plugin.RequireElevated)
+                        RequireElevated = true;
+                }
+        }
+
+        private static void FindPluginsWithIcon()
+        {
+            foreach (KeyValuePair<Assembly, List<IPluginClient>> Entry in LoadedPluginTable)
+                foreach (IPluginClient Plugin in Entry.Value)
+                {
+                    List<ICommand> PluginCommandList = Plugin.CommandList;
+                    if (PluginCommandList != null)
                     {
-                        using RegistryTools.Settings Settings = new RegistryTools.Settings("TaskbarIconHost", GuidToString(Plugin.Guid), logger);
-                        Plugin.Initialize(isElevated, dispatcher, Settings, logger);
+                        List<ICommand> FullPluginCommandList = new List<ICommand>();
+                        FullCommandList.Add(FullPluginCommandList, Plugin.Name);
 
-                        if (Plugin.RequireElevated)
-                            RequireElevated = true;
-                    }
-
-                foreach (KeyValuePair<Assembly, List<IPluginClient>> Entry in LoadedPluginTable)
-                    foreach (IPluginClient Plugin in Entry.Value)
-                    {
-                        List<ICommand> PluginCommandList = Plugin.CommandList;
-                        if (PluginCommandList != null)
+                        foreach (ICommand Command in PluginCommandList)
                         {
-                            List<ICommand> FullPluginCommandList = new List<ICommand>();
-                            FullCommandList.Add(FullPluginCommandList, Plugin.Name);
+                            FullPluginCommandList.Add(Command);
 
-                            foreach (ICommand Command in PluginCommandList)
-                            {
-                                FullPluginCommandList.Add(Command);
-
-                                if (Command != null)
-                                    CommandTable.Add(Command, Plugin);
-                            }
+                            if (Command != null)
+                                CommandTable.Add(Command, Plugin);
                         }
-
-                        Icon PluginIcon = Plugin.Icon;
-                        if (PluginIcon != null)
-                            ConsolidatedPluginList.Add(Plugin);
                     }
 
-                foreach (IPluginClient Plugin in ConsolidatedPluginList)
-                    if (Plugin.HasClickHandler)
-                    {
-                        PreferredPlugin = Plugin;
-                        break;
-                    }
+                    Icon PluginIcon = Plugin.Icon;
+                    if (PluginIcon != null)
+                        ConsolidatedPluginList.Add(Plugin);
+                }
+        }
 
-                if (PreferredPlugin == null && ConsolidatedPluginList.Count > 0)
-                    PreferredPlugin = ConsolidatedPluginList[0];
+        private static void SetPreferredPlugin()
+        {
+            foreach (IPluginClient Plugin in ConsolidatedPluginList)
+                if (Plugin.HasClickHandler)
+                {
+                    PreferredPlugin = Plugin;
+                    break;
+                }
 
-                return true;
-            }
-            else
-            {
-                logger.Write(Category.Warning, $"Could not load plugins, {AssemblyCount} assemblies found, {CompatibleAssemblyCount} are compatible.");
-                return false;
-            }
+            if (PreferredPlugin == null && ConsolidatedPluginList.Count > 0)
+                PreferredPlugin = ConsolidatedPluginList[0];
         }
 
         private static bool IsReferencingSharedAssembly(Assembly assembly, out AssemblyName sharedAssemblyName)
