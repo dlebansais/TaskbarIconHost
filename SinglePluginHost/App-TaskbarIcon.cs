@@ -168,39 +168,7 @@
             int LargePluginMenuCount = 0;
 
             foreach (KeyValuePair<List<ICommand>, string> Entry in PluginManager.FullCommandList)
-            {
-                List<ICommand> FullPluginCommandList = Entry.Key;
-                string PluginName = Entry.Value;
-
-                List<MenuItem?> PluginMenuList = new List<MenuItem?>();
-                int VisiblePluginMenuCount = 0;
-
-                foreach (ICommand Command in FullPluginCommandList)
-                    if (Command == null)
-                        PluginMenuList.Add(null); // This will result in the creation of a separator.
-                    else
-                    {
-                        string MenuHeader = PluginManager.GetMenuHeader(Command);
-                        bool MenuIsVisible = PluginManager.GetMenuIsVisible(Command);
-                        bool MenuIsEnabled = PluginManager.GetMenuIsEnabled(Command);
-                        bool MenuIsChecked = PluginManager.GetMenuIsChecked(Command);
-                        Bitmap? MenuIcon = PluginManager.GetMenuIcon(Command);
-
-                        MenuItem PluginMenu = CreateMenuItem(Command, MenuHeader, MenuIsChecked, MenuIcon);
-                        TaskbarIcon.PrepareMenuItem(PluginMenu, MenuIsVisible, MenuIsEnabled);
-
-                        PluginMenuList.Add(PluginMenu);
-
-                        // Count how many visible items to decide if the menu is large or small.
-                        if (MenuIsVisible)
-                            VisiblePluginMenuCount++;
-                    }
-
-                if (VisiblePluginMenuCount > 1)
-                    LargePluginMenuCount++;
-
-                FullPluginMenuList.Add(PluginMenuList, PluginName);
-            }
+                AddPluginMenu(Entry.Key, Entry.Value, FullPluginMenuList, ref LargePluginMenuCount);
 
             // Add small menus, then large menus.
             AddPluginMenuItems(Items, FullPluginMenuList, false, false);
@@ -216,28 +184,7 @@
                 IconSubmenu.Header = "Icons";
 
                 foreach (IPluginClient Plugin in PluginManager.ConsolidatedPluginList)
-                {
-                    Guid SubmenuGuid = Plugin.Guid;
-
-                    // Protection against plugins reusing a guid...
-                    if (!IconSelectionTable.ContainsKey(SubmenuGuid))
-                    {
-                        RoutedUICommand SubmenuCommand = new RoutedUICommand();
-                        SubmenuCommand.Text = PluginManager.GuidToString(SubmenuGuid);
-
-                        // The currently preferred plugin will be checked as so.
-                        string SubmenuHeader = Plugin.Name;
-                        bool SubmenuIsChecked = SubmenuGuid == PluginManager.PreferredPluginGuid;
-                        Bitmap SubmenuIcon = Plugin.SelectionBitmap;
-
-                        AddMenuCommand(SubmenuCommand, OnCommandSelectPreferred);
-                        MenuItem PluginMenu = CreateMenuItem(SubmenuCommand, SubmenuHeader, SubmenuIsChecked, SubmenuIcon);
-                        TaskbarIcon.PrepareMenuItem(PluginMenu, true, true);
-                        IconSubmenu.Items.Add(PluginMenu);
-
-                        IconSelectionTable.Add(SubmenuGuid, SubmenuCommand);
-                    }
-                }
+                    AddPluginIcon(IconSubmenu, Plugin);
 
                 // Add this "Icons" menu to the main context menu.
                 Items.Add(IconSubmenu);
@@ -253,6 +200,62 @@
             Logger.Write(Category.Debug, "Menu created");
 
             return Result;
+        }
+
+        private static void AddPluginMenu(List<ICommand> fullPluginCommandList, string pluginName, Dictionary<List<MenuItem?>, string> fullPluginMenuList, ref int largePluginMenuCount)
+        {
+            List<MenuItem?> PluginMenuList = new List<MenuItem?>();
+            int VisiblePluginMenuCount = 0;
+
+            foreach (ICommand Command in fullPluginCommandList)
+                if (Command == null)
+                    PluginMenuList.Add(null); // This will result in the creation of a separator.
+                else
+                {
+                    string MenuHeader = PluginManager.GetMenuHeader(Command);
+                    bool MenuIsVisible = PluginManager.GetMenuIsVisible(Command);
+                    bool MenuIsEnabled = PluginManager.GetMenuIsEnabled(Command);
+                    bool MenuIsChecked = PluginManager.GetMenuIsChecked(Command);
+                    Bitmap? MenuIcon = PluginManager.GetMenuIcon(Command);
+
+                    MenuItem PluginMenu = CreateMenuItem(Command, MenuHeader, MenuIsChecked, MenuIcon);
+                    TaskbarIcon.PrepareMenuItem(PluginMenu, MenuIsVisible, MenuIsEnabled);
+
+                    PluginMenuList.Add(PluginMenu);
+
+                    // Count how many visible items to decide if the menu is large or small.
+                    if (MenuIsVisible)
+                        VisiblePluginMenuCount++;
+                }
+
+            if (VisiblePluginMenuCount > 1)
+                largePluginMenuCount++;
+
+            fullPluginMenuList.Add(PluginMenuList, pluginName);
+        }
+
+        private void AddPluginIcon(MenuItem iconSubmenu, IPluginClient plugin)
+        {
+            Guid SubmenuGuid = plugin.Guid;
+
+            // Protection against plugins reusing a guid...
+            if (!IconSelectionTable.ContainsKey(SubmenuGuid))
+            {
+                RoutedUICommand SubmenuCommand = new RoutedUICommand();
+                SubmenuCommand.Text = PluginManager.GuidToString(SubmenuGuid);
+
+                // The currently preferred plugin will be checked as so.
+                string SubmenuHeader = Plugin.Name;
+                bool SubmenuIsChecked = SubmenuGuid == PluginManager.PreferredPluginGuid;
+                Bitmap SubmenuIcon = Plugin.SelectionBitmap;
+
+                AddMenuCommand(SubmenuCommand, OnCommandSelectPreferred);
+                MenuItem PluginMenu = CreateMenuItem(SubmenuCommand, SubmenuHeader, SubmenuIsChecked, SubmenuIcon);
+                TaskbarIcon.PrepareMenuItem(PluginMenu, true, true);
+                iconSubmenu.Items.Add(PluginMenu);
+
+                IconSelectionTable.Add(SubmenuGuid, SubmenuCommand);
+            }
         }
 
         private static void AddPluginMenuItems(ItemCollection items, Dictionary<List<MenuItem?>, string> fullPluginMenuList, bool largeSubmenu, bool useSubmenus)
