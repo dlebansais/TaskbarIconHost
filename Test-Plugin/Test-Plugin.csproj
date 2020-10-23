@@ -12,7 +12,7 @@
     <Product />
     <Description>This sample demonstrates how to implement a default plugin that does nothing</Description>
     <Copyright>Copyright © 2019 David Le Bansais</Copyright>
-    <AssemblyVersion>1.0.2.362</AssemblyVersion>
+    <AssemblyVersion>1.0.3.362</AssemblyVersion>
     <FileVersion>1.0.3.30</FileVersion>
     <RepositoryUrl>https://github.com/dlebansais/TaskbarIconHost</RepositoryUrl>
     <NeutralLanguage>en-US</NeutralLanguage>
