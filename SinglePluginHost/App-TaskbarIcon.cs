@@ -80,11 +80,12 @@
             if (DecompressedAssembly == null)
                 DecompressedAssembly = LoadEmbeddedAssemblyStream();
 
+            Assembly UsingAssembly = DecompressedAssembly != null ? DecompressedAssembly : Assembly.GetExecutingAssembly();
             string ResourcePath = string.Empty;
 
             // Loads an "Embedded Resource" of type T (ex: Bitmap for a PNG file).
             // Make sure the resource is tagged as such in the resource properties.
-            string[] ResourceNames = DecompressedAssembly.GetManifestResourceNames();
+            string[] ResourceNames = UsingAssembly.GetManifestResourceNames();
             foreach (string Item in ResourceNames)
                 if (Item.EndsWith(resourceName, StringComparison.InvariantCulture))
                 {
@@ -96,7 +97,7 @@
             if (ResourcePath.Length == 0)
                 Logger.Write(Category.Error, $"Resource {resourceName} not found");
 
-            using Stream ResourceStream = DecompressedAssembly.GetManifestResourceStream(ResourcePath);
+            using Stream ResourceStream = UsingAssembly.GetManifestResourceStream(ResourcePath);
 
             T Result = (T)Activator.CreateInstance(typeof(T), ResourceStream);
             Logger.Write(Category.Debug, $"Resource {resourceName} loaded");
@@ -104,7 +105,7 @@
             return Result;
         }
 
-        private Assembly LoadEmbeddedAssemblyStream()
+        private Assembly? LoadEmbeddedAssemblyStream()
         {
             Assembly assembly = Assembly.GetEntryAssembly();
 
@@ -114,6 +115,9 @@
 #pragma warning restore CA1308 // Normalize strings to uppercase
 
             using Stream CompressedStream = assembly.GetManifestResourceStream(EmbeddedAssemblyResourcePath);
+            if (CompressedStream == null)
+                return null;
+
             using Stream UncompressedStream = new DeflateStream(CompressedStream, CompressionMode.Decompress);
             using MemoryStream TemporaryStream = new MemoryStream();
 

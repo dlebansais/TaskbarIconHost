@@ -74,7 +74,8 @@
             {
                 FindPluginClientTypesByPath(AssemblyPath, out PluginAssembly, out PluginClientTypeList);
                 if (PluginAssembly != null && PluginClientTypeList != null)
-                    pluginClientTypeTable.Add(PluginAssembly, PluginClientTypeList);
+                    if (!pluginClientTypeTable.ContainsKey(PluginAssembly))
+                        pluginClientTypeTable.Add(PluginAssembly, PluginClientTypeList);
             }
         }
 

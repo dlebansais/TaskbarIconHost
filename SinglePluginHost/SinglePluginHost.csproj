@@ -20,6 +20,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\TaskbarIconHost.xml" />
+    <None Remove="Resources\UAC-16.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\UAC-16.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.3.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -54,6 +63,7 @@
   <ItemGroup>
     <Page Include="LoadAtStartupWindow.xaml" />
     <Page Include="RemoveFromStartupWindow.xaml" />
+    <EmbeddedResource Include="Resources\TaskbarIconHost.xml" />
   </ItemGroup>
 
   <ItemGroup>

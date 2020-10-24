@@ -43,7 +43,8 @@
             {
                 List<ICommand> Result = new List<ICommand>();
                 Result.Add(new RoutedUICommand());
-                Result.Add(new RoutedUICommand(TestPlugin.Properties.Resources.Test, "test", GetType()));
+                //Result.Add(new RoutedUICommand(TestPlugin.Properties.Resources.Test, "test", GetType()));
+                Result.Add(new RoutedUICommand("Test Command", "test", GetType()));
                 return Result;
             }
         }
@@ -93,7 +94,13 @@
 
         public Icon Icon
         {
-            get { return new Icon(string.Empty); }
+            get
+            {
+                using (System.IO.Stream Stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("TaskbarIconHost.Resources.main.ico"))
+                {
+                    return new Icon(Stream);
+                }
+            }
         }
 
         public Bitmap SelectionBitmap
