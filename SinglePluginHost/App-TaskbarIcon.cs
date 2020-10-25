@@ -4,11 +4,10 @@
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Drawing;
-    using System.IO;
-    using System.IO.Compression;
     using System.Reflection;
     using System.Windows.Controls;
     using System.Windows.Input;
+    using ResourceTools;
     using SchedulerTools;
     using TaskbarTools;
     using Tracing;
@@ -75,67 +74,6 @@
             CommandManager.RegisterClassCommandBinding(typeof(ContextMenu), new CommandBinding(command, executed));
         }
 
-        private T LoadEmbeddedResource<T>(string resourceName)
-        {
-            if (DecompressedAssembly == null)
-                DecompressedAssembly = LoadEmbeddedAssemblyStream();
-
-            Assembly UsingAssembly = DecompressedAssembly != null ? DecompressedAssembly : Assembly.GetExecutingAssembly();
-            string ResourcePath = string.Empty;
-
-            // Loads an "Embedded Resource" of type T (ex: Bitmap for a PNG file).
-            // Make sure the resource is tagged as such in the resource properties.
-            string[] ResourceNames = UsingAssembly.GetManifestResourceNames();
-            foreach (string Item in ResourceNames)
-                if (Item.EndsWith(resourceName, StringComparison.InvariantCulture))
-                {
-                    ResourcePath = Item;
-                    break;
-                }
-
-            // If not found, it could be because it's not tagged as "Embedded Resource".
-            if (ResourcePath.Length == 0)
-                Logger.Write(Category.Error, $"Resource {resourceName} not found");
-
-            using Stream ResourceStream = UsingAssembly.GetManifestResourceStream(ResourcePath);
-
-            T Result = (T)Activator.CreateInstance(typeof(T), ResourceStream);
-            Logger.Write(Category.Debug, $"Resource {resourceName} loaded");
-
-            return Result;
-        }
-
-        private Assembly? LoadEmbeddedAssemblyStream()
-        {
-            Assembly assembly = Assembly.GetEntryAssembly();
-
-            string EmbeddedAssemblyResourcePath = $"costura.{AssemblyName}.dll.compressed";
-#pragma warning disable CA1308 // Normalize strings to uppercase
-            EmbeddedAssemblyResourcePath = EmbeddedAssemblyResourcePath.ToLowerInvariant();
-#pragma warning restore CA1308 // Normalize strings to uppercase
-
-            using Stream CompressedStream = assembly.GetManifestResourceStream(EmbeddedAssemblyResourcePath);
-            if (CompressedStream == null)
-                return null;
-
-            using Stream UncompressedStream = new DeflateStream(CompressedStream, CompressionMode.Decompress);
-            using MemoryStream TemporaryStream = new MemoryStream();
-
-            int Count;
-            var Buffer = new byte[81920];
-            while ((Count = UncompressedStream.Read(Buffer, 0, Buffer.Length)) != 0)
-                TemporaryStream.Write(Buffer, 0, Count);
-
-            TemporaryStream.Position = 0;
-
-            byte[] array = new byte[TemporaryStream.Length];
-            TemporaryStream.Read(array, 0, array.Length);
-
-            return Assembly.Load(array);
-        }
-
-        private Assembly? DecompressedAssembly;
-
         private ContextMenu LoadContextMenu()
         {
             // Create the taskbar context menu and populate it with menu items, submenus and separators.
@@ -152,14 +90,20 @@
                 if (IsElevated)
                     LoadAtStartup = CreateMenuItem(LoadAtStartupCommand, LoadAtStartupHeader, true, null);
                 else
-                    LoadAtStartup = CreateMenuItem(LoadAtStartupCommand, RemoveFromStartupHeader, false, LoadEmbeddedResource<Bitmap>("UAC-16.png"));
+                {
+                    ResourceLoader.Load("UAC-16.png", string.Empty, out Bitmap UACBitmap);
+                    LoadAtStartup = CreateMenuItem(LoadAtStartupCommand, RemoveFromStartupHeader, false, UACBitmap);
+                }
             }
             else
             {
                 if (IsElevated)
                     LoadAtStartup = CreateMenuItem(LoadAtStartupCommand, LoadAtStartupHeader, false, null);
                 else
-                    LoadAtStartup = CreateMenuItem(LoadAtStartupCommand, LoadAtStartupHeader, false, LoadEmbeddedResource<Bitmap>("UAC-16.png"));
+                {
+                    ResourceLoader.Load("UAC-16.png", string.Empty, out Bitmap UACBitmap);
+                    LoadAtStartup = CreateMenuItem(LoadAtStartupCommand, LoadAtStartupHeader, false, UACBitmap);
+                }
             }
 
             TaskbarIcon.PrepareMenuItem(LoadAtStartup, true, true);

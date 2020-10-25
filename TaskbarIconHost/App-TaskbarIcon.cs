@@ -6,6 +6,7 @@
     using System.Reflection;
     using System.Windows.Controls;
     using System.Windows.Input;
+    using ResourceTools;
     using SchedulerTools;
     using TaskbarTools;
     using static TaskbarIconHost.Properties.Resources;
@@ -111,14 +112,20 @@
                 if (IsElevated)
                     Result = CreateMenuItem(LoadAtStartupCommand, LoadAtStartupHeader, true, null);
                 else
-                    Result = CreateMenuItem(LoadAtStartupCommand, RemoveFromStartupHeader, false, ResourceTools.LoadEmbeddedResource<Bitmap>("UAC-16.png"));
+                {
+                    ResourceLoader.Load("UAC-16.png", string.Empty, out Bitmap UACBitmap);
+                    Result = CreateMenuItem(LoadAtStartupCommand, RemoveFromStartupHeader, false, UACBitmap);
+                }
             }
             else
             {
                 if (IsElevated)
                     Result = CreateMenuItem(LoadAtStartupCommand, LoadAtStartupHeader, false, null);
                 else
-                    Result = CreateMenuItem(LoadAtStartupCommand, LoadAtStartupHeader, false, ResourceTools.LoadEmbeddedResource<Bitmap>("UAC-16.png"));
+                {
+                    ResourceLoader.Load("UAC-16.png", string.Empty, out Bitmap UACBitmap);
+                    Result = CreateMenuItem(LoadAtStartupCommand, LoadAtStartupHeader, false, UACBitmap);
+                }
             }
 
             return Result;

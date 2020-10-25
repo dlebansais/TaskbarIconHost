@@ -7,6 +7,7 @@
     using System.Reflection;
     using System.Windows;
     using System.Windows.Input;
+    using ResourceTools;
 
     /// <summary>
     /// Represents an interface with instructions on how to manually enable loading as administrator.
@@ -54,30 +55,20 @@
         {
             Assembly ExecutingAssembly = Assembly.GetExecutingAssembly();
 
-            // The TaskbarIconHost.xml file must be added to the project has an "Embedded Resource".
-            foreach (string ResourceName in ExecutingAssembly.GetManifestResourceNames())
-                if (ResourceName.EndsWith("TaskbarIconHost.xml", StringComparison.InvariantCulture))
-                {
-                    using (Stream rs = ExecutingAssembly.GetManifestResourceStream(ResourceName))
-                    {
-                        using (FileStream fs = new FileStream(TaskFile, FileMode.Create, FileAccess.Write, FileShare.None))
-                        {
-                            using (StreamReader sr = new StreamReader(rs))
-                            {
-                                using (StreamWriter sw = new StreamWriter(fs))
-                                {
-                                    string Content = sr.ReadToEnd();
+            // The TaskbarIconHost.xml file must be added to the project has an "Embedded Reource".
+            if (ResourceLoader.LoadStream("TaskbarIconHost.xml", string.Empty, out Stream ResourceStream))
+            {
+                using Stream rs = ResourceStream;
+                using FileStream fs = new FileStream(TaskFile, FileMode.Create, FileAccess.Write, FileShare.None);
+                using StreamReader sr = new StreamReader(rs);
+                using StreamWriter sw = new StreamWriter(fs);
 
-                                    // Use the complete path to the plugin.
-                                    Content = Content.Replace("%PATH%", ExecutingAssembly.Location);
-                                    sw.WriteLine(Content);
-                                }
-                            }
-                        }
-                    }
+                string Content = sr.ReadToEnd();
 
-                    break;
-                }
+                // Use the complete path to the plugin.
+                Content = Content.Replace("%PATH%", ExecutingAssembly.Location);
+                sw.WriteLine(Content);
+            }
         }
 
         /// <summary>

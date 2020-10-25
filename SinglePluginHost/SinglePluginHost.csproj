@@ -46,6 +46,8 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Tracing" Version="2.2.19302.1" />
+    <PackageReference Include="ResourceTools-Debug" Version="1.1.0" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+    <PackageReference Include="ResourceTools" Version="1.1.0" Condition="'$(Configuration)|$(Platform)'!='Debug|x64'" />
     <PackageReference Include="RegistryTools-Debug" Version="1.0.1" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
     <PackageReference Include="RegistryTools" Version="1.0.1" Condition="'$(Configuration)|$(Platform)'!='Debug|x64'" />
     <PackageReference Include="SchedulerTools-Debug" Version="1.0.4" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
