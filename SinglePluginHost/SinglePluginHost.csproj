@@ -52,8 +52,8 @@
     <PackageReference Include="RegistryTools" Version="1.0.1" Condition="'$(Configuration)|$(Platform)'!='Debug|x64'" />
     <PackageReference Include="SchedulerTools-Debug" Version="1.0.4" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
     <PackageReference Include="SchedulerTools" Version="1.0.4" Condition="'$(Configuration)|$(Platform)'!='Debug|x64'" />
-    <PackageReference Include="TaskbarTools-Debug" Version="1.2.1" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
-    <PackageReference Include="TaskbarTools" Version="1.2.1" Condition="'$(Configuration)|$(Platform)'!='Debug|x64'" />
+    <PackageReference Include="TaskbarTools-Debug" Version="1.3.0" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+    <PackageReference Include="TaskbarTools" Version="1.3.0" Condition="'$(Configuration)|$(Platform)'!='Debug|x64'" />
     <PackageReference Include="XamlConverterLibrary-Debug" Version="1.0.2" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
     <PackageReference Include="XamlConverterLibrary" Version="1.0.2" Condition="'$(Configuration)|$(Platform)'!='Debug|x64'" />
   </ItemGroup>

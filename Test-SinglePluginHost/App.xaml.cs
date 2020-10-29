@@ -1,7 +1,7 @@
 ﻿namespace TestSinglePluginHost
 {
     using System.Windows;
-    using Empty;
+    using TestPlugin;
 
 #pragma warning disable SA1601 // Partial elements should be documented
 #pragma warning disable CA1001 // Types that own disposable fields should be disposable

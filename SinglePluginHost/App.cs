@@ -74,7 +74,7 @@
 
             // This code is here mostly to make sure that the Taskbar static class is initialized ASAP.
             // The taskbar rectangle is never empty. And if it is, we have no purpose.
-            if (Taskbar.ScreenBounds.IsEmpty)
+            if (TaskbarLocation.ScreenBounds.IsEmpty)
                 Owner.Shutdown();
             else
             {

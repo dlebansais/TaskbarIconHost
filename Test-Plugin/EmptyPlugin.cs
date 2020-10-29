@@ -1,4 +1,4 @@
-﻿namespace Empty
+﻿namespace TestPlugin
 {
     using System;
     using System.Collections.Generic;
@@ -42,9 +42,7 @@
             get
             {
                 List<ICommand> Result = new List<ICommand>();
-                Result.Add(new RoutedUICommand());
-                //Result.Add(new RoutedUICommand(TestPlugin.Properties.Resources.Test, "test", GetType()));
-                Result.Add(new RoutedUICommand("Test Command", "test", GetType()));
+                Result.Add(new RoutedUICommand(Properties.Resources.Test, "test", GetType()));
                 return Result;
             }
         }
@@ -56,7 +54,10 @@
 
         public string GetMenuHeader(ICommand command)
         {
-            return string.Empty;
+            if (command is RoutedUICommand AsRoutedUICommand)
+                return AsRoutedUICommand.Text;
+            else
+                return string.Empty;
         }
 
         public bool GetMenuIsVisible(ICommand command)
@@ -96,7 +97,7 @@
         {
             get
             {
-                using (System.IO.Stream Stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("TaskbarIconHost.Resources.main.ico"))
+                using (System.IO.Stream Stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("TestPlugin.Resources.main.ico"))
                 {
                     return new Icon(Stream);
                 }
