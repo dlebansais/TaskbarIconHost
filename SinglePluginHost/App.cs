@@ -299,10 +299,10 @@
         #region Logger
         private static void UpdateLogger()
         {
-            // Logger.PrintLog();
+            Logger.PrintLog();
         }
 
-        private static ITracer Logger = new PluginLogger();
+        private static PluginLogger Logger = new PluginLogger();
         #endregion
 
         #region Load at startup
