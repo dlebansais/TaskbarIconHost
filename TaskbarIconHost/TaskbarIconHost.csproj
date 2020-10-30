@@ -22,6 +22,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\Common\**" />
+    <Compile Remove="..\Common\Resources\**" />
+    <Compile Remove="..\Common\*.xaml" />
+    <Page Include="..\Common\*.xaml" />
+    <EmbeddedResource Include="..\Common\Resources\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Costura.Fody" Version="4.1.0">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -60,15 +68,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TaskbarIconShared\TaskbarIconShared.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="App-Timer.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="App-PluginManager.cs">
-      <SubType>Code</SubType>
-    </Compile>
   </ItemGroup>
 
   <Target Name="_ResolveCopyLocalNuGetPackagePdbsAndXml" Condition="$(CopyLocalLockFileAssemblies) == true" AfterTargets="ResolveReferences">

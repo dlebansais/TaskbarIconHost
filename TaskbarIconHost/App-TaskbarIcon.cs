@@ -35,8 +35,8 @@
             }
 
             // Get the preferred icon and tooltip, and build the taskbar context menu.
-            Icon Icon = PluginManager.Icon;
-            string ToolTip = PluginManager.ToolTip;
+            Icon? Icon = PluginManager.Icon;
+            string? ToolTip = PluginManager.ToolTip;
             ContextMenu ContextMenu = LoadContextMenu();
 
             // Install the taskbar icon.

@@ -279,14 +279,14 @@
             if (IsIconChanged)
             {
                 IsIconChanged = false;
-                Icon Icon = PluginManager.Icon;
+                Icon? Icon = PluginManager.Icon;
                 TaskbarIcon.UpdateIcon(Icon);
             }
 
             if (IsToolTipChanged)
             {
                 IsToolTipChanged = false;
-                string ToolTip = PluginManager.ToolTip;
+                string? ToolTip = PluginManager.ToolTip;
                 TaskbarIcon.UpdateToolTipText(ToolTip);
             }
         }

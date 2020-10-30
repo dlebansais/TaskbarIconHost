@@ -327,7 +327,6 @@
                 if (Certificate == null)
                 {
                     // File is not signed.
-                    WriteDebug("File not signed");
                     signedExitCode = -7;
                     return Success;
                 }
@@ -367,11 +366,6 @@
 
             if (!IsEndCertificateValid)
             {
-                WriteDebug($"End Certificate not valid, {certificateChain}");
-
-                foreach (X509ChainStatus Item in certificateChain.ChainStatus)
-                    WriteDebug($": {Item.Status}, {Item.StatusInformation}");
-
                 signedExitCode = exitCode;
                 success = false;
             }

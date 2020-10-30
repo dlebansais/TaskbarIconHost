@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Drawing;
     using System.Globalization;
     using System.Reflection;
@@ -14,23 +13,6 @@
     /// </summary>
     public static partial class PluginManager
     {
-        /// <summary>
-        /// Writes message on the debug terminal.
-        /// </summary>
-        /// <param name="message">The message to write.</param>
-        private static void WriteDebug(string message)
-        {
-            Debug.WriteLine(message);
-
-            if (AccumulatedDebugString.Length < 10000)
-                AccumulatedDebugString += message;
-        }
-
-        /// <summary>
-        /// Gets the concatenation of all debug messages.
-        /// </summary>
-        public static string AccumulatedDebugString { get; private set; } = string.Empty;
-
         /// <summary>
         /// Gets or sets the GUID of the preferred plugin.
         /// </summary>
@@ -227,17 +209,9 @@
         /// <summary>
         /// Gets the icon to display in the taskbar.
         /// </summary>
-        public static Icon Icon
+        public static Icon? Icon
         {
-            get
-            {
-                if (PreferredPlugin != null)
-                    return PreferredPlugin.Icon;
-
-                using Bitmap Bitmap = new Bitmap(16, 16);
-                Bitmap.MakeTransparent(Color.White);
-                return Icon.FromHandle(Bitmap.GetHicon());
-            }
+            get { return PreferredPlugin != null ? PreferredPlugin.Icon : null; }
         }
 
         /// <summary>
@@ -261,9 +235,9 @@
         /// <summary>
         /// Gets the tooltip to display in the taskbar.
         /// </summary>
-        public static string ToolTip
+        public static string? ToolTip
         {
-            get { return PreferredPlugin != null ? PreferredPlugin.ToolTip : string.Empty; }
+            get { return PreferredPlugin != null ? PreferredPlugin.ToolTip : null; }
         }
 
         /// <summary>

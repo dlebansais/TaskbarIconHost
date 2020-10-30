@@ -233,7 +233,7 @@
         }
 
         /// <summary>
-        /// Gets the icon to display in the taskbar.
+        /// Gets the tooltip to display in the taskbar.
         /// </summary>
         public static string? ToolTip
         {

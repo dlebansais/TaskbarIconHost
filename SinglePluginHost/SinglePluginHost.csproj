@@ -20,12 +20,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Resources\TaskbarIconHost.xml" />
-    <None Remove="Resources\UAC-16.png" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\UAC-16.png" />
+    <Compile Include="..\Common\**" />
+    <Compile Remove="..\Common\Resources\**" />
+    <Compile Remove="..\Common\*.xaml" />
+    <Page Include="..\Common\*.xaml" />
+    <EmbeddedResource Include="..\Common\Resources\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -64,8 +63,6 @@
 
   <ItemGroup>
     <Page Include="LoadAtStartupWindow.xaml" />
-    <Page Include="RemoveFromStartupWindow.xaml" />
-    <EmbeddedResource Include="Resources\TaskbarIconHost.xml" />
   </ItemGroup>
 
   <ItemGroup>

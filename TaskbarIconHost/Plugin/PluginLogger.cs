@@ -23,7 +23,7 @@
 
             try
             {
-                string Location = Assembly.GetExecutingAssembly().Location;
+                string Location = Assembly.GetEntryAssembly().Location;
                 string SettingFilePath = Path.Combine(Path.GetDirectoryName(Location), "settings.txt");
 
                 if (File.Exists(SettingFilePath))
@@ -37,7 +37,7 @@
                     }
                 }
 
-                if (!string.IsNullOrEmpty(TraceFilePath))
+                if (TraceFilePath != null && TraceFilePath.Length > 0)
                 {
                     bool IsFirstTraceWritten = false;
 
@@ -121,7 +121,7 @@
 
                     string Line = $"TaskbarIconHost - {TimeLog}: {logText}\n";
 
-                    if (LogLines.Length == 0)
+                    if (LogLines == null)
                         LogLines = Line;
                     else
                         LogLines += Line;
@@ -141,13 +141,13 @@
             {
                 lock (GlobalLock)
                 {
-                    if (LogLines.Length > 0)
+                    if (LogLines != null)
                     {
                         string[] Lines = LogLines.Split('\n');
                         foreach (string Line in Lines)
                             PrintLine(Line);
 
-                        LogLines = string.Empty;
+                        LogLines = null;
                     }
                 }
             }
@@ -156,7 +156,6 @@
         private void PrintLine(string line)
         {
             NativeMethods.OutputDebugString(line);
-            Debug.WriteLine(line);
 
             if (IsFileLogOn)
                 WriteLineToTraceFile(line);
@@ -182,10 +181,10 @@
             }
         }
 
-        private string LogLines = string.Empty;
+        private string? LogLines;
         private object GlobalLock = string.Empty;
         private bool IsLogOn;
         private bool IsFileLogOn;
-        private string TraceFilePath = string.Empty;
+        private string? TraceFilePath;
     }
 }
