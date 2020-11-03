@@ -11,6 +11,7 @@
     using System.Threading;
     using System.Windows;
     using System.Windows.Input;
+    using System.Windows.Threading;
     using SchedulerTools;
     using TaskbarTools;
     using static TaskbarIconHost.Properties.Resources;
@@ -158,6 +159,18 @@
             get { return InstanceEvent.WaitOne(0); }
         }
 
+        private void ScheduleShutdown()
+        {
+            Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(OnExitRequested));
+        }
+
+        private void OnExitRequested()
+        {
+            Shutdown();
+        }
+
+        private Application Owner { get { return this; } }
+
         // Someone called Exit on the application. Time to clean things up.
         private void OnExit(object sender, ExitEventArgs e)
         {
@@ -191,6 +204,8 @@
             }
         }
 
+        private string AssemblyName = "TaskbarIconHost";
+        private Guid AppGuid = Guid.Empty;
         private bool IsExitRequested;
         private OidCollection OidCheckList = new OidCollection();
         private Timer SignatureAlertTimer = new Timer((object parameter) => { });
@@ -280,14 +295,15 @@
             {
                 IsIconChanged = false;
                 Icon? Icon = PluginManager.Icon;
-                TaskbarIcon.UpdateIcon(Icon);
+                if (Icon != null)
+                    AppTaskbarIcon.UpdateIcon(Icon);
             }
 
             if (IsToolTipChanged)
             {
                 IsToolTipChanged = false;
                 string? ToolTip = PluginManager.ToolTip;
-                TaskbarIcon.UpdateToolTipText(ToolTip);
+                AppTaskbarIcon.UpdateToolTipText(ToolTip);
             }
         }
 

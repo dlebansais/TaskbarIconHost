@@ -5,6 +5,7 @@
     using System.Drawing;
     using System.Reflection;
     using System.Runtime.InteropServices;
+    using System.Security.Cryptography;
     using System.Security.Principal;
     using System.Threading;
     using System.Windows;
@@ -41,7 +42,7 @@
 
             try
             {
-                Guid AppGuid = Plugin.Guid;
+                AppGuid = Plugin.Guid;
                 if (AppGuid == Guid.Empty)
                 {
                     // In case the guid is provided by the project settings and not source code.
@@ -92,7 +93,7 @@
             InitTimer();
 
             // The plugin manager can fail for various reasons. If it does, we just abort.
-            if (InitPlugInManager())
+            if (InitPlugInManager(new OidCollection(), out int ExitCode, out bool IsBadSignature))
             {
                 // Install the taskbar icon and create its menu.
                 InitTaskbarIcon();
@@ -147,9 +148,21 @@
             }
         }
 
+        private bool IsAnotherInstanceRequestingExit
+        {
+            get { return InstanceEvent != null && InstanceEvent.WaitOne(0); }
+        }
+
+#pragma warning disable CA1822 // Mark members as static
+        private void ScheduleShutdown()
+#pragma warning restore CA1822 // Mark members as static
+        {
+        }
+
         private Application Owner;
         private IPluginClient Plugin;
         private string AssemblyName;
+        private Guid AppGuid;
         private bool IsExiting;
         private EventWaitHandle? InstanceEvent;
         #endregion

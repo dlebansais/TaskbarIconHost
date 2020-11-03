@@ -5,13 +5,13 @@
     using System.Windows.Threading;
 
     /// <summary>
-    /// Represents an application that can manage a plugin having an icon in the taskbar.
+    /// Represents an application that can manage plugins having an icon in the taskbar.
     /// </summary>
-    public partial class App : IDisposable
+    public partial class App
     {
         private void InitTimer()
         {
-            // Create a timer to display traces asynchrousnously.
+            // Create a timer to display traces asynchronously.
             AppTimer = new Timer(new TimerCallback(AppTimerCallback));
             AppTimer.Change(CheckInterval, CheckInterval);
         }
@@ -22,12 +22,18 @@
             if (IsExiting)
                 return;
 
-            // Print traces asynchronously from the timer thread.
-            UpdateLogger();
+            // If another instance is requesting exit, schedule a task to do it.
+            if (IsAnotherInstanceRequestingExit)
+                ScheduleShutdown();
+            else
+            {
+                // Print traces asynchronously from the timer thread.
+                UpdateLogger();
 
-            // Also, schedule an update of the icon and tooltip if they changed, or the first time.
-            if (AppTimerOperation == null || (AppTimerOperation.Status == DispatcherOperationStatus.Completed && GetIsIconOrToolTipChanged()))
-                AppTimerOperation = Owner.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new System.Action(OnAppTimer));
+                // Also, schedule an update of the icon and tooltip if they changed, or the first time.
+                if (AppTimerOperation == null || (AppTimerOperation.Status == DispatcherOperationStatus.Completed && GetIsIconOrToolTipChanged()))
+                    AppTimerOperation = Owner.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new System.Action(OnAppTimer));
+            }
         }
 
         private void OnAppTimer()
@@ -41,13 +47,12 @@
 
         private void CleanupTimer()
         {
-            using (Timer? Timer = AppTimer)
+            using (AppTimer)
             {
-                AppTimer = null;
             }
         }
 
-        private Timer? AppTimer;
+        private Timer AppTimer = new Timer((object parameter) => { });
         private DispatcherOperation? AppTimerOperation;
         private TimeSpan CheckInterval = TimeSpan.FromSeconds(0.1);
     }

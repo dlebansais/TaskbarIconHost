@@ -5,10 +5,12 @@
     using System.Drawing;
     using System.IO;
     using System.Reflection;
+    using System.Security.Cryptography;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Windows.Input;
     using System.Windows.Threading;
+    using Contracts;
     using Tracing;
 
     /// <summary>
@@ -24,25 +26,32 @@
         /// <param name="embeddedPluginGuid">GUID of the embedded plugin.</param>
         /// <param name="dispatcher">An instance of a dispatcher.</param>
         /// <param name="logger">An instance of a logger.</param>
+        /// <param name="oidCheckList">A list of OIDs.</param>
+        /// <param name="exitCode">The exit code to report in case of error.</param>
+        /// <param name="isBadSignature">True upon return if the error is because of a bad signature.</param>
         /// <returns>True if successful; otherwise, false.</returns>
-        public static bool Init(bool isElevated, string embeddedPluginName, Guid embeddedPluginGuid, Dispatcher dispatcher, ITracer logger)
+#pragma warning disable CA1801 // Review unused parameters
+        public static bool Init(bool isElevated, string embeddedPluginName, Guid embeddedPluginGuid, Dispatcher dispatcher, ITracer logger, OidCollection oidCheckList, out int exitCode, out bool isBadSignature)
+#pragma warning restore CA1801 // Review unused parameters
         {
-            if (logger == null)
-                throw new ArgumentNullException(nameof(logger));
+            Contract.RequireNotNull(logger, out ITracer Logger);
+
+            exitCode = 0;
+            isBadSignature = false;
 
             FindPluginCandidates(embeddedPluginName, out Dictionary<Assembly, List<Type>> PluginClientTypeTable);
-            FindLoadablePlugins(embeddedPluginGuid,  PluginClientTypeTable, logger, out int AssemblyCount, out int CompatibleAssemblyCount);
+            FindLoadablePlugins(embeddedPluginGuid,  PluginClientTypeTable, Logger, out int AssemblyCount, out int CompatibleAssemblyCount);
 
             if (LoadedPluginTable.Count > 0)
             {
-                InitializePlugins(isElevated, dispatcher, logger);
+                InitializePlugins(isElevated, dispatcher, Logger);
                 FindPluginsWithIcon();
                 SetPreferredPlugin();
                 return true;
             }
             else
             {
-                logger.Write(Category.Warning, $"Could not load plugins, {AssemblyCount} assemblies found, {CompatibleAssemblyCount} are compatible.");
+                Logger.Write(Category.Warning, $"Could not load plugins, {AssemblyCount} assemblies found, {CompatibleAssemblyCount} are compatible.");
                 return false;
             }
         }

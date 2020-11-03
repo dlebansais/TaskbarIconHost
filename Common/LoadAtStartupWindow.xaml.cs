@@ -53,7 +53,7 @@
 
         private void CreateTaskFile()
         {
-            Assembly ExecutingAssembly = Assembly.GetExecutingAssembly();
+            Assembly ExecutingAssembly = Assembly.GetEntryAssembly();
 
             // The TaskbarIconHost.xml file must be added to the project has an "Embedded Reource".
             if (ResourceLoader.LoadStream("TaskbarIconHost.xml", string.Empty, out Stream ResourceStream))
