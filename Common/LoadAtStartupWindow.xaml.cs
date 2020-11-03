@@ -8,6 +8,7 @@
     using System.Windows;
     using System.Windows.Input;
     using ResourceTools;
+    using static Properties.Resources;
 
     /// <summary>
     /// Represents an interface with instructions on how to manually enable loading as administrator.
@@ -30,7 +31,6 @@
 
             try
             {
-                string TaskSelectionTextFormat = (string)FindResource("TaskSelectionTextFormat");
                 TaskSelectionText = string.Format(CultureInfo.CurrentCulture, TaskSelectionTextFormat, appName);
 
                 // Create a script in the plugin folder. This script can be imported to create a new task.
