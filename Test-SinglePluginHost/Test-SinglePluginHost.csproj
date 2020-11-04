@@ -9,14 +9,14 @@
     <Nullable>enable</Nullable>
     <Platforms>x64</Platforms>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Version>1.0.6</Version>
+    <Version>1.0.7</Version>
     <Authors>David Le Bansais</Authors>
     <Company />
     <Product />
     <Description>Test-SinglePluginHost</Description>
     <Copyright>Copyright © David Le Bansais 2019</Copyright>
-    <AssemblyVersion>1.0.6.362</AssemblyVersion>
-    <FileVersion>1.0.6.10</FileVersion>
+    <AssemblyVersion>1.0.7.362</AssemblyVersion>
+    <FileVersion>1.0.7.10</FileVersion>
     <RepositoryUrl>https://github.com/dlebansais/TaskbarIconHost</RepositoryUrl>
     <NeutralLanguage>en-US</NeutralLanguage>
     <RootNamespace>TestSinglePluginHost</RootNamespace>
