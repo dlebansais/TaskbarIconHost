@@ -6,14 +6,14 @@
     <Nullable>enable</Nullable>
     <Platforms>x64</Platforms>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Version>1.0.7</Version>
+    <Version>1.0.8</Version>
     <Authors>David Le Bansais</Authors>
     <Company />
     <Product />
     <Description>Test-TaskbarIconHost</Description>
     <Copyright>Copyright © 2019 David Le Bansais</Copyright>
-    <AssemblyVersion>1.0.7.362</AssemblyVersion>
-    <FileVersion>1.0.7.7</FileVersion>
+    <AssemblyVersion>1.0.8.362</AssemblyVersion>
+    <FileVersion>1.0.8.7</FileVersion>
     <RepositoryUrl>https://github.com/dlebansais/TaskbarIconHost</RepositoryUrl>
     <NeutralLanguage>en-US</NeutralLanguage>
     <RootNamespace>TaskbarIconHost</RootNamespace>

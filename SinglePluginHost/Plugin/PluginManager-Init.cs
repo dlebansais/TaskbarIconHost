@@ -119,7 +119,9 @@
             foreach (KeyValuePair<Assembly, List<IPluginClient>> Entry in LoadedPluginTable)
                 foreach (IPluginClient Plugin in Entry.Value)
                 {
-                    using RegistryTools.Settings Settings = new RegistryTools.Settings("TaskbarIconHost", GuidToString(Plugin.Guid), logger);
+#pragma warning disable CA2000 // Dispose objects before losing scope: ownership is transfered
+                    RegistryTools.Settings Settings = new RegistryTools.Settings("TaskbarIconHost", GuidToString(Plugin.Guid), logger);
+#pragma warning restore CA2000 // Dispose objects before losing scope
                     Plugin.Initialize(isElevated, dispatcher, Settings, logger);
 
                     if (Plugin.RequireElevated)
