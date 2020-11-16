@@ -9,7 +9,7 @@ if not exist "%VSTESTPLATFORM_DIR%/VSTest.Console.exe" goto error4
 if not exist ".\TaskbarIconHost\bin\x64\Debug\TaskbarIconHost.exe" goto error5
 if not exist ".\Test-TaskbarIconHost\bin\x64\Debug\Test-TaskbarIconHost.dll" goto error6
 
-if exist .\Test-TaskbarIconHost\obj\x64\Debug\Coverage-Debug_coverage.xml del .\Test-TaskbarIconHost\obj\x64\Debug\Coverage-Debug_coverage.xml
+if exist .\Test\Test-TaskbarIconHost\obj\x64\Debug\Coverage-Debug_coverage.xml del .\Test\Test-TaskbarIconHost\obj\x64\Debug\Coverage-Debug_coverage.xml
 
 start cmd /k .\coverage\start_winappdriver.bat
 
@@ -57,12 +57,12 @@ call .\coverage\wait.bat 5
 ren .\TaskbarIconHost\bin\x64\Debug\Test-Plugin.dll.deleted Test-Plugin.dll
 del .\TaskbarIconHost\bin\x64\Debug\Test-GoodPlugin.dll
 
-rem "%VSTESTPLATFORM_DIR%\VSTest.Console.exe" ".\Test-TaskbarIconHost\bin\x64\Debug\Test-TaskbarIconHost.dll" /Tests:Test1
+rem "%VSTESTPLATFORM_DIR%\VSTest.Console.exe" ".\Test\Test-TaskbarIconHost\bin\x64\Debug\Test-TaskbarIconHost.dll" /Tests:Test1
 
 start cmd /c .\coverage\stop_winappdriver.bat
 
 call ..\Certification\set_tokens.bat
-if exist .\Test-TaskbarIconHost\obj\x64\Debug\Coverage-Debug_coverage.xml .\packages\Codecov.1.10.0\tools\codecov -f ".\Test-TaskbarIconHost\obj\x64\Debug\Coverage-Debug_coverage.xml" -t "%TASKBARICONHOST_CODECOV_TOKEN%"
+if exist .\Test\Test-TaskbarIconHost\obj\x64\Debug\Coverage-Debug_coverage.xml .\packages\Codecov.1.10.0\tools\codecov -f ".\Test\Test-TaskbarIconHost\obj\x64\Debug\Coverage-Debug_coverage.xml" -t "%TASKBARICONHOST_CODECOV_TOKEN%"
 goto end
 
 :error1

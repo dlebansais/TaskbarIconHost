@@ -8,11 +8,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TaskbarIconHost", "TaskbarI
 		{DAB7B295-158F-46EB-AED3-756A80B9CAB8} = {DAB7B295-158F-46EB-AED3-756A80B9CAB8}
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test-Plugin", "Test-Plugin\Test-Plugin.csproj", "{DAB7B295-158F-46EB-AED3-756A80B9CAB8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test-Plugin", "Test\Test-Plugin\Test-Plugin.csproj", "{DAB7B295-158F-46EB-AED3-756A80B9CAB8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TaskbarIconShared", "TaskbarIconShared\TaskbarIconShared.csproj", "{EA29A87F-BD3E-46D0-869A-A5C5076EAF9E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test-TaskbarIconHost", "Test-TaskbarIconHost\Test-TaskbarIconHost.csproj", "{4A9AC2D3-26EC-4530-B99D-18C077AE147E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test-TaskbarIconHost", "Test\Test-TaskbarIconHost\Test-TaskbarIconHost.csproj", "{4A9AC2D3-26EC-4530-B99D-18C077AE147E}"
 	ProjectSection(ProjectDependencies) = postProject
 		{B4EDCD57-B676-45A3-A6E3-B855027EC56B} = {B4EDCD57-B676-45A3-A6E3-B855027EC56B}
 		{EA29A87F-BD3E-46D0-869A-A5C5076EAF9E} = {EA29A87F-BD3E-46D0-869A-A5C5076EAF9E}
@@ -21,7 +21,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test-TaskbarIconHost", "Tes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SinglePluginHost", "SinglePluginHost\SinglePluginHost.csproj", "{8DFF37AC-07B1-4F34-9A10-AE39C00E6CEE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test-SinglePluginHost", "Test-SinglePluginHost\Test-SinglePluginHost.csproj", "{94E3E007-11B1-4E61-B7F8-F1893B41E254}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test-SinglePluginHost", "Test\Test-SinglePluginHost\Test-SinglePluginHost.csproj", "{94E3E007-11B1-4E61-B7F8-F1893B41E254}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6006B37A-F1AA-4983-AD6F-89E39879B4AD}"
 	ProjectSection(SolutionItems) = preProject

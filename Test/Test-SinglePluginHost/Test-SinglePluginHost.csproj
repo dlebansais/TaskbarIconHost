@@ -1,7 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
   <PropertyGroup>
+    <OutputType>WinExe</OutputType>
     <TargetFrameworks>net48</TargetFrameworks>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <UseWPF>true</UseWPF>
     <LangVersion>8.0</LangVersion>
     <Nullable>enable</Nullable>
     <Platforms>x64</Platforms>
@@ -10,22 +13,14 @@
     <Authors>David Le Bansais</Authors>
     <Company />
     <Product />
-    <Description>This sample demonstrates how to implement a default plugin that does nothing</Description>
-    <Copyright>Copyright © 2019 David Le Bansais</Copyright>
+    <Description>Test-SinglePluginHost</Description>
+    <Copyright>Copyright © David Le Bansais 2019</Copyright>
     <AssemblyVersion>1.0.8.362</AssemblyVersion>
-    <FileVersion>1.0.8.30</FileVersion>
+    <FileVersion>1.0.8.10</FileVersion>
     <RepositoryUrl>https://github.com/dlebansais/TaskbarIconHost</RepositoryUrl>
     <NeutralLanguage>en-US</NeutralLanguage>
-    <RootNamespace>TestPlugin</RootNamespace>
+    <RootNamespace>TestSinglePluginHost</RootNamespace>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Remove="Resources\main.ico" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\main.ico" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.3.0">
@@ -44,43 +39,12 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="RegistryTools-Debug" Version="1.0.2" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
-    <PackageReference Include="RegistryTools" Version="1.0.2" Condition="'$(Configuration)|$(Platform)'!='Debug|x64'" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TaskbarIconShared\TaskbarIconShared.csproj" />
+    <ProjectReference Include="..\..\SinglePluginHost\SinglePluginHost.csproj" />
+    <ProjectReference Include="..\Test-Plugin\Test-Plugin.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xaml" />
-    <Reference Include="WindowsBase" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Properties\Resources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Properties\Resources.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
-
-  <Target Name="_ResolveCopyLocalNuGetPackagePdbsAndXml" Condition="$(CopyLocalLockFileAssemblies) == true" AfterTargets="ResolveReferences">
-    <ItemGroup>
-      <ReferenceCopyLocalPaths Include="@(ReferenceCopyLocalPaths->'%(RootDir)%(Directory)%(Filename).pdb')" Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' != ''&#xD;&#xA;                    and Exists('%(RootDir)%(Directory)%(Filename).pdb')" />
-      <ReferenceCopyLocalPaths Include="@(ReferenceCopyLocalPaths->'%(RootDir)%(Directory)%(Filename).xml')" Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' != ''&#xD;&#xA;                    and Exists('%(RootDir)%(Directory)%(Filename).xml')" />
-    </ItemGroup>
-  </Target>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Exec Command="if exist &quot;$(SolutionDir)updatecommit.bat&quot; call &quot;$(SolutionDir)updatecommit.bat&quot; &quot;$(SolutionDir)&quot; &quot;$(TargetPath)&quot;" />

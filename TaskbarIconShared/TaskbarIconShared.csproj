@@ -39,8 +39,8 @@
     <PackageReference Include="Tracing" Version="2.2.19302.1" />
     <PackageReference Include="Contracts-Debug" Version="1.0.11" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
     <PackageReference Include="Contracts" Version="1.0.11" Condition="'$(Configuration)|$(Platform)'!='Debug|x64'" />
-    <PackageReference Include="RegistryTools-Debug" Version="1.0.2" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
-    <PackageReference Include="RegistryTools" Version="1.0.2" Condition="'$(Configuration)|$(Platform)'!='Debug|x64'" />
+    <PackageReference Include="RegistryTools-Debug" Version="1.1.0" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+    <PackageReference Include="RegistryTools" Version="1.1.0" Condition="'$(Configuration)|$(Platform)'!='Debug|x64'" />
   </ItemGroup>
 
   <ItemGroup>
