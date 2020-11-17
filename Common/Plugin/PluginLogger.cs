@@ -4,6 +4,7 @@
     using System.Globalization;
     using System.IO;
     using System.Reflection;
+    using Contracts;
     using Tracing;
 
     /// <summary>
@@ -22,8 +23,10 @@
 
             try
             {
-                string Location = Assembly.GetEntryAssembly().Location;
-                string SettingFilePath = Path.Combine(Path.GetDirectoryName(Location), "settings.txt");
+                Contract.RequireNotNull(Assembly.GetEntryAssembly(), out Assembly EntryAssembly);
+                string Location = EntryAssembly.Location;
+                Contract.RequireNotNull(Path.GetDirectoryName(Location), out string DirectoryName);
+                string SettingFilePath = Path.Combine(DirectoryName, "settings.txt");
 
                 if (File.Exists(SettingFilePath))
                 {
@@ -164,7 +167,7 @@
         {
             try
             {
-                if (line.Length == 0)
+                if (line.Length == 0 || TraceFilePath == null)
                     return;
 
                 using (FileStream fs = new FileStream(TraceFilePath, FileMode.Append, FileAccess.Write))

@@ -12,6 +12,7 @@
     using System.Windows;
     using System.Windows.Input;
     using System.Windows.Threading;
+    using Contracts;
     using SchedulerTools;
     using TaskbarTools;
     using static TaskbarIconHost.Properties.Resources;
@@ -75,7 +76,8 @@
             if (AppGuid == Guid.Empty)
             {
                 // In case the guid is provided by the project settings and not source code.
-                GuidAttribute AppGuidAttribute = Assembly.GetExecutingAssembly().GetCustomAttribute<GuidAttribute>();
+                Contract.RequireNotNull(Assembly.GetExecutingAssembly(), out Assembly ExecutingAssembly);
+                Contract.RequireNotNull(ExecutingAssembly.GetCustomAttribute<GuidAttribute>(), out GuidAttribute AppGuidAttribute);
                 AppGuid = Guid.Parse(AppGuidAttribute.Value);
             }
 
@@ -149,7 +151,7 @@
             SignatureAlertTimer.Change(SignatureAlertTimeout, Timeout.InfiniteTimeSpan);
         }
 
-        private void SignatureAlertTimerCallback(object parameter)
+        private void SignatureAlertTimerCallback(object? parameter)
         {
             TaskbarBalloon.Show(InvalidSignatureAlert, TimeSpan.FromSeconds(15));
         }
@@ -208,7 +210,7 @@
         private Guid AppGuid = Guid.Empty;
         private bool IsExitRequested;
         private OidCollection OidCheckList = new OidCollection();
-        private Timer SignatureAlertTimer = new Timer((object parameter) => { });
+        private Timer SignatureAlertTimer = new Timer((object? parameter) => { });
         private TimeSpan SignatureAlertTimeout = TimeSpan.FromSeconds(40);
         private bool IsExiting;
         private readonly EventWaitHandle InstanceEvent = InitializeInstanceEvent();
@@ -242,13 +244,13 @@
 
         #region Events
         // The taskbar got the focus.
-        private void OnActivated(object sender, EventArgs e)
+        private void OnActivated(object? sender, EventArgs e)
         {
             PluginManager.OnActivated();
         }
 
         // The taskbar lost the focus.
-        private void OnDeactivated(object sender, EventArgs e)
+        private void OnDeactivated(object? sender, EventArgs e)
         {
             PluginManager.OnDeactivated();
         }

@@ -2,21 +2,21 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFrameworks>net48</TargetFrameworks>
+    <TargetFrameworks>net48;net5.0-windows</TargetFrameworks>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <UseWPF>true</UseWPF>
     <LangVersion>8.0</LangVersion>
     <Nullable>enable</Nullable>
     <Platforms>x64</Platforms>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Version>1.0.8</Version>
+    <Version>1.0.9</Version>
     <Authors>David Le Bansais</Authors>
     <Company />
     <Product />
     <Description>Host for plugins to show on the  taskbar</Description>
     <Copyright>Copyright © David Le Bansais 2019</Copyright>
-    <AssemblyVersion>1.0.8.362</AssemblyVersion>
-    <FileVersion>1.0.8.27</FileVersion>
+    <AssemblyVersion>1.0.9.362</AssemblyVersion>
+    <FileVersion>1.0.9.27</FileVersion>
     <RepositoryUrl>https://github.com/dlebansais/TaskbarIconHost</RepositoryUrl>
     <NeutralLanguage>en-US</NeutralLanguage>
   </PropertyGroup>

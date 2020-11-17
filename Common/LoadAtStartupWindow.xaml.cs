@@ -7,6 +7,7 @@
     using System.Reflection;
     using System.Windows;
     using System.Windows.Input;
+    using Contracts;
     using ResourceTools;
     using static Properties.Resources;
 
@@ -53,7 +54,7 @@
 
         private void CreateTaskFile()
         {
-            Assembly ExecutingAssembly = Assembly.GetEntryAssembly();
+            Contract.RequireNotNull(Assembly.GetEntryAssembly(), out Assembly ExecutingAssembly);
 
             // The TaskbarIconHost.xml file must be added to the project has an "Embedded Reource".
             if (ResourceLoader.LoadStream("TaskbarIconHost.xml", string.Empty, out Stream ResourceStream))
@@ -66,7 +67,11 @@
                 string Content = sr.ReadToEnd();
 
                 // Use the complete path to the plugin.
+#if NET48
                 Content = Content.Replace("%PATH%", ExecutingAssembly.Location);
+#else
+                Content = Content.Replace("%PATH%", ExecutingAssembly.Location, StringComparison.InvariantCulture);
+#endif
                 sw.WriteLine(Content);
             }
         }

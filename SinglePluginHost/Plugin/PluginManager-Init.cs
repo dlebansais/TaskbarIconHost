@@ -58,9 +58,9 @@
 
         private static void FindPluginCandidates(string embeddedPluginName, out Dictionary<Assembly, List<Type>> pluginClientTypeTable)
         {
-            Assembly CurrentAssembly = Assembly.GetEntryAssembly();
+            Contract.RequireNotNull(Assembly.GetEntryAssembly(), out Assembly CurrentAssembly);
             string Location = CurrentAssembly.Location;
-            string AppFolder = Path.GetDirectoryName(Location);
+            Contract.RequireNotNull(Path.GetDirectoryName(Location), out string AppFolder);
 
             pluginClientTypeTable = new Dictionary<Assembly, List<Type>>();
             Assembly? PluginAssembly;
@@ -224,7 +224,7 @@
 
                 if (IsReferencingSharedAssembly(assembly, out AssemblyName SharedAssemblyName))
                 {
-                    Type[] AssemblyTypes;
+                    Type?[] AssemblyTypes;
                     try
                     {
                         AssemblyTypes = assembly.GetTypes();
@@ -238,15 +238,17 @@
                         AssemblyTypes = Array.Empty<Type>();
                     }
 
-                    foreach (Type ClientType in AssemblyTypes)
-                    {
-                        if (!ClientType.IsPublic || ClientType.IsInterface || !ClientType.IsClass || ClientType.IsAbstract)
-                            continue;
+                    foreach (Type? ClientType in AssemblyTypes)
+                        if (ClientType != null)
+                        {
+                            if (!ClientType.IsPublic || ClientType.IsInterface || !ClientType.IsClass || ClientType.IsAbstract)
+                                continue;
 
-                        Type InterfaceType = ClientType.GetInterface(PluginInterfaceType.FullName);
-                        if (InterfaceType != null)
-                            pluginClientTypeList.Add(ClientType);
-                    }
+                            Contract.RequireNotNull(PluginInterfaceType.FullName, out string FullName);
+                            Type? InterfaceType = ClientType.GetInterface(FullName);
+                            if (InterfaceType != null)
+                                pluginClientTypeList.Add(ClientType);
+                        }
                 }
             }
             catch
@@ -282,7 +284,7 @@
         {
             try
             {
-                X509Certificate certificate = module.GetSignerCertificate();
+                using X509Certificate certificate = GetSignerCertificate(module);
                 if (certificate == null)
                 {
                     // File is not signed.
@@ -316,6 +318,16 @@
             }
         }
 
+        private static X509Certificate GetSignerCertificate(Module module)
+        {
+#if NET48
+            return module.GetSignerCertificate();
+#else
+            string FileName = module.FullyQualifiedName;
+            return new X509Certificate(FileName);
+#endif
+        }
+
         private static void CreatePluginList(Assembly pluginAssembly, List<Type> pluginClientTypeList, Guid embeddedPluginGuid, ITracer logger, out List<IPluginClient> pluginList)
         {
             pluginList = new List<IPluginClient>();
@@ -324,7 +336,8 @@
             {
                 try
                 {
-                    object PluginHandle = pluginAssembly.CreateInstance(ClientType.FullName);
+                    Contract.RequireNotNull(ClientType.FullName, out string FullName);
+                    object? PluginHandle = pluginAssembly.CreateInstance(FullName);
                     if (PluginHandle != null)
                     {
                         string? PluginName = PluginProperty<string?>(PluginHandle, nameof(IPluginClient.Name));

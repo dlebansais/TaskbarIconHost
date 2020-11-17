@@ -7,6 +7,7 @@
     using System.Reflection;
     using System.Windows.Controls;
     using System.Windows.Input;
+    using Contracts;
     using ResourceTools;
     using SchedulerTools;
     using TaskbarTools;
@@ -111,7 +112,9 @@
         private MenuItem LoadContextMenuFromActive()
         {
             MenuItem Result;
-            string ExeName = Assembly.GetEntryAssembly().Location;
+
+            Contract.RequireNotNull(Assembly.GetEntryAssembly(), out Assembly EntryAssembly);
+            string ExeName = EntryAssembly.Location;
 
             // Create a menu item for the load at startup/remove from startup command, depending on the current situation.
             // UAC-16.png is the recommended 'shield' icon to indicate administrator mode is required for the operation.
@@ -283,11 +286,12 @@
             return Result;
         }
 
-        private void OnMenuOpening(object sender, EventArgs e)
+        private void OnMenuOpening(object? sender, EventArgs e)
         {
             Logger.AddLog("OnMenuOpening");
 
-            string ExeName = Assembly.GetEntryAssembly().Location;
+            Contract.RequireNotNull(Assembly.GetEntryAssembly(), out Assembly EntryAssembly);
+            string ExeName = EntryAssembly.Location;
 
             // Update the load at startup menu with the current state (the user can change it directly in the Task Scheduler at any time).
             if (IsElevated)
@@ -334,7 +338,7 @@
             }
         }
 
-        private void OnIconClicked(object sender, EventArgs e)
+        private void OnIconClicked(object? sender, EventArgs e)
         {
             PluginManager.OnIconClicked();
         }

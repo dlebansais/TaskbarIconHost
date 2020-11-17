@@ -50,7 +50,27 @@
             if (propertyName == null)
                 throw new ArgumentNullException(nameof(propertyName));
 
-            return (T)pluginHandle.GetType().InvokeMember(propertyName, BindingFlags.Default | BindingFlags.GetProperty, null, pluginHandle, null, CultureInfo.InvariantCulture);
+            object? Result = pluginHandle.GetType().InvokeMember(propertyName, BindingFlags.Default | BindingFlags.GetProperty, null, pluginHandle, null, CultureInfo.InvariantCulture);
+            return (T)Result!;
+        }
+
+        /// <summary>
+        /// Gets the value of plugin property.
+        /// </summary>
+        /// <typeparam name="T">The property type.</typeparam>
+        /// <param name="pluginHandle">The plugin handle.</param>
+        /// <param name="propertyName">The property name.</param>
+        /// <returns>The property value.</returns>
+        public static T? PluginPropertyNullable<T>(object pluginHandle, string propertyName)
+            where T : class
+        {
+            if (pluginHandle == null)
+                throw new ArgumentNullException(nameof(pluginHandle));
+            if (propertyName == null)
+                throw new ArgumentNullException(nameof(propertyName));
+
+            object? Result = pluginHandle.GetType().InvokeMember(propertyName, BindingFlags.Default | BindingFlags.GetProperty, null, pluginHandle, null, CultureInfo.InvariantCulture);
+            return Result as T;
         }
 
         /// <summary>
@@ -84,7 +104,28 @@
             if (functionName == null)
                 throw new ArgumentNullException(nameof(functionName));
 
-            return (T)pluginHandle.GetType().InvokeMember(functionName, BindingFlags.Default | BindingFlags.InvokeMethod, null, pluginHandle, args, CultureInfo.InvariantCulture);
+            object? Result = pluginHandle.GetType().InvokeMember(functionName, BindingFlags.Default | BindingFlags.InvokeMethod, null, pluginHandle, args, CultureInfo.InvariantCulture);
+            return (T)Result!;
+        }
+
+        /// <summary>
+        /// Calls a plugin function.
+        /// </summary>
+        /// <typeparam name="T">The plugin function return type.</typeparam>
+        /// <param name="pluginHandle">The plugin handle.</param>
+        /// <param name="functionName">The plugin function name.</param>
+        /// <param name="args">Arguments for the function.</param>
+        /// <returns>The function return value.</returns>
+        public static T? GetPluginFunctionValueNullable<T>(object pluginHandle, string functionName, params object[] args)
+            where T : class
+        {
+            if (pluginHandle == null)
+                throw new ArgumentNullException(nameof(pluginHandle));
+            if (functionName == null)
+                throw new ArgumentNullException(nameof(functionName));
+
+            object? Result = pluginHandle.GetType().InvokeMember(functionName, BindingFlags.Default | BindingFlags.InvokeMethod, null, pluginHandle, args, CultureInfo.InvariantCulture);
+            return Result as T;
         }
 
         /// <summary>

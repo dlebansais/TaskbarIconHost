@@ -16,7 +16,7 @@
             AppTimer.Change(CheckInterval, CheckInterval);
         }
 
-        private void AppTimerCallback(object parameter)
+        private void AppTimerCallback(object? parameter)
         {
             // If a shutdown is started, don't show traces anymore so the shutdown can complete smoothly.
             if (IsExiting)
@@ -52,7 +52,7 @@
             }
         }
 
-        private Timer AppTimer = new Timer((object parameter) => { });
+        private Timer AppTimer = new Timer((object? parameter) => { });
         private DispatcherOperation? AppTimerOperation;
         private TimeSpan CheckInterval = TimeSpan.FromSeconds(0.1);
     }

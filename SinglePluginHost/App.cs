@@ -10,6 +10,7 @@
     using System.Threading;
     using System.Windows;
     using System.Windows.Input;
+    using Contracts;
     using SchedulerTools;
     using TaskbarTools;
     using Tracing;
@@ -46,7 +47,8 @@
                 if (AppGuid == Guid.Empty)
                 {
                     // In case the guid is provided by the project settings and not source code.
-                    GuidAttribute AppGuidAttribute = Assembly.GetExecutingAssembly().GetCustomAttribute<GuidAttribute>();
+                    Contract.RequireNotNull(Assembly.GetEntryAssembly(), out Assembly EntryAssembly);
+                    Contract.RequireNotNull(EntryAssembly.GetCustomAttribute<GuidAttribute>(), out GuidAttribute AppGuidAttribute);
                     AppGuid = Guid.Parse(AppGuidAttribute.Value);
                 }
 
@@ -111,13 +113,13 @@
         }
 
         // The taskbar got the focus.
-        private void OnActivated(object sender, EventArgs e)
+        private void OnActivated(object? sender, EventArgs e)
         {
             PluginManager.OnActivated();
         }
 
         // The taskbar lost the focus.
-        private void OnDeactivated(object sender, EventArgs e)
+        private void OnDeactivated(object? sender, EventArgs e)
         {
             PluginManager.OnDeactivated();
         }
@@ -215,7 +217,8 @@
             else
             {
                 // The user would like to change the state, we show to them a dialog box that explains how to do it.
-                string ExeName = Assembly.GetEntryAssembly().Location;
+                Contract.RequireNotNull(Assembly.GetEntryAssembly(), out Assembly EntryAssembly);
+                string ExeName = EntryAssembly.Location;
 
                 if (Scheduler.IsTaskActive(ExeName))
                 {
@@ -321,7 +324,8 @@
         #region Load at startup
         private static void InstallLoad(bool isInstalled, string appName)
         {
-            string ExeName = Assembly.GetEntryAssembly().Location;
+            Contract.RequireNotNull(Assembly.GetEntryAssembly(), out Assembly CurrentAssembly);
+            string ExeName = CurrentAssembly.Location;
 
             // Create or delete a task in the Task Scheduler.
             if (isInstalled)
