@@ -30,27 +30,19 @@
 
                 if (File.Exists(SettingFilePath))
                 {
-                    using (FileStream fs = new FileStream(SettingFilePath, FileMode.Open, FileAccess.Read))
-                    {
-                        using (StreamReader sr = new StreamReader(fs))
-                        {
-                            TraceFilePath = sr.ReadLine();
-                        }
-                    }
+                    using FileStream fs = new FileStream(SettingFilePath, FileMode.Open, FileAccess.Read);
+                    using StreamReader sr = new StreamReader(fs);
+                    TraceFilePath = sr.ReadLine();
                 }
 
                 if (TraceFilePath != null && TraceFilePath.Length > 0)
                 {
                     bool IsFirstTraceWritten = false;
 
-                    using (FileStream fs = new FileStream(TraceFilePath, FileMode.Append, FileAccess.Write))
-                    {
-                        using (StreamWriter sw = new StreamWriter(fs))
-                        {
-                            sw.WriteLine("** Log started **");
-                            IsFirstTraceWritten = true;
-                        }
-                    }
+                    using FileStream fs = new FileStream(TraceFilePath, FileMode.Append, FileAccess.Write);
+                    using StreamWriter sw = new StreamWriter(fs);
+                    sw.WriteLine("** Log started **");
+                    IsFirstTraceWritten = true;
 
                     if (IsFirstTraceWritten)
                     {
@@ -170,13 +162,9 @@
                 if (line.Length == 0 || TraceFilePath == null)
                     return;
 
-                using (FileStream fs = new FileStream(TraceFilePath, FileMode.Append, FileAccess.Write))
-                {
-                    using (StreamWriter sw = new StreamWriter(fs))
-                    {
-                        sw.WriteLine(line);
-                    }
-                }
+                using FileStream fs = new FileStream(TraceFilePath, FileMode.Append, FileAccess.Write);
+                using StreamWriter sw = new StreamWriter(fs);
+                sw.WriteLine(line);
             }
             catch
             {

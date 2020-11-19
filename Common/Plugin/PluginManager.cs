@@ -7,6 +7,7 @@
     using System.Reflection;
     using System.Threading;
     using System.Windows.Input;
+    using Contracts;
 
     /// <summary>
     /// Represents an object that manages plugins.
@@ -45,12 +46,10 @@
         /// <returns>The property value.</returns>
         public static T PluginProperty<T>(object pluginHandle, string propertyName)
         {
-            if (pluginHandle == null)
-                throw new ArgumentNullException(nameof(pluginHandle));
-            if (propertyName == null)
-                throw new ArgumentNullException(nameof(propertyName));
+            Contract.RequireNotNull(pluginHandle, out object PluginHandle);
+            Contract.RequireNotNull(propertyName, out string PropertyName);
 
-            object? Result = pluginHandle.GetType().InvokeMember(propertyName, BindingFlags.Default | BindingFlags.GetProperty, null, pluginHandle, null, CultureInfo.InvariantCulture);
+            object? Result = PluginHandle.GetType().InvokeMember(PropertyName, BindingFlags.Default | BindingFlags.GetProperty, null, pluginHandle, null, CultureInfo.InvariantCulture);
             return (T)Result!;
         }
 
@@ -64,12 +63,10 @@
         public static T? PluginPropertyNullable<T>(object pluginHandle, string propertyName)
             where T : class
         {
-            if (pluginHandle == null)
-                throw new ArgumentNullException(nameof(pluginHandle));
-            if (propertyName == null)
-                throw new ArgumentNullException(nameof(propertyName));
+            Contract.RequireNotNull(pluginHandle, out object PluginHandle);
+            Contract.RequireNotNull(propertyName, out string PropertyName);
 
-            object? Result = pluginHandle.GetType().InvokeMember(propertyName, BindingFlags.Default | BindingFlags.GetProperty, null, pluginHandle, null, CultureInfo.InvariantCulture);
+            object? Result = PluginHandle.GetType().InvokeMember(PropertyName, BindingFlags.Default | BindingFlags.GetProperty, null, pluginHandle, null, CultureInfo.InvariantCulture);
             return Result as T;
         }
 
@@ -81,12 +78,10 @@
         /// <param name="args">Arguments for the method.</param>
         public static void ExecutePluginMethod(object pluginHandle, string methodName, params object[] args)
         {
-            if (pluginHandle == null)
-                throw new ArgumentNullException(nameof(pluginHandle));
-            if (methodName == null)
-                throw new ArgumentNullException(nameof(methodName));
+            Contract.RequireNotNull(pluginHandle, out object PluginHandle);
+            Contract.RequireNotNull(methodName, out string MethodName);
 
-            pluginHandle.GetType().InvokeMember(methodName, BindingFlags.Default | BindingFlags.InvokeMethod, null, pluginHandle, args, CultureInfo.InvariantCulture);
+            PluginHandle.GetType().InvokeMember(MethodName, BindingFlags.Default | BindingFlags.InvokeMethod, null, pluginHandle, args, CultureInfo.InvariantCulture);
         }
 
         /// <summary>
@@ -99,12 +94,10 @@
         /// <returns>The function return value.</returns>
         public static T GetPluginFunctionValue<T>(object pluginHandle, string functionName, params object[] args)
         {
-            if (pluginHandle == null)
-                throw new ArgumentNullException(nameof(pluginHandle));
-            if (functionName == null)
-                throw new ArgumentNullException(nameof(functionName));
+            Contract.RequireNotNull(pluginHandle, out object PluginHandle);
+            Contract.RequireNotNull(functionName, out string FunctionName);
 
-            object? Result = pluginHandle.GetType().InvokeMember(functionName, BindingFlags.Default | BindingFlags.InvokeMethod, null, pluginHandle, args, CultureInfo.InvariantCulture);
+            object? Result = PluginHandle.GetType().InvokeMember(FunctionName, BindingFlags.Default | BindingFlags.InvokeMethod, null, pluginHandle, args, CultureInfo.InvariantCulture);
             return (T)Result!;
         }
 
@@ -119,12 +112,10 @@
         public static T? GetPluginFunctionValueNullable<T>(object pluginHandle, string functionName, params object[] args)
             where T : class
         {
-            if (pluginHandle == null)
-                throw new ArgumentNullException(nameof(pluginHandle));
-            if (functionName == null)
-                throw new ArgumentNullException(nameof(functionName));
+            Contract.RequireNotNull(pluginHandle, out object PluginHandle);
+            Contract.RequireNotNull(functionName, out string FunctionName);
 
-            object? Result = pluginHandle.GetType().InvokeMember(functionName, BindingFlags.Default | BindingFlags.InvokeMethod, null, pluginHandle, args, CultureInfo.InvariantCulture);
+            object? Result = PluginHandle.GetType().InvokeMember(FunctionName, BindingFlags.Default | BindingFlags.InvokeMethod, null, pluginHandle, args, CultureInfo.InvariantCulture);
             return Result as T;
         }
 
