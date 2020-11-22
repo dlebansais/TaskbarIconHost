@@ -7,14 +7,14 @@
     <Nullable>enable</Nullable>
     <Platforms>x64</Platforms>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Version>1.0.9</Version>
+    <Version>1.0.10</Version>
     <Authors>David Le Bansais</Authors>
     <Company />
     <Product />
     <Description>This sample demonstrates how to implement a default plugin that does nothing</Description>
     <Copyright>Copyright © 2019 David Le Bansais</Copyright>
-    <AssemblyVersion>1.0.9.362</AssemblyVersion>
-    <FileVersion>1.0.9.30</FileVersion>
+    <AssemblyVersion>1.0.10.362</AssemblyVersion>
+    <FileVersion>1.0.10.30</FileVersion>
     <RepositoryUrl>https://github.com/dlebansais/TaskbarIconHost</RepositoryUrl>
     <NeutralLanguage>en-US</NeutralLanguage>
     <RootNamespace>TestPlugin</RootNamespace>
