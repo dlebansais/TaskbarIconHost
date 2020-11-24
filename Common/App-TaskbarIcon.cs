@@ -66,16 +66,8 @@
         private static void AddMenuCommand(ICommand command, ExecutedRoutedEventHandler executed)
         {
             // Bind the command to the corresponding handler. Requires the menu to be the target of notifications in AppTaskbarIcon.
-            if (!IsSeparatorCommand(command))
+            if (!PluginManager.IsSeparatorCommand(command))
                 CommandManager.RegisterClassCommandBinding(typeof(ContextMenu), new CommandBinding(command, executed));
-        }
-
-        private static bool IsSeparatorCommand(ICommand command)
-        {
-            if (command is RoutedUICommand AsRoutedUiCommand)
-                return AsRoutedUiCommand.Text.Length == 0;
-            else
-                return true;
         }
 
         private ContextMenu LoadContextMenu()
@@ -157,7 +149,7 @@
             int VisiblePluginMenuCount = 0;
 
             foreach (ICommand Command in fullPluginCommandList)
-                if (Command == null)
+                if (PluginManager.IsSeparatorCommand(Command))
                     PluginMenuList.Add(null); // This will result in the creation of a separator.
                 else
                 {

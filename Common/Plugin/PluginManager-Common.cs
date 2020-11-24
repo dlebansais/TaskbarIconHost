@@ -77,7 +77,7 @@
                         {
                             FullPluginCommandList.Add(Command);
 
-                            if (Command != null)
+                            if (!IsSeparatorCommand(Command))
                                 CommandTable.Add(Command, Plugin);
                         }
                     }
@@ -357,6 +357,19 @@
                 {
                 }
             }
+        }
+
+        /// <summary>
+        /// Checks if a command is not associated to a menu but to a separator.
+        /// </summary>
+        /// <param name="command">The command.</param>
+        /// <returns>True is associated to a separator; otherwise, false.</returns>
+        public static bool IsSeparatorCommand(ICommand command)
+        {
+            if (command is RoutedUICommand AsRoutedUiCommand)
+                return AsRoutedUiCommand.Text.Length == 0;
+            else
+                return true;
         }
     }
 }
