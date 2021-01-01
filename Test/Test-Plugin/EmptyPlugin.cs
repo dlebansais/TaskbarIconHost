@@ -97,8 +97,8 @@
         {
             get
             {
-                System.Reflection.Assembly ExecutingAssembly = System.Reflection.Assembly.GetExecutingAssembly() !;
-                using (System.IO.Stream Stream = ExecutingAssembly.GetManifestResourceStream("TestPlugin.Resources.main.ico") !)
+                System.Reflection.Assembly ExecutingAssembly = System.Reflection.Assembly.GetExecutingAssembly()!;
+                using (System.IO.Stream Stream = ExecutingAssembly.GetManifestResourceStream("TestPlugin.Resources.main.ico")!)
                 {
                     return new Icon(Stream);
                 }

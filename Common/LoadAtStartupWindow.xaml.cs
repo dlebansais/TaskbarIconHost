@@ -9,7 +9,7 @@
     using System.Windows.Input;
     using Contracts;
     using ResourceTools;
-    using static Properties.Resources;
+    using static TaskbarIconHost.Properties.Resources;
 
     /// <summary>
     /// Represents an interface with instructions on how to manually enable loading as administrator.
