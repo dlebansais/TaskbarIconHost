@@ -218,8 +218,9 @@
 
         private void AddExitMenuToContextMenu(ItemCollection items)
         {
-            // Always add a separator above the exit menu.
-            items.Add(new Separator());
+            // Add a separator above the exit menu if appropriate.
+            if (items.Count > 0 && items[items.Count - 1] is not Separator)
+                items.Add(new Separator());
 
             MenuItem ExitMenu = CreateMenuItem(ExitCommand, "Exit", false, null);
             TaskbarIcon.PrepareMenuItem(ExitMenu, true, true);

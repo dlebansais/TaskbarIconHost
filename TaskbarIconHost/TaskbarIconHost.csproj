@@ -9,14 +9,14 @@
     <Nullable>enable</Nullable>
     <Platforms>x64</Platforms>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Version>1.0.11</Version>
+    <Version>1.0.12</Version>
     <Authors>David Le Bansais</Authors>
     <Company />
     <Product />
     <Description>Host for plugins to show on the  taskbar</Description>
     <Copyright>Copyright © David Le Bansais 2019</Copyright>
-    <AssemblyVersion>1.0.11.362</AssemblyVersion>
-    <FileVersion>1.0.11.27</FileVersion>
+    <AssemblyVersion>1.0.12.362</AssemblyVersion>
+    <FileVersion>1.0.12.27</FileVersion>
     <RepositoryUrl>https://github.com/dlebansais/TaskbarIconHost</RepositoryUrl>
     <NeutralLanguage>en-US</NeutralLanguage>
   </PropertyGroup>
@@ -41,7 +41,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="StyleCop.Analyzers.Unstable" Version="1.2.0.312">
+    <PackageReference Include="StyleCop.Analyzers.Unstable" Version="1.2.0.321">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
