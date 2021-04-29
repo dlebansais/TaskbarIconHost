@@ -239,19 +239,20 @@
                 return IsElevatedInternal.Value;
             }
         }
+
         private bool? IsElevatedInternal;
         #endregion
 
         #region Events
-        // The taskbar got the focus.
         private void OnActivated(object? sender, EventArgs e)
         {
+            // The taskbar got the focus.
             PluginManager.OnActivated();
         }
 
-        // The taskbar lost the focus.
         private void OnDeactivated(object? sender, EventArgs e)
         {
+            // The taskbar lost the focus.
             PluginManager.OnDeactivated();
         }
 
