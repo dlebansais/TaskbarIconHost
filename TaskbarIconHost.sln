@@ -11,6 +11,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test-Plugin", "Test\Test-Plugin\Test-Plugin.csproj", "{DAB7B295-158F-46EB-AED3-756A80B9CAB8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TaskbarIconShared", "TaskbarIconShared\TaskbarIconShared.csproj", "{EA29A87F-BD3E-46D0-869A-A5C5076EAF9E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{28F1DEC9-E5D0-44F6-96FC-FE932E1781A8} = {28F1DEC9-E5D0-44F6-96FC-FE932E1781A8}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test-TaskbarIconHost", "Test\Test-TaskbarIconHost\Test-TaskbarIconHost.csproj", "{4A9AC2D3-26EC-4530-B99D-18C077AE147E}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -27,6 +30,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PreBuild", "PreBuild\PreBuild.csproj", "{28F1DEC9-E5D0-44F6-96FC-FE932E1781A8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -58,6 +63,10 @@ Global
 		{94E3E007-11B1-4E61-B7F8-F1893B41E254}.Debug|x64.Build.0 = Debug|x64
 		{94E3E007-11B1-4E61-B7F8-F1893B41E254}.Release|x64.ActiveCfg = Release|x64
 		{94E3E007-11B1-4E61-B7F8-F1893B41E254}.Release|x64.Build.0 = Release|x64
+		{28F1DEC9-E5D0-44F6-96FC-FE932E1781A8}.Debug|x64.ActiveCfg = Debug|x64
+		{28F1DEC9-E5D0-44F6-96FC-FE932E1781A8}.Debug|x64.Build.0 = Debug|x64
+		{28F1DEC9-E5D0-44F6-96FC-FE932E1781A8}.Release|x64.ActiveCfg = Release|x64
+		{28F1DEC9-E5D0-44F6-96FC-FE932E1781A8}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
