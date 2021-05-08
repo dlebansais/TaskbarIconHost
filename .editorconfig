@@ -54,5 +54,8 @@ dotnet_diagnostic.SA1519.severity = silent
 # SA1520: Use braces consistently
 dotnet_diagnostic.SA1520.severity = silent
 
+# SA1615: Element return value should be documented
+dotnet_diagnostic.SA1615.severity = silent
+
 # SA1633: File should have header
 dotnet_diagnostic.SA1633.severity = silent
