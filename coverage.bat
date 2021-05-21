@@ -1,6 +1,6 @@
 @echo off
 
-if not exist ".\packages\OpenCover.4.7.922\tools\OpenCover.Console.exe" goto error1
+if not exist ".\packages\OpenCover.4.7.1189\tools\OpenCover.Console.exe" goto error1
 if not exist ".\packages\Codecov.1.10.0\tools\codecov.exe" goto error2
 if "%WINAPPDRIVER_DIR%" == "" goto error3
 if not exist "%WINAPPDRIVER_DIR%/WinAppDriver.exe" goto error3
