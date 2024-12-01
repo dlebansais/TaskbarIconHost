@@ -7,14 +7,14 @@
         <Nullable>enable</Nullable>
         <Platforms>x64</Platforms>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
-        <Version>1.0.12</Version>
+        <Version>2.0.0</Version>
         <Authors>David Le Bansais</Authors>
         <Company />
         <Product />
         <Description>Single Plugin Host</Description>
-        <Copyright>Copyright © 2019 David Le Bansais</Copyright>
-        <AssemblyVersion>1.0.12.363</AssemblyVersion>
-        <FileVersion>1.0.12.21</FileVersion>
+        <Copyright>Copyright © 2024 David Le Bansais</Copyright>
+        <AssemblyVersion>2.0.0.364</AssemblyVersion>
+        <FileVersion>2.0.0.364</FileVersion>
         <RepositoryUrl>https://github.com/dlebansais/TaskbarIconHost</RepositoryUrl>
         <NeutralLanguage>en-US</NeutralLanguage>
         <RootNamespace>TaskbarIconHost</RootNamespace>

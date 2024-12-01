@@ -10,23 +10,23 @@ branches:
 skip_commits:
   message: "*[skip ci]*"
 
-image: Visual Studio 2019
+image: Visual Studio 2022
 
 # scripts that are called at very beginning, before repo cloning
 init:
   - git config --global core.autocrlf input
 
 environment:
-  package_token:
-    secure: bpUW4FC8f65OAKq9z31b95q6rDsYG7R9QR39MNe7u0mmgEugA+0WOw5+Zrw5kh4Z
+  NuGetPackageSourceCredentials_github:     # value: Username=dlebansais;Password={github package token}
+    secure: Fd8cbeFRzxym3D4FpbJo2m943iBsBRgrAGOEFhMHDO90WMUkfdJECxPcHpWmkxregb17bhgiIhvFJB9ac4dx3cr3ZpsxpqTzIc61BaUiv90=
 
 matrix:
   fast_finish: true     # set this flag to immediately finish build once one of the jobs fails.
 
 before_build:
-  - ps: (Get-Content nuget.config).replace('Insert token here', $env:package_token) | Set-Content nuget.config
   - nuget restore %APPVEYOR_PROJECT_NAME%.sln
   - nuget install GitCommitId -DependencyVersion Highest -OutputDirectory packages
+  - dotnet restore
 
 configuration:
   - Release
@@ -39,14 +39,12 @@ after_build:
   - nuget install Packager -DependencyVersion Highest -OutputDirectory packages # Install Packager
   - ps: $folder = Get-ChildItem -Path packages/Packager.* -Name | Out-String    # Get the installation folder (we don't know the actual version)
   - ps: $firstline = ($folder -split '\r\n')[0]                                 # Get rid of carriage-return
-  - ps: $fullpath = ".\packages\$firstline\lib\net48\Packager.exe"              # Build full path
+  - ps: $fullpath = ".\packages\$firstline\lib\net481\Packager.exe"             # Build full path
   - ps: $env:PACKAGER_PATH=$fullpath
   - '%PACKAGER_PATH% %CUSTOM_PACKAGER_OPTIONS%'                                 # Execute the packager: the output is nuget\%APPVEYOR_PROJECT_NAME%.nuspec
   - if exist nuget\%APPVEYOR_PROJECT_NAME%.nuspec nuget pack nuget\%APPVEYOR_PROJECT_NAME%.nuspec
   - '%PACKAGER_PATH% %CUSTOM_PACKAGER_OPTIONS% --debug'                         # Execute the packager: the output is nuget-debug\%APPVEYOR_PROJECT_NAME%-Debug.nuspec
   - if exist nuget-debug\%APPVEYOR_PROJECT_NAME%-Debug.nuspec nuget pack nuget-debug\%APPVEYOR_PROJECT_NAME%-Debug.nuspec
-
-test: off
 
 artifacts:
   - path: $(APPVEYOR_PROJECT_NAME)-Debug.*.nupkg
