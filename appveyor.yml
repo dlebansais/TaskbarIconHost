@@ -59,21 +59,21 @@ artifacts:
 deploy:
   - provider: NuGet
     server: https://nuget.pkg.github.com/dlebansais/index.json
-    symbol_server: https://nuget.pkg.github.com/dlebansais/index.json
-    artifact: $(APPVEYOR_PROJECT_NAME)-Package-Debug
-    username: dlebansais
-    api_key:
-      secure: GZGy3nOU2PstP5qqBJ3xRNo4X9mywcmtoF6iO9JlOPgxksM+QkVjQdR+nJ62+76n
-    on:
-      branch: deployment
-      configuration: Debug
-  - provider: NuGet
-    server: https://nuget.pkg.github.com/dlebansais/index.json
     artifact: $(APPVEYOR_PROJECT_NAME)-Package-Release
     skip_symbols: true
     username: dlebansais
     api_key:
-      secure: GZGy3nOU2PstP5qqBJ3xRNo4X9mywcmtoF6iO9JlOPgxksM+QkVjQdR+nJ62+76n
+      secure: P1otXPxREK8T2L9vw4vpvvpXYlMyCTGa/iQIfuXtr4mjOFZBYR83Aie3hTZotfOu
     on:
       branch: deployment
       configuration: Release
+  - provider: NuGet
+    server: https://nuget.pkg.github.com/dlebansais/index.json
+    symbol_server: https://nuget.pkg.github.com/dlebansais/index.json
+    artifact: $(APPVEYOR_PROJECT_NAME)-Package-Debug
+    username: dlebansais
+    api_key:
+      secure: P1otXPxREK8T2L9vw4vpvvpXYlMyCTGa/iQIfuXtr4mjOFZBYR83Aie3hTZotfOu
+    on:
+      branch: deployment
+      configuration: Debug
