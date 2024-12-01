@@ -1,11 +1,9 @@
 ﻿namespace TaskbarIconHost;
 
 using System;
-using System.Diagnostics;
 using System.Drawing;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Threading;
 using System.Windows;
@@ -56,8 +54,7 @@ public partial class App : IDisposable
 
             // Try to create a global named event with a unique name. If we can create it we are first, otherwise there is another instance.
             // In that case, we just abort.
-            bool createdNew;
-            InstanceEvent = new EventWaitHandle(false, EventResetMode.ManualReset, AppUniqueId, out createdNew);
+            InstanceEvent = new EventWaitHandle(false, EventResetMode.ManualReset, AppUniqueId, out bool createdNew);
             if (!createdNew)
             {
                 Logger.Write(LogLevel.Warning, "Another instance is already running");
@@ -78,7 +75,9 @@ public partial class App : IDisposable
         // This code is here mostly to make sure that the Taskbar static class is initialized ASAP.
         // The taskbar rectangle is never empty. And if it is, we have no purpose.
         if (TaskbarLocation.ScreenBounds.IsEmpty)
+        {
             Owner.Shutdown();
+        }
         else
         {
             Owner.Startup += OnStartup;
@@ -95,7 +94,7 @@ public partial class App : IDisposable
         InitTimer();
 
         // The plugin manager can fail for various reasons. If it does, we just abort.
-        if (InitPlugInManager(new OidCollection(), out int ExitCode, out bool IsBadSignature))
+        if (InitPlugInManager([], out int ExitCode, out bool IsBadSignature))
         {
             // Install the taskbar icon and create its menu.
             InitTaskbarIcon();
@@ -144,10 +143,8 @@ public partial class App : IDisposable
 
     private void CleanupInstanceEvent()
     {
-        using (EventWaitHandle? Event = InstanceEvent)
-        {
-            InstanceEvent = null;
-        }
+        using EventWaitHandle? Event = InstanceEvent;
+        InstanceEvent = null;
     }
 
     private bool IsAnotherInstanceRequestingExit => InstanceEvent is not null && InstanceEvent.WaitOne(0);
@@ -182,13 +179,12 @@ public partial class App : IDisposable
                 if (wi is not null)
                 {
                     WindowsPrincipal wp = new(wi);
-                    if (wp is not null)
-                        IsElevatedInternal = wp.IsInRole(WindowsBuiltInRole.Administrator);
-                    else
-                        IsElevatedInternal = false;
+                    IsElevatedInternal = wp.IsInRole(WindowsBuiltInRole.Administrator);
                 }
                 else
+                {
                     IsElevatedInternal = false;
+                }
 
                 Logger.Write(LogLevel.Information, $"IsElevated={IsElevatedInternal}");
             }
@@ -219,13 +215,13 @@ public partial class App : IDisposable
 
             if (Scheduler.IsTaskActive(ExeName))
             {
-                RemoveFromStartupWindow Dlg = new RemoveFromStartupWindow(Plugin.Name);
-                Dlg.ShowDialog();
+                RemoveFromStartupWindow Dlg = new(Plugin.Name);
+                _ = Dlg.ShowDialog();
             }
             else
             {
-                LoadAtStartupWindow Dlg = new LoadAtStartupWindow(PluginManager.RequireElevated, Plugin.Name);
-                Dlg.ShowDialog();
+                LoadAtStartupWindow Dlg = new(PluginManager.RequireElevated, Plugin.Name);
+                _ = Dlg.ShowDialog();
             }
         }
     }
@@ -243,21 +239,17 @@ public partial class App : IDisposable
         if (IsIconChanged)
         {
             IsIconChanged = false;
-            Icon? Icon = PluginManager.Icon;
-            Debug.Assert(Icon is not null);
+            Icon Icon = Contract.AssertNotNull(PluginManager.Icon);
 
-            if (Icon is not null)
-                AppTaskbarIcon.UpdateIcon(Icon);
+            AppTaskbarIcon.UpdateIcon(Icon);
         }
 
         if (IsToolTipChanged)
         {
             IsToolTipChanged = false;
-            string? ToolTip = PluginManager.ToolTip;
-            Debug.Assert(ToolTip is not null);
+            string ToolTip = Contract.AssertNotNull(PluginManager.ToolTip);
 
-            if (ToolTip is not null)
-                AppTaskbarIcon.UpdateToolTipText(ToolTip);
+            AppTaskbarIcon.UpdateToolTipText(ToolTip);
         }
     }
 
@@ -281,7 +273,7 @@ public partial class App : IDisposable
 
         RoutedUICommand SubmenuCommand = (RoutedUICommand)e.Command;
 
-        Guid NewSelectedGuid = new Guid(SubmenuCommand.Text);
+        Guid NewSelectedGuid = new(SubmenuCommand.Text);
         Guid OldSelectedGuid = PluginManager.PreferredPluginGuid;
         if (NewSelectedGuid != OldSelectedGuid)
         {
@@ -293,11 +285,11 @@ public partial class App : IDisposable
             UpdateIconAndToolTip();
 
             // Check the new plugin in the menu, and uncheck the previous one.
-            if (IconSelectionTable.ContainsKey(NewSelectedGuid))
-                TaskbarIcon.SetMenuCheck(IconSelectionTable[NewSelectedGuid], true);
+            if (IconSelectionTable.TryGetValue(NewSelectedGuid, out ICommand? NewValue))
+                TaskbarIcon.SetMenuCheck(NewValue, true);
 
-            if (IconSelectionTable.ContainsKey(OldSelectedGuid))
-                TaskbarIcon.SetMenuCheck(IconSelectionTable[OldSelectedGuid], false);
+            if (IconSelectionTable.TryGetValue(OldSelectedGuid, out ICommand? OldValue))
+                TaskbarIcon.SetMenuCheck(OldValue, false);
         }
     }
 
@@ -315,7 +307,7 @@ public partial class App : IDisposable
         Logger.PrintLog();
     }
 
-    private static PluginLogger Logger = new PluginLogger();
+    private static readonly PluginLogger Logger = new();
     #endregion
 
     #region Load at startup
@@ -328,10 +320,12 @@ public partial class App : IDisposable
         if (isInstalled)
         {
             TaskRunLevel RunLevel = PluginManager.RequireElevated ? TaskRunLevel.Highest : TaskRunLevel.LUA;
-            Scheduler.AddTask(appName, ExeName, RunLevel);
+            _ = Scheduler.AddTask(appName, ExeName, RunLevel);
         }
         else
-            Scheduler.RemoveTask(ExeName, out bool IsFound); // Ignore it if the task was not found.
+        {
+            Scheduler.RemoveTask(ExeName, out _); // Ignore it if the task was not found.
+        }
     }
     #endregion
 

@@ -2,13 +2,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Reflection;
 using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading;
-using System.Windows.Input;
 using System.Windows.Threading;
 using Contracts;
 using Microsoft.Extensions.Logging;
@@ -64,7 +60,7 @@ public static partial class PluginManager
         string Location = CurrentAssembly.Location;
         Contract.RequireNotNull(Path.GetDirectoryName(Location), out string AppFolder);
 
-        pluginClientTypeTable = new Dictionary<Assembly, List<Type>>();
+        pluginClientTypeTable = [];
         Assembly? PluginAssembly;
         List<Type>? PluginClientTypeList;
 
@@ -88,8 +84,12 @@ public static partial class PluginManager
             _ = FindPluginClientTypesByPath(AssemblyPath, oidCheckList, out PluginAssembly, out PluginClientTypeList, ref exitCode, ref isBadSignature);
             if (PluginAssembly is not null && PluginClientTypeList is not null)
             {
+#if NETFRAMEWORK
                 if (!pluginClientTypeTable.ContainsKey(PluginAssembly))
                     pluginClientTypeTable.Add(PluginAssembly, PluginClientTypeList);
+#else
+                pluginClientTypeTable.TryAdd(PluginAssembly, PluginClientTypeList);
+#endif
             }
         }
     }
