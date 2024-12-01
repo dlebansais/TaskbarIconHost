@@ -14,8 +14,8 @@
         <Product />
         <Description>TaskbarIconShared</Description>
         <Copyright>Copyright © 2024 David Le Bansais</Copyright>
-        <AssemblyVersion>2.0.0.364</AssemblyVersion>
-        <FileVersion>2.0.0.364</FileVersion>
+        <AssemblyVersion>2.0.0.366</AssemblyVersion>
+        <FileVersion>2.0.0.366</FileVersion>
         <RepositoryUrl>https://github.com/dlebansais/TaskbarIconHost</RepositoryUrl>
         <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
 
