@@ -2,7 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+#if DEBUG
 using System.Diagnostics;
+#endif
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Reflection;

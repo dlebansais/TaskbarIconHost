@@ -355,4 +355,7 @@ public static partial class PluginManager
     private const string SharedPluginAssemblyName = "TaskbarIconShared";
     private static readonly Type PluginInterfaceType = typeof(IPluginClient);
     private static readonly Dictionary<Assembly, List<IPluginClient>> LoadedPluginTable = [];
+#if !DEBUG
+    private static bool IsWakeUpDelayElapsed;
+#endif
 }
