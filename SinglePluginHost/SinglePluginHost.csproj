@@ -69,6 +69,7 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
+        <PackageReference Include="Microsoft.Bcl.Cryptography" Version="9.0.0" />
         <PackageReference Include="Method.Contracts-Debug" Version="1.9.1" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
         <PackageReference Include="Method.Contracts" Version="1.9.1" Condition="'$(Configuration)|$(Platform)'!='Debug|x64'" />
         <PackageReference Include="ResourceTools-Debug" Version="2.0.1" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />

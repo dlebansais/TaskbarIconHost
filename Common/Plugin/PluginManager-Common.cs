@@ -265,7 +265,7 @@ public static partial class PluginManager
 
         try
         {
-            using X509Certificate Certificate = GetSignerCertificate(module);
+            using X509Certificate2 Certificate = GetSignerCertificate(module);
             if (Certificate is null)
             {
                 // File is not signed.
@@ -288,10 +288,10 @@ public static partial class PluginManager
         return Success;
     }
 
-    private static X509Certificate GetSignerCertificate(Module module)
+    private static X509Certificate2 GetSignerCertificate(Module module)
     {
         string FileName = module.FullyQualifiedName;
-        return new X509Certificate(FileName);
+        return X509CertificateLoader.LoadCertificateFromFile(FileName);
     }
 
     private static void CheckCertificateChain(X509Certificate2 certificate, X509Chain certificateChain, OidCollection oidCheckList, X509RevocationFlag revocationFlags, X509VerificationFlags verificationFlags, int exitCode, ref bool success, ref int signedExitCode)
