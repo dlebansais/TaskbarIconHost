@@ -1,4 +1,6 @@
-﻿namespace TaskbarIconHost;
+﻿#pragma warning disable IDE0060 // Remove unused parameter
+
+namespace TaskbarIconHost;
 
 using System;
 using System.Globalization;
@@ -79,9 +81,7 @@ internal class PluginLogger : ILogger
     /// <param name="logLevel">The message category.</param>
     /// <param name="message">The message text.</param>
     /// <param name="arguments">Arguments used when for formatting the final message.</param>
-#pragma warning disable IDE0060 // Remove unused parameter
     public void Write(LogLevel logLevel, string message, params object[] arguments)
-#pragma warning restore IDE0060 // Remove unused parameter
     {
         Contract.RequireNotNull(arguments, out object[] Arguments);
 
@@ -98,9 +98,7 @@ internal class PluginLogger : ILogger
     /// <param name="exception">The exception.</param>
     /// <param name="message">The message text.</param>
     /// <param name="arguments">Arguments used when for formatting the final message.</param>
-#pragma warning disable IDE0060 // Remove unused parameter
     public void Write(LogLevel logLevel, Exception exception, string message, params object[] arguments)
-#pragma warning restore IDE0060 // Remove unused parameter
     {
         Contract.RequireNotNull(arguments, out object[] Arguments);
 
