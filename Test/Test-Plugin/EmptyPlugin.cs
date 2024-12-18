@@ -35,35 +35,17 @@ public class EmptyPlugin : TaskbarIconHost.IPluginClient
         }
     }
 
-    public bool GetIsMenuChanged(bool beforeMenuOpening)
-    {
-        return false;
-    }
+    public bool GetIsMenuChanged(bool beforeMenuOpening) => false;
 
-    public string GetMenuHeader(ICommand command)
-    {
-        return command is RoutedUICommand AsRoutedUICommand ? AsRoutedUICommand.Text : string.Empty;
-    }
+    public string GetMenuHeader(ICommand command) => command is RoutedUICommand AsRoutedUICommand ? AsRoutedUICommand.Text : string.Empty;
 
-    public bool GetMenuIsVisible(ICommand command)
-    {
-        return true;
-    }
+    public bool GetMenuIsVisible(ICommand command) => true;
 
-    public bool GetMenuIsEnabled(ICommand command)
-    {
-        return true;
-    }
+    public bool GetMenuIsEnabled(ICommand command) => true;
 
-    public bool GetMenuIsChecked(ICommand command)
-    {
-        return false;
-    }
+    public bool GetMenuIsChecked(ICommand command) => false;
 
-    public Bitmap? GetMenuIcon(ICommand command)
-    {
-        return null;
-    }
+    public Bitmap? GetMenuIcon(ICommand command) => null;
 
     public void OnMenuOpening()
     {
@@ -73,10 +55,7 @@ public class EmptyPlugin : TaskbarIconHost.IPluginClient
     {
     }
 
-    public bool GetIsIconChanged()
-    {
-        return false;
-    }
+    public bool GetIsIconChanged() => false;
 
     public Icon Icon
     {
@@ -94,10 +73,7 @@ public class EmptyPlugin : TaskbarIconHost.IPluginClient
     {
     }
 
-    public bool GetIsToolTipChanged()
-    {
-        return false;
-    }
+    public bool GetIsToolTipChanged() => false;
 
     public string ToolTip => string.Empty;
 
@@ -109,10 +85,7 @@ public class EmptyPlugin : TaskbarIconHost.IPluginClient
     {
     }
 
-    public bool CanClose(bool canClose)
-    {
-        return true;
-    }
+    public bool CanClose(bool canClose) => true;
 
     public void BeginClose()
     {

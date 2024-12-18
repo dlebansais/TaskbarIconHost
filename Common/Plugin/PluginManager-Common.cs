@@ -376,8 +376,5 @@ public static partial class PluginManager
     /// </summary>
     /// <param name="command">The command.</param>
     /// <returns>True is associated to a separator; otherwise, false.</returns>
-    public static bool IsSeparatorCommand(ICommand? command)
-    {
-        return command is not RoutedUICommand AsRoutedUiCommand || AsRoutedUiCommand.Text.Length == 0;
-    }
+    public static bool IsSeparatorCommand(ICommand? command) => command is not RoutedUICommand AsRoutedUiCommand || AsRoutedUiCommand.Text.Length == 0;
 }

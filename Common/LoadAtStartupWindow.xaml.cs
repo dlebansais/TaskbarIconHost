@@ -109,15 +109,9 @@ internal partial class LoadAtStartupWindow : Window
         _ = ControlProcess.Start();
     }
 
-    private void OnCopy(object sender, ExecutedRoutedEventArgs e)
-    {
-        // Copy to the clipboard the full path to the script to import.
-        Clipboard.SetText(TaskFile);
-    }
+    // Copy to the clipboard the full path to the script to import.
+    private void OnCopy(object sender, ExecutedRoutedEventArgs e) => Clipboard.SetText(TaskFile);
 
-    private void OnClose(object sender, ExecutedRoutedEventArgs e)
-    {
-        Close();
-    }
+    private void OnClose(object sender, ExecutedRoutedEventArgs e) => Close();
     #endregion
 }

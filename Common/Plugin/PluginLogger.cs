@@ -67,17 +67,11 @@ internal class PluginLogger : ILogger
     }
 
     /// <inheritdoc />
-    public bool IsEnabled(LogLevel logLevel)
-    {
-        return true;
-    }
+    public bool IsEnabled(LogLevel logLevel) => true;
 
     /// <inheritdoc />
     public IDisposable? BeginScope<TState>(TState state)
-        where TState : notnull
-    {
-        return null;
-    }
+        where TState : notnull => null;
 
     /// <summary>
     /// Writes a log message.
@@ -123,10 +117,7 @@ internal class PluginLogger : ILogger
     /// Adds a simple log message.
     /// </summary>
     /// <param name="logText">The text message.</param>
-    public void AddLog(string logText)
-    {
-        AddLog(logText, false);
-    }
+    public void AddLog(string logText) => AddLog(logText, false);
 
     /// <summary>
     /// Adds a simple log message and flush logs on the disk.

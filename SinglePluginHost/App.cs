@@ -112,16 +112,10 @@ public partial class App : IDisposable
     }
 
     // The taskbar got the focus.
-    private void OnActivated(object? sender, EventArgs e)
-    {
-        PluginManager.OnActivated();
-    }
+    private void OnActivated(object? sender, EventArgs e) => PluginManager.OnActivated();
 
     // The taskbar lost the focus.
-    private void OnDeactivated(object? sender, EventArgs e)
-    {
-        PluginManager.OnDeactivated();
-    }
+    private void OnDeactivated(object? sender, EventArgs e) => PluginManager.OnDeactivated();
 
     // Someone called Exit on the application. Time to clean things up.
     private void OnExit(object sender, ExitEventArgs e)
@@ -302,10 +296,7 @@ public partial class App : IDisposable
     #endregion
 
     #region Logger
-    private static void UpdateLogger()
-    {
-        Logger.PrintLog();
-    }
+    private static void UpdateLogger() => Logger.PrintLog();
 
     private static readonly PluginLogger Logger = new();
     #endregion

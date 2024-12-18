@@ -244,10 +244,7 @@ public static partial class PluginManager
     /// Gets a value indicating whether the icon associated to a command has changed.
     /// </summary>
     /// <returns>True if the icon has changed; otherwise, false.</returns>
-    public static bool GetIsIconChanged()
-    {
-        return PreferredPlugin is not null && PreferredPlugin.GetIsIconChanged();
-    }
+    public static bool GetIsIconChanged() => PreferredPlugin is not null && PreferredPlugin.GetIsIconChanged();
 
     /// <summary>
     /// Gets the icon to display in the taskbar.
@@ -257,19 +254,13 @@ public static partial class PluginManager
     /// <summary>
     /// Called when the icon is clicked.
     /// </summary>
-    public static void OnIconClicked()
-    {
-        PreferredPlugin?.OnIconClicked();
-    }
+    public static void OnIconClicked() => PreferredPlugin?.OnIconClicked();
 
     /// <summary>
     /// Gets a value indicating whether the tooltip associated to a command has changed.
     /// </summary>
     /// <returns>True if the tooltip has changed; otherwise, false.</returns>
-    public static bool GetIsToolTipChanged()
-    {
-        return PreferredPlugin is not null && PreferredPlugin.GetIsToolTipChanged();
-    }
+    public static bool GetIsToolTipChanged() => PreferredPlugin is not null && PreferredPlugin.GetIsToolTipChanged();
 
     /// <summary>
     /// Gets the tooltip to display in the taskbar.
@@ -347,10 +338,7 @@ public static partial class PluginManager
     /// </summary>
     /// <param name="guidValue">The GUID to convert.</param>
     /// <returns>The converted value.</returns>
-    public static string GuidToString(Guid guidValue)
-    {
-        return guidValue.ToString("B", CultureInfo.InvariantCulture).ToUpperInvariant();
-    }
+    public static string GuidToString(Guid guidValue) => guidValue.ToString("B", CultureInfo.InvariantCulture).ToUpperInvariant();
 
     private const string SharedPluginAssemblyName = "TaskbarIconShared";
     private static readonly Type PluginInterfaceType = typeof(IPluginClient);

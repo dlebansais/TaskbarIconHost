@@ -346,10 +346,7 @@ public partial class App
         }
     }
 
-    private void OnIconClicked(object? sender, EventArgs e)
-    {
-        PluginManager.OnIconClicked();
-    }
+    private void OnIconClicked(object? sender, EventArgs e) => PluginManager.OnIconClicked();
 
     /// <summary>
     /// Gets the icon to display in the taskbar.

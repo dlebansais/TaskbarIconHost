@@ -41,9 +41,6 @@ internal partial class RemoveFromStartupWindow : Window
         _ = ControlProcess.Start();
     }
 
-    private void OnClose(object sender, ExecutedRoutedEventArgs e)
-    {
-        Close();
-    }
+    private void OnClose(object sender, ExecutedRoutedEventArgs e) => Close();
     #endregion
 }

@@ -154,22 +154,13 @@ public partial class App : Application, IDisposable
         _ = SignatureAlertTimer.Change(SignatureAlertTimeout, Timeout.InfiniteTimeSpan);
     }
 
-    private void SignatureAlertTimerCallback(object? parameter)
-    {
-        TaskbarBalloon.Show(InvalidSignatureAlert, TimeSpan.FromSeconds(15));
-    }
+    private void SignatureAlertTimerCallback(object? parameter) => TaskbarBalloon.Show(InvalidSignatureAlert, TimeSpan.FromSeconds(15));
 
     private bool IsAnotherInstanceRequestingExit => InstanceEvent.WaitOne(0);
 
-    private void ScheduleShutdown()
-    {
-        _ = Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(OnExitRequested));
-    }
+    private void ScheduleShutdown() => _ = Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(OnExitRequested));
 
-    private void OnExitRequested()
-    {
-        Shutdown();
-    }
+    private void OnExitRequested() => Shutdown();
 
     private Application Owner => this;
 
@@ -244,17 +235,12 @@ public partial class App : Application, IDisposable
     #endregion
 
     #region Events
-    private void OnActivated(object? sender, EventArgs e)
-    {
-        // The taskbar got the focus.
-        PluginManager.OnActivated();
-    }
 
-    private void OnDeactivated(object? sender, EventArgs e)
-    {
-        // The taskbar lost the focus.
-        PluginManager.OnDeactivated();
-    }
+    // The taskbar got the focus.
+    private void OnActivated(object? sender, EventArgs e) => PluginManager.OnActivated();
+
+    // The taskbar lost the focus.
+    private void OnDeactivated(object? sender, EventArgs e) => PluginManager.OnDeactivated();
 
     private void OnCommandLoadAtStartup(object sender, ExecutedRoutedEventArgs e)
     {
@@ -359,10 +345,7 @@ public partial class App : Application, IDisposable
     #endregion
 
     #region Logger
-    private static void UpdateLogger()
-    {
-        Logger.PrintLog();
-    }
+    private static void UpdateLogger() => Logger.PrintLog();
 
     private static readonly PluginLogger Logger = new();
     #endregion
