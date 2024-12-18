@@ -67,11 +67,11 @@ internal class PluginLogger : ILogger
     }
 
     /// <inheritdoc />
-    public bool IsEnabled(LogLevel logLevel) => true;
-
-    /// <inheritdoc />
     public IDisposable? BeginScope<TState>(TState state)
         where TState : notnull => null;
+
+    /// <inheritdoc />
+    public bool IsEnabled(LogLevel logLevel) => true;
 
     /// <summary>
     /// Writes a log message.
