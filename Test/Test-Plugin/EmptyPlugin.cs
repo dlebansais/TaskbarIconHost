@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Input;
 using System.Windows.Threading;
+using Contracts;
 using Microsoft.Extensions.Logging;
 
 /// <summary>
@@ -61,8 +62,8 @@ public class EmptyPlugin : TaskbarIconHost.IPluginClient
     {
         get
         {
-            System.Reflection.Assembly ExecutingAssembly = System.Reflection.Assembly.GetExecutingAssembly()!;
-            using System.IO.Stream Stream = ExecutingAssembly.GetManifestResourceStream("TestPlugin.Resources.main.ico")!;
+            System.Reflection.Assembly ExecutingAssembly = System.Reflection.Assembly.GetExecutingAssembly();
+            using System.IO.Stream Stream = Contract.AssertNotNull(ExecutingAssembly.GetManifestResourceStream("TestPlugin.Resources.main.ico"));
             return new Icon(Stream);
         }
     }

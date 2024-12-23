@@ -53,6 +53,8 @@ public static partial class PluginManager
         Contract.RequireNotNull(propertyName, out string PropertyName);
 
         object? Result = PluginHandle.GetType().InvokeMember(PropertyName, BindingFlags.Default | BindingFlags.GetProperty, null, pluginHandle, null, CultureInfo.InvariantCulture);
+
+        // ! We know the result is not null because we only read non-nullable properties.
         return (T)Result!;
     }
 
@@ -101,6 +103,8 @@ public static partial class PluginManager
         Contract.RequireNotNull(functionName, out string FunctionName);
 
         object? Result = PluginHandle.GetType().InvokeMember(FunctionName, BindingFlags.Default | BindingFlags.InvokeMethod, null, pluginHandle, args, CultureInfo.InvariantCulture);
+
+        // ! We know the result is not null because we only call non-nullable functions.
         return (T)Result!;
     }
 

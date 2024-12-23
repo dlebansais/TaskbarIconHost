@@ -8,14 +8,14 @@
         <Platforms>x64</Platforms>
 
         <RootNamespace>TaskbarIconHost</RootNamespace>
-        <Version>2.0.1</Version>
+        <Version>3.0.0</Version>
         <Authors>David Le Bansais</Authors>
         <Company />
         <Product />
         <Description>Test-TaskbarIconHost</Description>
         <Copyright>Copyright © 2024 David Le Bansais</Copyright>
-        <AssemblyVersion>2.0.1.367</AssemblyVersion>
-        <FileVersion>2.0.1.367</FileVersion>
+        <AssemblyVersion>3.0.0.368</AssemblyVersion>
+        <FileVersion>3.0.0.368</FileVersion>
         <RepositoryUrl>https://github.com/dlebansais/TaskbarIconHost</RepositoryUrl>
         <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
 
@@ -39,7 +39,11 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="dlebansais.CSharpLatest" Version="1.1.2">
+        <PackageReference Include="Nullable.Extended.Analyzer" Version="1.15.6495">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="dlebansais.CSharpLatest" Version="2.0.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
