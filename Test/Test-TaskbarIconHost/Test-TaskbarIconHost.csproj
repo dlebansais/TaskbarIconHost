@@ -14,8 +14,8 @@
         <Product />
         <Description>Test-TaskbarIconHost</Description>
         <Copyright>Copyright © 2024 David Le Bansais</Copyright>
-        <AssemblyVersion>3.0.0.368</AssemblyVersion>
-        <FileVersion>3.0.0.368</FileVersion>
+        <AssemblyVersion>3.0.0.369</AssemblyVersion>
+        <FileVersion>3.0.0.369</FileVersion>
         <RepositoryUrl>https://github.com/dlebansais/TaskbarIconHost</RepositoryUrl>
         <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
 
@@ -40,6 +40,10 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Nullable.Extended.Analyzer" Version="1.15.6495">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="dlebansais.IDisposableAnalyzers" Version="4.0.8.10">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>

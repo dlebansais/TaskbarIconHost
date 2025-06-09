@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 /// <summary>
 /// This sample code demonstrates how to implement a default plugin that does nothing.
 /// </summary>
-public class EmptyPlugin : TaskbarIconHost.IPluginClient
+public class EmptyPlugin : TaskbarIconHost.IPluginClient, IDisposable
 {
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 #pragma warning disable SA1600 // Elements should be documented
@@ -58,17 +58,33 @@ public class EmptyPlugin : TaskbarIconHost.IPluginClient
 
     public bool GetIsIconChanged() => false;
 
+    private Icon? IconInternal;
+
     public Icon Icon
     {
         get
         {
-            System.Reflection.Assembly ExecutingAssembly = System.Reflection.Assembly.GetExecutingAssembly();
-            using System.IO.Stream Stream = Contract.AssertNotNull(ExecutingAssembly.GetManifestResourceStream("TestPlugin.Resources.main.ico"));
-            return new Icon(Stream);
+            if (IconInternal is null)
+            {
+                System.Reflection.Assembly ExecutingAssembly = System.Reflection.Assembly.GetExecutingAssembly();
+                using System.IO.Stream? Stream = ExecutingAssembly.GetManifestResourceStream("TestPlugin.Resources.main.ico");
+                IconInternal = new Icon(Contract.AssertNotNull(Stream));
+            }
+
+            return IconInternal;
         }
     }
 
-    public Bitmap SelectionBitmap => new(0, 0);
+    private Bitmap? SelectionBitmapInternal;
+
+    public Bitmap SelectionBitmap
+    {
+        get
+        {
+            SelectionBitmapInternal ??= new(0, 0);
+            return SelectionBitmapInternal;
+        }
+    }
 
     public void OnIconClicked()
     {
@@ -93,6 +109,31 @@ public class EmptyPlugin : TaskbarIconHost.IPluginClient
     }
 
     public bool IsClosed => true;
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!IsDisposed)
+        {
+            if (disposing)
+            {
+                IconInternal?.Dispose();
+                IconInternal = null;
+                SelectionBitmapInternal?.Dispose();
+                SelectionBitmapInternal = null;
+            }
+
+            IsDisposed = true;
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
+
+    private bool IsDisposed;
+
 #pragma warning restore SA1600 // Elements should be documented
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 }

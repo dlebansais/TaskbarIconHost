@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Reflection;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Contracts;
@@ -15,7 +16,7 @@ using static TaskbarIconHost.Properties.Resources;
 /// <summary>
 /// Represents an application that can manage plugins having an icon in the taskbar.
 /// </summary>
-public partial class App
+public partial class App : Application, IDisposable
 {
     private void InitTaskbarIcon()
     {
@@ -44,17 +45,19 @@ public partial class App
         ToolTip = Contract.AssertNotNull(ToolTip);
 
         // Install the taskbar icon.
-        AppTaskbarIcon = TaskbarIcon.Create(Icon, ToolTip, ContextMenu, ContextMenu);
-        AppTaskbarIcon.MenuOpening += OnMenuOpening;
-        AppTaskbarIcon.IconClicked += OnIconClicked;
+        AppTaskbarIconInternal = TaskbarIcon.Create(Icon, ToolTip, ContextMenu, ContextMenu);
+        AppTaskbarIconInternal.MenuOpening += OnMenuOpening;
+        AppTaskbarIconInternal.IconClicked += OnIconClicked;
 
         Logger.AddLog("InitTaskbarIcon done");
     }
 
+    private TaskbarIcon? AppTaskbarIconInternal;
+
     private void CleanupTaskbarIcon()
     {
-        using TaskbarIcon Icon = AppTaskbarIcon;
-        AppTaskbarIcon = TaskbarIcon.Empty;
+        AppTaskbarIconInternal?.Dispose();
+        AppTaskbarIconInternal = null;
     }
 
     private static void AddMenuCommand(ICommand? command, ExecutedRoutedEventHandler executed)
@@ -98,6 +101,7 @@ public partial class App
     private MenuItem LoadContextMenuFromActive()
     {
         MenuItem Result;
+        Bitmap? NullBitmap = null;
 
         Contract.RequireNotNull(Assembly.GetEntryAssembly(), out Assembly EntryAssembly);
         string ExeName = EntryAssembly.Location;
@@ -108,24 +112,28 @@ public partial class App
         {
             if (IsElevated)
             {
-                Result = CreateMenuItem(LoadAtStartupCommand, LoadAtStartupHeader, true, null);
+                Result = CreateMenuItem(LoadAtStartupCommand, LoadAtStartupHeader, true, ref NullBitmap);
             }
             else
             {
                 _ = ResourceLoader.Load("UAC-16.png", string.Empty, out Bitmap UACBitmap);
-                Result = CreateMenuItem(LoadAtStartupCommand, RemoveFromStartupHeader, false, UACBitmap);
+
+                Bitmap? LoadedBitmap = UACBitmap;
+                Result = CreateMenuItem(LoadAtStartupCommand, RemoveFromStartupHeader, false, ref LoadedBitmap);
             }
         }
         else
         {
             if (IsElevated)
             {
-                Result = CreateMenuItem(LoadAtStartupCommand, LoadAtStartupHeader, false, null);
+                Result = CreateMenuItem(LoadAtStartupCommand, LoadAtStartupHeader, false, ref NullBitmap);
             }
             else
             {
                 _ = ResourceLoader.Load("UAC-16.png", string.Empty, out Bitmap UACBitmap);
-                Result = CreateMenuItem(LoadAtStartupCommand, LoadAtStartupHeader, false, UACBitmap);
+
+                Bitmap? LoadedBitmap = UACBitmap;
+                Result = CreateMenuItem(LoadAtStartupCommand, LoadAtStartupHeader, false, ref LoadedBitmap);
             }
         }
 
@@ -160,8 +168,9 @@ public partial class App
                 bool MenuIsChecked = PluginManager.GetMenuIsChecked(Command);
                 Bitmap? MenuIcon = PluginManager.GetMenuIcon(Command);
 
-                MenuItem PluginMenu = CreateMenuItem(Command, MenuHeader, MenuIsChecked, MenuIcon);
+                MenuItem PluginMenu = CreateMenuItem(Command, MenuHeader, MenuIsChecked, ref MenuIcon);
                 TaskbarIcon.PrepareMenuItem(PluginMenu, MenuIsVisible, MenuIsEnabled);
+                MenuIcon?.Dispose();
 
                 PluginMenuList.Add(PluginMenu);
 
@@ -211,10 +220,10 @@ public partial class App
             // The currently preferred plugin will be checked as so.
             string SubmenuHeader = plugin.Name;
             bool SubmenuIsChecked = SubmenuGuid == PluginManager.PreferredPluginGuid;
-            Bitmap SubmenuIcon = plugin.SelectionBitmap;
+            Bitmap? SubmenuIcon = plugin.SelectionBitmap;
 
             AddMenuCommand(SubmenuCommand, OnCommandSelectPreferred);
-            MenuItem PluginMenu = CreateMenuItem(SubmenuCommand, SubmenuHeader, SubmenuIsChecked, SubmenuIcon);
+            MenuItem PluginMenu = CreateMenuItem(SubmenuCommand, SubmenuHeader, SubmenuIsChecked, ref SubmenuIcon);
             TaskbarIcon.PrepareMenuItem(PluginMenu, true, true);
             _ = iconSubmenu.Items.Add(PluginMenu);
 
@@ -228,7 +237,8 @@ public partial class App
         if (items.Count > 0 && items[^1] is not Separator)
             _ = items.Add(new Separator());
 
-        MenuItem ExitMenu = CreateMenuItem(ExitCommand, "Exit", false, null);
+        Bitmap? Nullicon = null;
+        MenuItem ExitMenu = CreateMenuItem(ExitCommand, "Exit", false, ref Nullicon);
         TaskbarIcon.PrepareMenuItem(ExitMenu, true, true);
         _ = items.Add(ExitMenu);
     }
@@ -275,7 +285,7 @@ public partial class App
         }
     }
 
-    private static MenuItem CreateMenuItem(ICommand command, string header, bool isChecked, Bitmap? icon)
+    private static MenuItem CreateMenuItem(ICommand command, string header, bool isChecked, ref Bitmap? icon)
     {
         MenuItem Result = new()
         {
@@ -285,6 +295,7 @@ public partial class App
             Icon = icon,
         };
 
+        icon = null;
         return Result;
     }
 
@@ -328,6 +339,7 @@ public partial class App
                 TaskbarIcon.SetMenuText(Command, PluginManager.GetMenuHeader(Command));
                 TaskbarIcon.SetMenuIsEnabled(Command, PluginManager.GetMenuIsEnabled(Command));
 
+#pragma warning disable IDISP001 // Dispose created
                 Bitmap? MenuIcon = PluginManager.GetMenuIcon(Command);
                 if (MenuIcon is not null)
                 {
@@ -351,7 +363,7 @@ public partial class App
     /// <summary>
     /// Gets the icon to display in the taskbar.
     /// </summary>
-    public TaskbarIcon AppTaskbarIcon { get; private set; } = TaskbarIcon.Empty;
+    public TaskbarIcon AppTaskbarIcon => AppTaskbarIconInternal ?? TaskbarIcon.Empty;
 
     private readonly ICommand LoadAtStartupCommand = new RoutedUICommand("{2E4589C5-620C-42C2-B68D-0E3AA9F9E362}", "LoadAtStartup", typeof(App));
     private readonly ICommand ExitCommand = new RoutedUICommand("{FA8D16C1-16F0-461B-BF10-082DB4D76208}", "Exit", typeof(App));

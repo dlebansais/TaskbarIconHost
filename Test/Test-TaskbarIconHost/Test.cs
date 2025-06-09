@@ -15,12 +15,12 @@ public class Test
     [TestMethod]
     public void Test1()
     {
-        WindowsDriver Session = LaunchApp();
+        using WindowsDriver Session = LaunchApp();
 
         AppiumElement ButtonNoElement = Session.FindElement(new ByName("Non"));
         ButtonNoElement.Click();
 
-        StopApp(Session);
+        StopApp();
     }
 
     private static WindowsDriver LaunchApp()
@@ -34,11 +34,7 @@ public class Test
         return new WindowsDriver(new Uri("http://127.0.0.1:4723"), AppiumOptions);
     }
 
-    private static void StopApp(WindowsDriver session)
-    {
-        Thread.Sleep(TimeSpan.FromSeconds(2));
-        using WindowsDriver DeletedSession = session;
-    }
+    private static void StopApp() => Thread.Sleep(TimeSpan.FromSeconds(2));
 }
 
 #pragma warning restore SA1600 // Elements should be documented

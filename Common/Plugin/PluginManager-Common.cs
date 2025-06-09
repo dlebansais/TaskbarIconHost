@@ -63,7 +63,7 @@ public static partial class PluginManager
     [SuppressMessage("Microsoft.Reliability", "CA2000: Dispose objects before losing scope", Justification = "Disposable object is stored")]
     private static void InitializePlugin(IPluginClient plugin, bool isElevated, Dispatcher dispatcher, ILogger logger)
     {
-        RegistryTools.Settings Settings = new("TaskbarIconHost", GuidToString(plugin.PluginGuid), logger);
+        using RegistryTools.Settings Settings = new("TaskbarIconHost", GuidToString(plugin.PluginGuid), logger);
         plugin.Initialize(isElevated, dispatcher, Settings, logger);
     }
 

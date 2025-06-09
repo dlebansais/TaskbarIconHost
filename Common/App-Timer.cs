@@ -2,12 +2,13 @@
 
 using System;
 using System.Threading;
+using System.Windows;
 using System.Windows.Threading;
 
 /// <summary>
 /// Represents an application that can manage plugins having an icon in the taskbar.
 /// </summary>
-public partial class App
+public partial class App : Application, IDisposable
 {
     private void InitTimer()
     {

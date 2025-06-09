@@ -36,10 +36,10 @@ internal partial class LoadAtStartupWindow : Window
         try
         {
 #if NETFRAMEWORK
-            this.TaskSelectionText = string.Format(CultureInfo.CurrentCulture, TaskSelectionTextFormat, appName);
+            TaskSelectionText = string.Format(CultureInfo.CurrentCulture, TaskSelectionTextFormat, appName);
 #else
             CompositeFormat TaskSelectionTextCompositeFormat = CompositeFormat.Parse(TaskSelectionTextFormat);
-            this.TaskSelectionText = string.Format(CultureInfo.CurrentCulture, TaskSelectionTextCompositeFormat, appName);
+            TaskSelectionText = string.Format(CultureInfo.CurrentCulture, TaskSelectionTextCompositeFormat, appName);
 #endif
 
             // Create a script in the plugin folder. This script can be imported to create a new task.

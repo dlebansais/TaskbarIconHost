@@ -16,8 +16,8 @@
         <Product />
         <Description>Host for plugins to show on the  taskbar</Description>
         <Copyright>Copyright © 2024 David Le Bansais</Copyright>
-        <AssemblyVersion>3.0.0.368</AssemblyVersion>
-        <FileVersion>3.0.0.368</FileVersion>
+        <AssemblyVersion>3.0.0.369</AssemblyVersion>
+        <FileVersion>3.0.0.369</FileVersion>
         <RepositoryUrl>https://github.com/dlebansais/TaskbarIconHost</RepositoryUrl>
         <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
 
@@ -56,6 +56,9 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
+        <PackageReference Include="dlebansais.IDisposableAnalyzers" Version="4.0.8.10">
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
         <PackageReference Include="dlebansais.CSharpLatest" Version="2.0.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -67,11 +70,11 @@
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0">
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="Method.Contracts.Analyzers-Debug" Version="2.0.0" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+        <PackageReference Include="Method.Contracts.Analyzers-Debug" Version="2.0.1" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Method.Contracts.Analyzers" Version="2.0.0" Condition="'$(Configuration)|$(Platform)'!='Debug|x64'">
+        <PackageReference Include="Method.Contracts.Analyzers" Version="2.0.1" Condition="'$(Configuration)|$(Platform)'!='Debug|x64'">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
@@ -83,16 +86,16 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Microsoft.Bcl.Cryptography" Version="9.0.0" />
-        <PackageReference Include="Method.Contracts-Debug" Version="2.0.0" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
-        <PackageReference Include="Method.Contracts" Version="2.0.0" Condition="'$(Configuration)|$(Platform)'!='Debug|x64'" />
+        <PackageReference Include="Method.Contracts-Debug" Version="2.0.1" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+        <PackageReference Include="Method.Contracts" Version="2.0.1" Condition="'$(Configuration)|$(Platform)'!='Debug|x64'" />
         <PackageReference Include="ResourceTools-Debug" Version="3.0.0" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
         <PackageReference Include="ResourceTools" Version="3.0.0" Condition="'$(Configuration)|$(Platform)'!='Debug|x64'" />
         <PackageReference Include="RegistryTools-Debug" Version="3.0.0" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
         <PackageReference Include="RegistryTools" Version="3.0.0" Condition="'$(Configuration)|$(Platform)'!='Debug|x64'" />
         <PackageReference Include="SchedulerTools-Debug" Version="2.0.0" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
         <PackageReference Include="SchedulerTools" Version="2.0.0" Condition="'$(Configuration)|$(Platform)'!='Debug|x64'" />
-        <PackageReference Include="TaskbarTools-Debug" Version="2.0.0" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
-        <PackageReference Include="TaskbarTools" Version="2.0.0" Condition="'$(Configuration)|$(Platform)'!='Debug|x64'" />
+        <PackageReference Include="TaskbarTools-Debug" Version="3.0.0" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+        <PackageReference Include="TaskbarTools" Version="3.0.0" Condition="'$(Configuration)|$(Platform)'!='Debug|x64'" />
         <PackageReference Include="XamlConverterLibrary-Debug" Version="2.0.0" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
         <PackageReference Include="XamlConverterLibrary" Version="2.0.0" Condition="'$(Configuration)|$(Platform)'!='Debug|x64'" />
 

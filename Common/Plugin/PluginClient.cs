@@ -18,7 +18,7 @@ using RegistryTools;
 /// <param name="requireElevated">True if the plugin require being run as administrator.</param>
 /// <param name="hasClickHandler">True if the plugin handles right-click on the taskbar icon.</param>
 /// <param name="instanceEvent">The plugin unique instance.</param>
-internal class PluginClient(object pluginHandle, string name, Guid pluginGuid, bool requireElevated, bool hasClickHandler, EventWaitHandle? instanceEvent) : IPluginClient
+internal class PluginClient(object pluginHandle, string name, Guid pluginGuid, bool requireElevated, bool hasClickHandler, [IDisposableAnalyzers.AcquireOwnership] EventWaitHandle? instanceEvent) : IPluginClient
 {
     /// <summary>
     /// Gets the plugin handle.
@@ -182,10 +182,8 @@ internal class PluginClient(object pluginHandle, string name, Guid pluginGuid, b
     /// </summary>
     public void BeginClose()
     {
-        using (EventWaitHandle? EventWaitHandle = InstanceEvent)
-        {
-            InstanceEvent = null;
-        }
+        InstanceEvent?.Dispose();
+        InstanceEvent = null;
 
         PluginManager.ExecutePluginMethod(PluginHandle, nameof(IPluginClient.BeginClose));
     }

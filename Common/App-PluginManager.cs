@@ -2,12 +2,13 @@
 
 using System;
 using System.Security.Cryptography;
+using System.Windows;
 using RegistryTools;
 
 /// <summary>
 /// Represents an application that can manage plugins having an icon in the taskbar.
 /// </summary>
-public partial class App
+public partial class App : Application, IDisposable
 {
     private bool InitPlugInManager(OidCollection oidCheckList, out int exitCode, out bool isBadSignature)
     {

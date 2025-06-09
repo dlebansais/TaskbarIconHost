@@ -28,6 +28,7 @@ public partial class App : Application, IDisposable
             if (disposing)
             {
                 PluginApp.Dispose();
+                Plugin.Dispose();
             }
 
             disposedValue = true;

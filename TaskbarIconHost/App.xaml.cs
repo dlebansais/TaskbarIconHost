@@ -62,6 +62,11 @@ public partial class App : Application, IDisposable
         ShutdownMode = ShutdownMode.OnExplicitShutdown;
     }
 
+    /// <summary>
+    /// Gets the current instance of the application.
+    /// </summary>
+    public static App Instance => (App)Current;
+
     private static EventWaitHandle InitializeInstanceEvent()
     {
         // Ensure only one instance is running at a time.
@@ -423,6 +428,7 @@ public partial class App : Application, IDisposable
         CleanupPlugInManager();
         CleanupInstanceEvent();
         CleanupSignatureAlertTimer();
+        CleanupTaskbarIcon();
     }
     #endregion
 }

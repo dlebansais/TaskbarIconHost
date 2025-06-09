@@ -58,7 +58,7 @@ public partial class App : IDisposable
             if (!createdNew)
             {
                 Logger.Write(LogLevel.Warning, "Another instance is already running");
-                InstanceEvent.Close();
+                InstanceEvent.Dispose();
                 InstanceEvent = null;
                 Owner.Shutdown();
                 return;
@@ -137,7 +137,7 @@ public partial class App : IDisposable
 
     private void CleanupInstanceEvent()
     {
-        using EventWaitHandle? Event = InstanceEvent;
+        InstanceEvent?.Dispose();
         InstanceEvent = null;
     }
 
@@ -366,6 +366,7 @@ public partial class App : IDisposable
         CleanupTimer();
         CleanupPlugInManager();
         CleanupInstanceEvent();
+        CleanupTaskbarIcon();
     }
     #endregion
 }

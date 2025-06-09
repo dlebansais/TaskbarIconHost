@@ -16,8 +16,8 @@
         <Product />
         <Description>Test-SinglePluginHost</Description>
         <Copyright>Copyright © 2024 David Le Bansais</Copyright>
-        <AssemblyVersion>3.0.0.368</AssemblyVersion>
-        <FileVersion>3.0.0.368</FileVersion>
+        <AssemblyVersion>3.0.0.369</AssemblyVersion>
+        <FileVersion>3.0.0.369</FileVersion>
         <RepositoryUrl>https://github.com/dlebansais/TaskbarIconHost</RepositoryUrl>
         <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
 
@@ -45,7 +45,7 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="IDisposableAnalyzers" Version="4.0.8">
+        <PackageReference Include="dlebansais.IDisposableAnalyzers" Version="4.0.8.10">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
@@ -60,11 +60,11 @@
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0">
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="Method.Contracts.Analyzers-Debug" Version="2.0.0" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+        <PackageReference Include="Method.Contracts.Analyzers-Debug" Version="2.0.1" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Method.Contracts.Analyzers" Version="2.0.0" Condition="'$(Configuration)|$(Platform)'!='Debug|x64'">
+        <PackageReference Include="Method.Contracts.Analyzers" Version="2.0.1" Condition="'$(Configuration)|$(Platform)'!='Debug|x64'">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
