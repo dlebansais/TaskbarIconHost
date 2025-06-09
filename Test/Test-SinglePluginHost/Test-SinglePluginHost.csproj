@@ -69,7 +69,7 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
 
-        <!-- System.Formats.Asn1 is added to mitigate vulnerability. -->
+        <!-- System.Text.Json is added to mitigate vulnerability. -->
         <!-- Remove as soon as one of the packages above no longer depends on the vulnerable version -->
         <PackageReference Include="System.Text.Json" Version="9.0.0" />
     </ItemGroup>

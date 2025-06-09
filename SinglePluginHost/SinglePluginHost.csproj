@@ -90,7 +90,7 @@
         <PackageReference Include="XamlConverterLibrary-Debug" Version="2.0.0" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
         <PackageReference Include="XamlConverterLibrary" Version="2.0.0" Condition="'$(Configuration)|$(Platform)'!='Debug|x64'" />
 
-        <!-- System.Formats.Asn1 is added to mitigate vulnerability. -->
+        <!-- System.Text.Json is added to mitigate vulnerability. -->
         <!-- Remove as soon as one of the packages above no longer depends on the vulnerable version -->
         <PackageReference Include="System.Text.Json" Version="9.0.0" />
     </ItemGroup>
