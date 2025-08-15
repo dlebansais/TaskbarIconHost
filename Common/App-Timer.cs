@@ -55,7 +55,7 @@ public partial class App : Application, IDisposable
         }
     }
 
-    private Timer AppTimer = new((object? parameter) => { });
+    private Timer AppTimer = new(parameter => { });
     private DispatcherOperation? AppTimerOperation;
     private readonly TimeSpan CheckInterval = TimeSpan.FromSeconds(0.1);
 }

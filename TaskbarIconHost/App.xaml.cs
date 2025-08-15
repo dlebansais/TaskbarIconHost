@@ -206,7 +206,7 @@ public partial class App : Application, IDisposable
     private readonly Guid AppGuid = Guid.Empty;
     private bool IsExitRequested;
     private readonly OidCollection OidCheckList = [];
-    private Timer SignatureAlertTimer = new((object? parameter) => { });
+    private Timer SignatureAlertTimer = new(parameter => { });
     private TimeSpan SignatureAlertTimeout = TimeSpan.FromSeconds(40);
     private bool IsExiting;
     private readonly EventWaitHandle InstanceEvent = InitializeInstanceEvent();
