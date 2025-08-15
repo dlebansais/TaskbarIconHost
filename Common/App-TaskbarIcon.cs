@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Reflection;
-using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Contracts;
@@ -16,7 +15,7 @@ using static TaskbarIconHost.Properties.Resources;
 /// <summary>
 /// Represents an application that can manage plugins having an icon in the taskbar.
 /// </summary>
-public partial class App : Application, IDisposable
+public partial class App : IDisposable
 {
     private void InitTaskbarIcon()
     {

@@ -10,14 +10,14 @@
         <Platforms>x64</Platforms>
 
         <RootNamespace>TestSinglePluginHost</RootNamespace>
-        <Version>3.0.1</Version>
+        <Version>3.0.2</Version>
         <Authors>David Le Bansais</Authors>
         <Company />
         <Product />
         <Description>Test-SinglePluginHost</Description>
         <Copyright>Copyright © 2025 David Le Bansais</Copyright>
-        <AssemblyVersion>3.0.1.370</AssemblyVersion>
-        <FileVersion>3.0.1.370</FileVersion>
+        <AssemblyVersion>3.0.2.370</AssemblyVersion>
+        <FileVersion>3.0.2.370</FileVersion>
         <RepositoryUrl>https://github.com/dlebansais/TaskbarIconHost</RepositoryUrl>
         <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
 

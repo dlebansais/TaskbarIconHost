@@ -8,14 +8,14 @@
         <Platforms>x64</Platforms>
 
         <RootNamespace>TaskbarIconHost</RootNamespace>
-        <Version>3.0.1</Version>
+        <Version>3.0.2</Version>
         <Authors>David Le Bansais</Authors>
         <Company />
         <Product />
         <Description>TaskbarIconShared</Description>
         <Copyright>Copyright © 2025 David Le Bansais</Copyright>
-        <AssemblyVersion>3.0.1.370</AssemblyVersion>
-        <FileVersion>3.0.1.370</FileVersion>
+        <AssemblyVersion>3.0.2.370</AssemblyVersion>
+        <FileVersion>3.0.2.370</FileVersion>
         <RepositoryUrl>https://github.com/dlebansais/TaskbarIconHost</RepositoryUrl>
         <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
 
@@ -73,8 +73,8 @@
         <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.8" />
         <PackageReference Include="Method.Contracts-Debug" Version="2.0.3" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
         <PackageReference Include="Method.Contracts" Version="2.0.3" Condition="'$(Configuration)|$(Platform)'!='Debug|x64'" />
-        <PackageReference Include="RegistryTools-Debug" Version="3.0.0" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
-        <PackageReference Include="RegistryTools" Version="3.0.0" Condition="'$(Configuration)|$(Platform)'!='Debug|x64'" />
+        <PackageReference Include="RegistryTools-Debug" Version="3.0.1" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+        <PackageReference Include="RegistryTools" Version="3.0.1" Condition="'$(Configuration)|$(Platform)'!='Debug|x64'" />
     </ItemGroup>
 
     <ItemGroup>
