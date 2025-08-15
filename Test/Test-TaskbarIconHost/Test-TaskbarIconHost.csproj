@@ -73,6 +73,9 @@
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework)'=='net481' Or '$(TargetFramework)'=='net8.0-windows7.0' Or '$(TargetFramework)'=='net9.0-windows7.0'">
+        <!-- System.Text.Json is added to mitigate vulnerability. -->
+        <!-- Remove as soon as one of the packages above no longer depends on the vulnerable version -->
+        <PackageReference Include="System.Text.Json" Version="9.0.8" />
     </ItemGroup>
 
     <ItemGroup>

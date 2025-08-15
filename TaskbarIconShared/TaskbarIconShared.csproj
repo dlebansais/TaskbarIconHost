@@ -77,6 +77,12 @@
         <PackageReference Include="RegistryTools" Version="3.0.0" Condition="'$(Configuration)|$(Platform)'!='Debug|x64'" />
     </ItemGroup>
 
+    <ItemGroup>
+        <!-- System.Text.Json is added to mitigate vulnerability. -->
+        <!-- Remove as soon as one of the packages above no longer depends on the vulnerable version -->
+        <PackageReference Include="System.Text.Json" Version="9.0.8" />
+    </ItemGroup>
+
     <ItemGroup Condition="'$(TargetFramework)'=='net481'">
         <Reference Include="PresentationCore" />
         <Reference Include="PresentationFramework" />

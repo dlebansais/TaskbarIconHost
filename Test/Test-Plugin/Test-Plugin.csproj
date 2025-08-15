@@ -79,6 +79,12 @@
     </ItemGroup>
 
     <ItemGroup>
+        <!-- System.Text.Json is added to mitigate vulnerability. -->
+        <!-- Remove as soon as one of the packages above no longer depends on the vulnerable version -->
+        <PackageReference Include="System.Text.Json" Version="9.0.8" />
+    </ItemGroup>
+
+    <ItemGroup>
         <ProjectReference Include="..\..\TaskbarIconShared\TaskbarIconShared.csproj" />
     </ItemGroup>
 
