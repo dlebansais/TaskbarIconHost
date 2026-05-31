@@ -55,7 +55,7 @@ public static partial class PluginManager
         object? Result = PluginHandle.GetType().InvokeMember(PropertyName, BindingFlags.Default | BindingFlags.GetProperty, null, pluginHandle, null, CultureInfo.InvariantCulture);
 
         // ! We know the result is not null because we only read non-nullable properties.
-        return (T)Result!;
+        return (T)Contract.AssertNotNull(Result);
     }
 
     /// <summary>
@@ -75,6 +75,7 @@ public static partial class PluginManager
         return Result as T;
     }
 
+#if NETFRAMEWORK
     /// <summary>
     /// Executes a plugin method.
     /// </summary>
@@ -105,7 +106,7 @@ public static partial class PluginManager
         object? Result = PluginHandle.GetType().InvokeMember(FunctionName, BindingFlags.Default | BindingFlags.InvokeMethod, null, pluginHandle, args, CultureInfo.InvariantCulture);
 
         // ! We know the result is not null because we only call non-nullable functions.
-        return (T)Result!;
+        return (T)Result;
     }
 
     /// <summary>
@@ -125,6 +126,58 @@ public static partial class PluginManager
         object? Result = PluginHandle.GetType().InvokeMember(FunctionName, BindingFlags.Default | BindingFlags.InvokeMethod, null, pluginHandle, args, CultureInfo.InvariantCulture);
         return Result as T;
     }
+#else
+    /// <summary>
+    /// Executes a plugin method.
+    /// </summary>
+    /// <param name="pluginHandle">The plugin handle.</param>
+    /// <param name="methodName">The method name.</param>
+    /// <param name="args">Arguments for the method.</param>
+    public static void ExecutePluginMethod(object pluginHandle, string methodName, params ReadOnlySpan<object> args)
+    {
+        Contract.RequireNotNull(pluginHandle, out object PluginHandle);
+        Contract.RequireNotNull(methodName, out string MethodName);
+
+        _ = PluginHandle.GetType().InvokeMember(MethodName, BindingFlags.Default | BindingFlags.InvokeMethod, null, pluginHandle, args.ToArray(), CultureInfo.InvariantCulture);
+    }
+
+    /// <summary>
+    /// Calls a plugin function.
+    /// </summary>
+    /// <typeparam name="T">The plugin function return type.</typeparam>
+    /// <param name="pluginHandle">The plugin handle.</param>
+    /// <param name="functionName">The plugin function name.</param>
+    /// <param name="args">Arguments for the function.</param>
+    /// <returns>The function return value.</returns>
+    public static T GetPluginFunctionValue<T>(object pluginHandle, string functionName, params ReadOnlySpan<object> args)
+    {
+        Contract.RequireNotNull(pluginHandle, out object PluginHandle);
+        Contract.RequireNotNull(functionName, out string FunctionName);
+
+        object? Result = PluginHandle.GetType().InvokeMember(FunctionName, BindingFlags.Default | BindingFlags.InvokeMethod, null, pluginHandle, args.ToArray(), CultureInfo.InvariantCulture);
+
+        // ! We know the result is not null because we only call non-nullable functions.
+        return (T)Result!;
+    }
+
+    /// <summary>
+    /// Calls a plugin function.
+    /// </summary>
+    /// <typeparam name="T">The plugin function return type.</typeparam>
+    /// <param name="pluginHandle">The plugin handle.</param>
+    /// <param name="functionName">The plugin function name.</param>
+    /// <param name="args">Arguments for the function.</param>
+    /// <returns>The function return value.</returns>
+    public static T? GetPluginFunctionValueNullable<T>(object pluginHandle, string functionName, params ReadOnlySpan<object> args)
+        where T : class
+    {
+        Contract.RequireNotNull(pluginHandle, out object PluginHandle);
+        Contract.RequireNotNull(functionName, out string FunctionName);
+
+        object? Result = PluginHandle.GetType().InvokeMember(FunctionName, BindingFlags.Default | BindingFlags.InvokeMethod, null, pluginHandle, args.ToArray(), CultureInfo.InvariantCulture);
+        return Result as T;
+    }
+#endif
 
     /// <summary>
     /// Gets a value indicating whether the plugin must run as administrator.

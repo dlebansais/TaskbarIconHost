@@ -6,6 +6,11 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
+
+#if !NETFRAMEWORK
+using System.Text;
+#endif
+
 using Contracts;
 using Microsoft.Extensions.Logging;
 
@@ -75,6 +80,7 @@ internal class PluginLogger : ILogger
         Write(logLevel, Formatter(state, null));
     }
 
+#if NETFRAMEWORK
     /// <summary>
     /// Writes a log message.
     /// </summary>
@@ -110,6 +116,49 @@ internal class PluginLogger : ILogger
         if (exception is not null)
             AddLog(exception.Message);
     }
+#else
+    /// <summary>
+    /// Writes a log message.
+    /// </summary>
+    /// <param name="logLevel">The message category.</param>
+    /// <param name="message">The message text.</param>
+    /// <param name="arguments">Arguments used when for formatting the final message.</param>
+    public void Write(LogLevel logLevel, string message, params ReadOnlySpan<object> arguments)
+    {
+        if (arguments.Length > 0)
+        {
+            CompositeFormat messageFormat = CompositeFormat.Parse(message);
+            AddLog(string.Format(CultureInfo.InvariantCulture, messageFormat, arguments));
+        }
+        else
+        {
+            AddLog(message);
+        }
+    }
+
+    /// <summary>
+    /// Writes a log message associated to an exception.
+    /// </summary>
+    /// <param name="logLevel">The message category.</param>
+    /// <param name="exception">The exception.</param>
+    /// <param name="message">The message text.</param>
+    /// <param name="arguments">Arguments used when for formatting the final message.</param>
+    public void Write(LogLevel logLevel, Exception exception, string message, params ReadOnlySpan<object> arguments)
+    {
+        if (arguments.Length > 0)
+        {
+            CompositeFormat messageFormat = CompositeFormat.Parse(message);
+            AddLog(string.Format(CultureInfo.InvariantCulture, messageFormat, arguments));
+        }
+        else
+        {
+            AddLog(message);
+        }
+
+        if (exception is not null)
+            AddLog(exception.Message);
+    }
+#endif
 
     /// <summary>
     /// Adds a simple log message.
@@ -190,7 +239,12 @@ internal class PluginLogger : ILogger
     }
 
     private string? LogLines;
+
+#if NET10_0_OR_GREATER
+    private readonly System.Threading.Lock GlobalLock = new();
+#else
     private readonly object GlobalLock = string.Empty;
+#endif
     private readonly bool IsLogOn;
     private readonly bool IsFileLogOn;
     private readonly string? TraceFilePath;

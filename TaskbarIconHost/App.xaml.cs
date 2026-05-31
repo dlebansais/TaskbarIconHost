@@ -397,9 +397,7 @@ public partial class App : Application, IDisposable
         }
     }
 
-    /// <summary>
-    /// Called when an object should release its resources.
-    /// </summary>
+    /// <inheritdoc cref="IDisposable.Dispose" />
     public void Dispose()
     {
         Dispose(true);

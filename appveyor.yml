@@ -6,6 +6,9 @@ branches:
     - master
     - deployment
 
+# Do not build on tags
+skip_tags: true
+
 # Skipping commits with particular message or from specific user
 skip_commits:
   message: "*[skip ci]*"
@@ -63,7 +66,7 @@ deploy:
     skip_symbols: true
     username: dlebansais
     api_key:
-      secure: 5tcSRVegOcTQlDtIaRuucZxjxp4BmVhrdVoxJtejCcfsCmBV+ZwyfSXrlRsF9QxZ
+      secure: 7DLdeObgZf+PG3CwBCFWr2UvW6IFBF4Lwa0SUxFeQbkWr6DJSwNPFDwuKXgX8Wfy
     on:
       branch: deployment
       configuration: Release
@@ -73,7 +76,7 @@ deploy:
     artifact: $(APPVEYOR_PROJECT_NAME)-Package-Debug
     username: dlebansais
     api_key:
-      secure: 5tcSRVegOcTQlDtIaRuucZxjxp4BmVhrdVoxJtejCcfsCmBV+ZwyfSXrlRsF9QxZ
+      secure: 7DLdeObgZf+PG3CwBCFWr2UvW6IFBF4Lwa0SUxFeQbkWr6DJSwNPFDwuKXgX8Wfy
     on:
       branch: deployment
       configuration: Debug

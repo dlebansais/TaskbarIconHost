@@ -2,22 +2,22 @@
 
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
-        <TargetFrameworks>net481;net8.0-windows7.0;net9.0-windows7.0</TargetFrameworks>
-        <UseWPF>true</UseWPF>
+        <TargetFrameworks>net481;net8.0-windows7.0;net10.0-windows7.0</TargetFrameworks>
         <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-        <LangVersion>13</LangVersion>
+        <LangVersion>14</LangVersion>
         <Nullable>enable</Nullable>
         <Platforms>x64</Platforms>
+        <UseWPF>true</UseWPF>
 
         <RootNamespace>TestSinglePluginHost</RootNamespace>
-        <Version>3.0.2</Version>
+        <Version>3.1.0</Version>
         <Authors>David Le Bansais</Authors>
         <Company />
         <Product />
         <Description>Test-SinglePluginHost</Description>
-        <Copyright>Copyright © 2025 David Le Bansais</Copyright>
-        <AssemblyVersion>3.0.2.370</AssemblyVersion>
-        <FileVersion>3.0.2.370</FileVersion>
+        <Copyright>Copyright © 2026 David Le Bansais</Copyright>
+        <AssemblyVersion>3.1.0.371</AssemblyVersion>
+        <FileVersion>3.1.0.371</FileVersion>
         <RepositoryUrl>https://github.com/dlebansais/TaskbarIconHost</RepositoryUrl>
         <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
 
@@ -45,26 +45,26 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="dlebansais.IDisposableAnalyzers" Version="4.0.8.16">
+        <PackageReference Include="dlebansais.IDisposableAnalyzers" Version="4.0.8.17">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="dlebansais.CSharpLatest" Version="2.1.3">
+        <PackageReference Include="dlebansais.CSharpLatest" Version="2.7.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="PolySharp" Version="1.15.0">
+        <PackageReference Include="PolySharp" Version="1.16.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0">
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="Method.Contracts.Analyzers-Debug" Version="2.0.4" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+        <PackageReference Include="dlebansais.Method.Contracts.Analyzers-Debug" Version="2.0.10" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Method.Contracts.Analyzers" Version="2.0.4" Condition="'$(Configuration)|$(Platform)'!='Debug|x64'">
+        <PackageReference Include="dlebansais.Method.Contracts.Analyzers" Version="2.0.10" Condition="'$(Configuration)|$(Platform)'!='Debug|x64'">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
