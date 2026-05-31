@@ -55,13 +55,13 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0">
+        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.300">
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
 
-        <PackageReference Include="Appium.WebDriver" Version="6.0.1" />
-        <PackageReference Include="MSTest.TestAdapter" Version="3.10.2" />
-        <PackageReference Include="MSTest.TestFramework" Version="3.10.2" />
+        <PackageReference Include="Appium.WebDriver" Version="8.2.0" />
+        <PackageReference Include="MSTest.TestAdapter" Version="4.2.3" />
+        <PackageReference Include="MSTest.TestFramework" Version="4.2.3" />
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework)'=='net481'">
@@ -75,7 +75,7 @@
     <ItemGroup Condition="'$(TargetFramework)'=='net481' Or '$(TargetFramework)'=='net8.0-windows7.0' Or '$(TargetFramework)'=='net9.0-windows7.0'">
         <!-- System.Text.Json is added to mitigate vulnerability. -->
         <!-- Remove as soon as one of the packages above no longer depends on the vulnerable version -->
-        <PackageReference Include="System.Text.Json" Version="9.0.8" />
+        <PackageReference Include="System.Text.Json" Version="10.0.8" />
     </ItemGroup>
 
     <ItemGroup>

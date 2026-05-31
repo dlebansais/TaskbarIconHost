@@ -28,7 +28,7 @@ public class Test
         Thread.Sleep(TimeSpan.FromSeconds(10));
 
         AppiumOptions AppiumOptions = new();
-        AppiumOptions.AddAdditionalAppiumOption("Application", @".\TaskbarIconHost\bin\x64\Debug\TaskbarIconHost.exe");
+        AppiumOptions.AddAdditionalAppiumOption("Application", @".\TaskbarIconHost\bin\x64\Debug\net481\TaskbarIconHost.exe");
         AppiumOptions.AddAdditionalAppiumOption("ApplicationArguments", "bad");
 
         return new WindowsDriver(new Uri("http://127.0.0.1:4723"), AppiumOptions);
