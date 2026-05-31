@@ -31,9 +31,6 @@
         <EmbedUntrackedSources>true</EmbedUntrackedSources>
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-        <PackageLicenseExpression>0BSD</PackageLicenseExpression>
-        <PackageIcon>package-icon.png</PackageIcon>
-        <PackageReadmeFile>README-short.md</PackageReadmeFile>
     </PropertyGroup>
 
     <ItemGroup>
