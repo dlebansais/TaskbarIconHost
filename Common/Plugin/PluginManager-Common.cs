@@ -176,35 +176,7 @@ public static partial class PluginManager
 
             if (IsReferencingSharedAssembly(assembly, out _))
             {
-                Type?[] AssemblyTypes;
-                try
-                {
-                    AssemblyTypes = assembly.GetTypes();
-                }
-                catch (ReflectionTypeLoadException LoaderException)
-                {
-                    AssemblyTypes = LoaderException.Types;
-                }
-                catch
-                {
-                    AssemblyTypes = [];
-                }
-
-                foreach (Type? ClientType in AssemblyTypes)
-                {
-                    if (ClientType is not null)
-                    {
-                        if (!ClientType.IsPublic || ClientType.IsInterface || !ClientType.IsClass || ClientType.IsAbstract)
-                            continue;
-
-                        Contract.RequireNotNull(PluginInterfaceType.FullName, out string FullName);
-                        Type? InterfaceType = ClientType.GetInterface(FullName);
-                        if (InterfaceType is not null)
-                            pluginClientTypeList.Add(ClientType);
-                    }
-                }
-
-                return pluginClientTypeList.Count > 0;
+                return FindPluginClientTypesInSharedAssembly(assembly, out pluginClientTypeList);
             }
         }
         catch
@@ -214,6 +186,41 @@ public static partial class PluginManager
         }
 
         return false;
+    }
+
+    private static bool FindPluginClientTypesInSharedAssembly(Assembly assembly, out List<Type> pluginClientTypeList)
+    {
+        pluginClientTypeList = [];
+
+        Type?[] AssemblyTypes;
+        try
+        {
+            AssemblyTypes = assembly.GetTypes();
+        }
+        catch (ReflectionTypeLoadException LoaderException)
+        {
+            AssemblyTypes = LoaderException.Types;
+        }
+        catch
+        {
+            AssemblyTypes = [];
+        }
+
+        foreach (Type? ClientType in AssemblyTypes)
+        {
+            if (ClientType is not null)
+            {
+                if (!ClientType.IsPublic || ClientType.IsInterface || !ClientType.IsClass || ClientType.IsAbstract)
+                    continue;
+
+                Contract.RequireNotNull(PluginInterfaceType.FullName, out string FullName);
+                Type? InterfaceType = ClientType.GetInterface(FullName);
+                if (InterfaceType is not null)
+                    pluginClientTypeList.Add(ClientType);
+            }
+        }
+
+        return pluginClientTypeList.Count > 0;
     }
 
     private static bool IsAssemblySigned(Assembly assembly, OidCollection oidCheckList, ref int exitCode)
